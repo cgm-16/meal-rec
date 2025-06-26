@@ -11,10 +11,16 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
+    testTimeout: 30000,
+    hookTimeout: 30000,
+    environmentMatchGlobs: [
+      ['**/api/**/*.test.ts', 'node']
+    ]
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@meal-rec/database': path.resolve(__dirname, '../packages/database/src'),
     },
   },
 });

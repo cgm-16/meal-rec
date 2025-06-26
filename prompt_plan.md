@@ -65,7 +65,7 @@ Return the full code and passing tests only.
 
 ---
 
-## Prompt 03 — Seed Script
+## Prompt 03 — Seed Script ✅ COMPLETED
 
 ```text
 Write `packages/database/src/seed.ts`.
