@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Chicken Tikka Masala",
+    "cuisine": "Indian",
+    "primaryIngredients": ["chicken", "tomato", "cream", "spices"],
+    "allergens": ["dairy"],
+    "weather": ["cold", "rain"],
+    "timeOfDay": ["dinner"],
+    "spiciness": 3,
+    "heaviness": 4,
+    "imageUrl": "https://example.com/chicken-tikka-masala.jpg",
+    "description": "Tender chicken in a rich, creamy tomato-based curry sauce",
+    "flavorTags": ["savory", "creamy", "aromatic"]
+  },
+  {
+    "name": "Caesar Salad",
+    "cuisine": "Mediterranean",
+    "primaryIngredients": ["lettuce", "parmesan", "croutons", "anchovies"],
+    "allergens": ["dairy", "fish", "gluten"],
+    "weather": ["hot", "normal"],
+    "timeOfDay": ["lunch", "dinner"],
+    "spiciness": 0,
+    "heaviness": 2,
+    "imageUrl": "https://example.com/caesar-salad.jpg",
+    "description": "Crisp romaine lettuce with parmesan, croutons, and classic caesar dressing",
+    "flavorTags": ["fresh", "tangy", "crisp"]
+  },
+  {
+    "name": "Beef Ramen",
+    "cuisine": "Japanese",
+    "primaryIngredients": ["beef", "noodles", "broth", "egg"],
+    "allergens": ["gluten", "eggs"],
+    "weather": ["cold", "rain"],
+    "timeOfDay": ["lunch", "dinner"],
+    "spiciness": 2,
+    "heaviness": 4,
+    "imageUrl": "https://example.com/beef-ramen.jpg",
+    "description": "Rich beef broth with tender noodles, topped with soft-boiled egg",
+    "flavorTags": ["umami", "warming", "savory"]
+  },
+  {
+    "name": "Margherita Pizza",
+    "cuisine": "Italian",
+    "primaryIngredients": ["tomato", "mozzarella", "basil", "dough"],
+    "allergens": ["dairy", "gluten"],
+    "weather": ["normal", "hot"],
+    "timeOfDay": ["lunch", "dinner"],
+    "spiciness": 0,
+    "heaviness": 3,
+    "imageUrl": "https://example.com/margherita-pizza.jpg",
+    "description": "Classic pizza with fresh tomato sauce, mozzarella, and basil",
+    "flavorTags": ["fresh", "herbal", "classic"]
+  },
+  {
+    "name": "Thai Green Curry",
+    "cuisine": "Thai",
+    "primaryIngredients": ["coconut milk", "green curry paste", "vegetables", "herbs"],
+    "allergens": [],
+    "weather": ["cold", "normal"],
+    "timeOfDay": ["lunch", "dinner"],
+    "spiciness": 4,
+    "heaviness": 3,
+    "imageUrl": "https://example.com/thai-green-curry.jpg",
+    "description": "Aromatic and spicy curry with coconut milk and fresh vegetables",
+    "flavorTags": ["spicy", "aromatic", "coconut"]
+  }
+]

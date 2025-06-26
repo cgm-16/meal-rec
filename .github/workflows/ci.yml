@@ -32,3 +32,6 @@ jobs:
     
     - name: Run tests
       run: pnpm test
+    
+    - name: Test seed script (dry run)
+      run: pnpm seed --dry-run
