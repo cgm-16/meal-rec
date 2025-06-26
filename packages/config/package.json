@@ -1,0 +1,11 @@
+{
+  "name": "@meal-rec/config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "files": [
+    "eslint.js",
+    "prettier.js",
+    "vitest.js"
+  ]
+}
