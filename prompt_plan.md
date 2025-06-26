@@ -82,7 +82,7 @@ Deliver code only.
 
 ---
 
-## Prompt 04 — REST Endpoints: GET /api/meals & /random
+## Prompt 04 — REST Endpoints: GET /api/meals & /random ✅ COMPLETED
 
 ```text
 Add API routes in Next.js `src/pages/api/meals`.

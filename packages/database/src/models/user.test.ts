@@ -55,6 +55,9 @@ describe('User Model', () => {
   });
 
   it('should enforce unique username constraint', async () => {
+    // Ensure indexes are created
+    await User.createIndexes();
+    
     const user1 = new User({
       username: 'duplicate',
       hashedPin: 'hash1'
