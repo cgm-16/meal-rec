@@ -1,6 +1,10 @@
 // ABOUTME: Test for POST /api/feedback endpoint
 // ABOUTME: Tests feedback storage, validation, TTL cleanup, and guest session handling
 
+/**
+ * @vitest-environment node
+ */
+
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { POST, getGuestFeedback } from './route';

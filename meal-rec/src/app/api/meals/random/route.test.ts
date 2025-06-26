@@ -1,6 +1,10 @@
 // ABOUTME: Test for GET /api/meals/random endpoint
 // ABOUTME: Tests random meal selection and error handling using in-memory MongoDB
 
+/**
+ * @vitest-environment node
+ */
+
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';

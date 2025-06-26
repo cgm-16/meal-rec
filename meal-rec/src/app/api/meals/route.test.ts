@@ -1,6 +1,10 @@
 // ABOUTME: Test for GET /api/meals pagination endpoint
 // ABOUTME: Tests pagination, error handling, and meal retrieval using in-memory MongoDB
 
+/**
+ * @vitest-environment node
+ */
+
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';

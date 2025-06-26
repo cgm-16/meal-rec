@@ -13,9 +13,8 @@ export default defineConfig({
     globals: true,
     testTimeout: 30000,
     hookTimeout: 30000,
-    environmentMatchGlobs: [
-      ['**/api/**/*.test.ts', 'node']
-    ]
+    // Use pool 'forks' for better isolation between different test types
+    pool: 'forks',
   },
   resolve: {
     alias: {
