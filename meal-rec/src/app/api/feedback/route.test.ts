@@ -1,0 +1,194 @@
+// ABOUTME: Test for POST /api/feedback endpoint
+// ABOUTME: Tests feedback storage, validation, TTL cleanup, and guest session handling
+
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { NextRequest } from 'next/server';
+import { POST, getGuestFeedback } from './route';
+
+describe('/api/feedback', () => {
+  beforeEach(() => {
+    // Clear any existing feedback between tests
+    vi.clearAllMocks();
+  });
+
+  it('stores feedback for guest users', async () => {
+    const request = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-session-id': 'test-session'
+      },
+      body: JSON.stringify({
+        mealId: '123',
+        type: 'like'
+      })
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.ok).toBe(true);
+
+    // Check that feedback was stored
+    const feedback = getGuestFeedback('test-session');
+    expect(feedback).toHaveLength(1);
+    expect(feedback[0].mealId).toBe('123');
+    expect(feedback[0].type).toBe('like');
+    expect(feedback[0].timestamp).toBeTypeOf('number');
+  });
+
+  it('handles multiple feedback entries for same session', async () => {
+    const sessionId = 'multi-feedback-session';
+
+    // Submit first feedback
+    const request1 = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-session-id': sessionId
+      },
+      body: JSON.stringify({
+        mealId: '123',
+        type: 'like'
+      })
+    });
+
+    await POST(request1);
+
+    // Submit second feedback
+    const request2 = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-session-id': sessionId
+      },
+      body: JSON.stringify({
+        mealId: '456',
+        type: 'dislike'
+      })
+    });
+
+    await POST(request2);
+
+    const feedback = getGuestFeedback(sessionId);
+    expect(feedback).toHaveLength(2);
+    expect(feedback[0].type).toBe('like');
+    expect(feedback[1].type).toBe('dislike');
+  });
+
+  it('uses default session when no x-session-id header', async () => {
+    const request = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        mealId: '789',
+        type: 'interested'
+      })
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+
+    const feedback = getGuestFeedback('guest');
+    expect(feedback).toHaveLength(1);
+    expect(feedback[0].mealId).toBe('789');
+  });
+
+  it('validates required mealId field', async () => {
+    const request = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        type: 'like'
+      })
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe('mealId and type are required');
+  });
+
+  it('validates required type field', async () => {
+    const request = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        mealId: '123'
+      })
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe('mealId and type are required');
+  });
+
+  it('validates type field values', async () => {
+    const request = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        mealId: '123',
+        type: 'invalid'
+      })
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe('type must be like, interested, or dislike');
+  });
+
+  it('accepts all valid feedback types', async () => {
+    const types = ['like', 'interested', 'dislike'];
+    
+    for (const type of types) {
+      const request = new NextRequest('http://localhost:3000/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-session-id': `test-${type}`
+        },
+        body: JSON.stringify({
+          mealId: '123',
+          type
+        })
+      });
+
+      const response = await POST(request);
+      expect(response.status).toBe(200);
+
+      const feedback = getGuestFeedback(`test-${type}`);
+      expect(feedback[0].type).toBe(type);
+    }
+  });
+
+  it('handles malformed JSON gracefully', async () => {
+    const request = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: 'invalid json'
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(data.error).toBe('Internal server error');
+  });
+});

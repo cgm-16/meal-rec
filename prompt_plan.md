@@ -98,7 +98,7 @@ Return code + tests.
 
 ---
 
-## Prompt 05 — Frontend MealCard Component
+## Prompt 05 — Frontend MealCard Component ✅ COMPLETED
 
 ```text
 Create `src/components/MealCard.tsx`.
