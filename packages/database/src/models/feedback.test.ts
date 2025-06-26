@@ -1,18 +1,22 @@
 // ABOUTME: Unit tests for the Feedback model
 // ABOUTME: Validates required fields, enum constraints, and compound unique index
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import mongoose from 'mongoose';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { Feedback } from './feedback';
 import { User } from './user';
 import { Meal } from './meal';
+import { setupTestDb, teardownTestDb, clearTestDb } from '../test-setup';
 
 describe('Feedback Model', () => {
   let testUser: any;
   let testMeal: any;
 
   beforeAll(async () => {
-    await mongoose.connect('mongodb://localhost:27017/meal-rec-test');
+    await setupTestDb();
+  }, 30000);
+
+  beforeEach(async () => {
+    await clearTestDb();
     
     testUser = await new User({
       username: 'feedbackuser',
@@ -30,8 +34,7 @@ describe('Feedback Model', () => {
   });
 
   afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.disconnect();
+    await teardownTestDb();
   });
 
   it('should create feedback with valid type', async () => {

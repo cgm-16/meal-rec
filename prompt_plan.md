@@ -30,7 +30,7 @@ Return **only** the diff/patch; no prose.
 
 ---
 
-## Prompt 02 — Database Package & Schemas
+## Prompt 02 — Database Package & Schemas ✅ COMPLETED
 
 ```text
 **Context**: Repository from Prompt01 exists. Create `packages/database`.

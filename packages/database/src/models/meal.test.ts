@@ -1,18 +1,21 @@
 // ABOUTME: Unit tests for the Meal model
 // ABOUTME: Validates required fields, constraints, and index creation
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import mongoose from 'mongoose';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { Meal } from './meal';
+import { setupTestDb, teardownTestDb, clearTestDb } from '../test-setup';
 
 describe('Meal Model', () => {
   beforeAll(async () => {
-    await mongoose.connect('mongodb://localhost:27017/meal-rec-test');
-  });
+    await setupTestDb();
+  }, 30000);
 
   afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.disconnect();
+    await teardownTestDb();
+  });
+
+  beforeEach(async () => {
+    await clearTestDb();
   });
 
   it('should create a meal with required fields', async () => {

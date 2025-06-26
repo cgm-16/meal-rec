@@ -2,14 +2,21 @@
 // ABOUTME: Validates environment variable handling and connection error cases
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { connect, disconnect } from './connect';
+import { connect } from './connect';
+
+vi.mock('mongoose', () => ({
+  default: {
+    connect: vi.fn(),
+    disconnect: vi.fn()
+  }
+}));
 
 describe('Database Connection', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
-    vi.resetModules();
     process.env = { ...originalEnv };
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -25,16 +32,9 @@ describe('Database Connection', () => {
   it('should use MONGO_URL from environment', async () => {
     process.env.MONGO_URL = 'mongodb://localhost:27017/test';
     
-    // Mock mongoose to avoid actual connection
-    const mockConnect = vi.fn().mockResolvedValue(undefined);
-    vi.doMock('mongoose', () => ({
-      connect: mockConnect,
-      disconnect: vi.fn()
-    }));
-
-    const { connect: connectFn } = await import('./connect');
-    await connectFn();
+    const mongoose = await import('mongoose');
+    await connect();
     
-    expect(mockConnect).toHaveBeenCalledWith('mongodb://localhost:27017/test');
+    expect(mongoose.default.connect).toHaveBeenCalledWith('mongodb://localhost:27017/test');
   });
 });
