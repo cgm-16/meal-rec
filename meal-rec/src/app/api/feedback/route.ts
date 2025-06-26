@@ -1,7 +1,8 @@
 // ABOUTME: API route for POST /api/feedback to handle user meal preferences
-// ABOUTME: Stores feedback in memory for guests, will persist for authenticated users later
+// ABOUTME: Stores feedback in memory for guests, persists to database for authenticated users
 
 import { NextRequest, NextResponse } from 'next/server';
+import { connect, Feedback } from '@meal-rec/database';
 
 // In-memory storage for guest feedback (TTL 2 hours as per prompt requirement)
 const guestFeedback = new Map<string, { timestamp: number, feedback: any[] }>();
@@ -38,29 +39,58 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Clean up expired feedback
-    cleanupExpiredFeedback();
+    // Check for authenticated user (for now, check x-user-id header)
+    // In future prompts, this will be replaced with proper session/auth
+    const userId = request.headers.get('x-user-id');
 
-    // For now, handle as guest feedback (no session/auth yet)
-    // In future prompts, this will check for authenticated users
-    const sessionId = request.headers.get('x-session-id') || 'guest';
-    
-    const feedbackEntry = {
-      mealId,
-      type,
-      timestamp: Date.now(),
-    };
-
-    if (!guestFeedback.has(sessionId)) {
-      guestFeedback.set(sessionId, {
-        timestamp: Date.now(),
-        feedback: []
+    if (userId) {
+      // Authenticated user: persist to database
+      await connect();
+      
+      // Check if feedback already exists for this user/meal combination
+      const existingFeedback = await Feedback.findOne({ 
+        user: userId, 
+        meal: mealId 
       });
-    }
 
-    const sessionData = guestFeedback.get(sessionId)!;
-    sessionData.feedback.push(feedbackEntry);
-    sessionData.timestamp = Date.now(); // Update session timestamp
+      if (existingFeedback) {
+        // Update existing feedback
+        existingFeedback.type = type;
+        existingFeedback.timestamp = new Date();
+        await existingFeedback.save();
+      } else {
+        // Create new feedback
+        const feedback = new Feedback({
+          user: userId,
+          meal: mealId,
+          type,
+          timestamp: new Date()
+        });
+        await feedback.save();
+      }
+    } else {
+      // Guest user: store in memory with TTL
+      cleanupExpiredFeedback();
+      
+      const sessionId = request.headers.get('x-session-id') || 'guest';
+      
+      const feedbackEntry = {
+        mealId,
+        type,
+        timestamp: Date.now(),
+      };
+
+      if (!guestFeedback.has(sessionId)) {
+        guestFeedback.set(sessionId, {
+          timestamp: Date.now(),
+          feedback: []
+        });
+      }
+
+      const sessionData = guestFeedback.get(sessionId)!;
+      sessionData.feedback.push(feedbackEntry);
+      sessionData.timestamp = Date.now(); // Update session timestamp
+    }
 
     return NextResponse.json({ ok: true });
 

@@ -5,13 +5,48 @@
  * @vitest-environment node
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoose from 'mongoose';
 import { NextRequest } from 'next/server';
 import { POST, getGuestFeedback } from './route';
+import { Feedback, User, Meal } from '@meal-rec/database';
 
 describe('/api/feedback', () => {
-  beforeEach(() => {
-    // Clear any existing feedback between tests
+  let mongoServer: MongoMemoryServer;
+  let testUser: any;
+  let testMeal: any;
+
+  beforeAll(async () => {
+    mongoServer = await MongoMemoryServer.create();
+    const mongoUri = mongoServer.getUri();
+    process.env.MONGO_URL = mongoUri;
+    await mongoose.connect(mongoUri);
+
+    // Create test user and meal
+    testUser = await new User({
+      username: 'testuser',
+      hashedPin: 'hash123'
+    }).save();
+
+    testMeal = await new Meal({
+      name: 'Test Meal',
+      primaryIngredients: ['test'],
+      allergens: [],
+      weather: [],
+      timeOfDay: [],
+      flavorTags: []
+    }).save();
+  }, 30000);
+
+  afterAll(async () => {
+    await mongoose.disconnect();
+    await mongoServer.stop();
+  });
+
+  beforeEach(async () => {
+    // Clear feedback between tests
+    await Feedback.deleteMany({});
     vi.clearAllMocks();
   });
 
@@ -178,6 +213,143 @@ describe('/api/feedback', () => {
       const feedback = getGuestFeedback(`test-${type}`);
       expect(feedback[0].type).toBe(type);
     }
+  });
+
+  it('persists feedback for authenticated users', async () => {
+    const request = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': testUser._id.toString()
+      },
+      body: JSON.stringify({
+        mealId: testMeal._id.toString(),
+        type: 'like'
+      })
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.ok).toBe(true);
+
+    // Check that feedback was persisted to database
+    const savedFeedback = await Feedback.findOne({
+      user: testUser._id,
+      meal: testMeal._id
+    });
+
+    expect(savedFeedback).toBeTruthy();
+    expect(savedFeedback!.type).toBe('like');
+    expect(savedFeedback!.timestamp).toBeInstanceOf(Date);
+  });
+
+  it('updates existing feedback for authenticated users', async () => {
+    // Create initial feedback
+    const initialFeedback = new Feedback({
+      user: testUser._id,
+      meal: testMeal._id,
+      type: 'like',
+      timestamp: new Date()
+    });
+    await initialFeedback.save();
+
+    // Update feedback
+    const request = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': testUser._id.toString()
+      },
+      body: JSON.stringify({
+        mealId: testMeal._id.toString(),
+        type: 'dislike'
+      })
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+
+    // Check that feedback was updated, not duplicated
+    const feedbackCount = await Feedback.countDocuments({
+      user: testUser._id,
+      meal: testMeal._id
+    });
+    expect(feedbackCount).toBe(1);
+
+    const updatedFeedback = await Feedback.findOne({
+      user: testUser._id,
+      meal: testMeal._id
+    });
+    expect(updatedFeedback!.type).toBe('dislike');
+  });
+
+  it('handles database errors gracefully for authenticated users', async () => {
+    // Use invalid user ID to trigger database error
+    const request = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': 'invalid-user-id-format'
+      },
+      body: JSON.stringify({
+        mealId: 'invalid-meal-id-format',
+        type: 'like'
+      })
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(data.error).toBe('Internal server error');
+  });
+
+  it('handles both guest and authenticated users in same test run', async () => {
+    // Guest feedback
+    const guestRequest = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-session-id': 'guest-session'
+      },
+      body: JSON.stringify({
+        mealId: 'guest-meal-id',
+        type: 'interested'
+      })
+    });
+
+    const guestResponse = await POST(guestRequest);
+    expect(guestResponse.status).toBe(200);
+
+    // Authenticated user feedback
+    const authRequest = new NextRequest('http://localhost:3000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': testUser._id.toString()
+      },
+      body: JSON.stringify({
+        mealId: testMeal._id.toString(),
+        type: 'like'
+      })
+    });
+
+    const authResponse = await POST(authRequest);
+    expect(authResponse.status).toBe(200);
+
+    // Verify guest feedback is in memory
+    const guestFeedback = getGuestFeedback('guest-session');
+    expect(guestFeedback).toHaveLength(1);
+    expect(guestFeedback[0].type).toBe('interested');
+
+    // Verify auth feedback is in database
+    const dbFeedback = await Feedback.findOne({
+      user: testUser._id,
+      meal: testMeal._id
+    });
+    expect(dbFeedback!.type).toBe('like');
   });
 
   it('handles malformed JSON gracefully', async () => {

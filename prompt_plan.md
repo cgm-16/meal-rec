@@ -114,7 +114,7 @@ Return code + test.
 
 ---
 
-## Prompt 06 — Page Wiring & Random Recommendation
+## Prompt 06 — Page Wiring & Random Recommendation ✅ COMPLETED
 
 ```text
 Build `src/pages/index.tsx`.
