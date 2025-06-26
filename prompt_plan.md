@@ -5,7 +5,7 @@ Feed them *one by one* to your favorite code generation LLM, waiting for all tes
 
 ---
 
-## Prompt 01 — Initialize Monorepo
+## Prompt 01 — Initialize Monorepo ✅ COMPLETED
 
 ```text
 You are ChatGPT acting as a senior full-stack engineer.
