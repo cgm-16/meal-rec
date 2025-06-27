@@ -6,6 +6,8 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IUser extends Document {
   username: string;
   hashedPin: string;
+  role: 'user' | 'admin';
+  banned: boolean;
   preferences?: {
     spiciness?: number;
     surpriseFactor?: number;
@@ -23,6 +25,15 @@ const UserSchema = new Schema<IUser>({
   hashedPin: { 
     type: String, 
     required: true 
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
+  banned: {
+    type: Boolean,
+    default: false
   },
   preferences: {
     spiciness: { 

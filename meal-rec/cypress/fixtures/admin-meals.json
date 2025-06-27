@@ -1,0 +1,32 @@
+{
+  "meals": [
+    {
+      "_id": "meal1",
+      "name": "Pasta Carbonara",
+      "cuisine": "Italian",
+      "primaryIngredients": ["pasta", "eggs", "cheese"],
+      "allergens": ["eggs", "dairy"],
+      "weather": ["cold"],
+      "timeOfDay": ["dinner"],
+      "spiciness": 1,
+      "heaviness": 4,
+      "imageUrl": "https://example.com/carbonara.jpg",
+      "description": "Classic Italian pasta dish",
+      "flavorTags": ["creamy", "savory"]
+    },
+    {
+      "_id": "meal2",
+      "name": "Spicy Thai Curry",
+      "cuisine": "Thai",
+      "primaryIngredients": ["chicken", "coconut milk", "curry paste"],
+      "allergens": [],
+      "weather": ["cold", "rain"],
+      "timeOfDay": ["lunch", "dinner"],
+      "spiciness": 4,
+      "heaviness": 3,
+      "imageUrl": "https://example.com/curry.jpg",
+      "description": "Authentic Thai curry with coconut milk",
+      "flavorTags": ["spicy", "aromatic"]
+    }
+  ]
+}

@@ -237,7 +237,7 @@ Code only.
 
 ---
 
-## Prompt 13 — Weather & Geo Utilities
+## Prompt 13 — Weather & Geo Utilities ✅ COMPLETED
 
 ```text
 Implement `packages/core/weather.ts`.
@@ -253,7 +253,7 @@ Return code + tests.
 
 ---
 
-## Prompt 14 — Explore Tab Analytics
+## Prompt 14 — Explore Tab Analytics ✅ COMPLETED
 
 ```text
 Backend  

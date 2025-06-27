@@ -6,9 +6,11 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "vitest"
+    "test": "vitest",
+    "seed-admin": "ts-node src/seed-admin.ts"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "mongoose": "^8.8.4",
     "node-cron": "^4.1.1"
   },

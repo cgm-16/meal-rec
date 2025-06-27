@@ -1,0 +1,25 @@
+{
+  "users": [
+    {
+      "_id": "user1",
+      "username": "admin",
+      "role": "admin",
+      "banned": false,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "_id": "user2",
+      "username": "testuser1",
+      "role": "user",
+      "banned": false,
+      "createdAt": "2024-01-02T00:00:00.000Z"
+    },
+    {
+      "_id": "user3",
+      "username": "testuser2",
+      "role": "user",
+      "banned": true,
+      "createdAt": "2024-01-03T00:00:00.000Z"
+    }
+  ]
+}
