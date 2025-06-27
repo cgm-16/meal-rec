@@ -2,7 +2,7 @@
 // ABOUTME: Integrates quiz answers, user feedback, weather conditions, and candidate meals to select optimal meal
 
 import { NextRequest, NextResponse } from 'next/server';
-import { connect, Meal, Feedback } from '@meal-rec/database';
+import { connect, Meal, getRecentFeedback } from '@meal-rec/database';
 import { selectRecommendation } from '@meal-rec/core';
 import type { QuizAnswers, FeedbackEntry, WeatherCondition } from '@meal-rec/core';
 
@@ -26,14 +26,10 @@ export async function POST(request: NextRequest) {
       surpriseFactor: 5
     };
 
-    // 2. Get user feedback from last 14 days
+    // 2. Get user feedback from last 14 days using helper function
     let recentFeedback: FeedbackEntry[] = [];
     if (userId) {
-      const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-      const feedbackRecords = await Feedback.find({
-        user: userId,
-        timestamp: { $gte: twoWeeksAgo }
-      }).populate('meal');
+      const feedbackRecords = await getRecentFeedback(userId, 14);
 
       recentFeedback = feedbackRecords.map(record => ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

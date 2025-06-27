@@ -11,16 +11,14 @@ vi.mock('@meal-rec/database', () => ({
   Meal: {
     aggregate: vi.fn()
   },
-  Feedback: {
-    find: vi.fn()
-  }
+  getRecentFeedback: vi.fn()
 }));
 
 vi.mock('@meal-rec/core', () => ({
   selectRecommendation: vi.fn()
 }));
 
-import { connect, Meal, Feedback } from '@meal-rec/database';
+import { connect, Meal, getRecentFeedback } from '@meal-rec/database';
 import { selectRecommendation } from '@meal-rec/core';
 
 const mockMeals = [
@@ -71,9 +69,7 @@ describe('/api/recommend', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(Meal.aggregate).mockResolvedValue(mockMeals);
-    vi.mocked(Feedback.find).mockReturnValue({
-      populate: vi.fn().mockResolvedValue(mockFeedbackData)
-    });
+    vi.mocked(getRecentFeedback).mockResolvedValue(mockFeedbackData);
     vi.mocked(selectRecommendation).mockReturnValue(mockMeals[0]);
   });
 
@@ -150,10 +146,7 @@ describe('/api/recommend', () => {
 
     await POST(request);
 
-    expect(Feedback.find).toHaveBeenCalledWith({
-      user: 'user123',
-      timestamp: { $gte: expect.any(Date) }
-    });
+    expect(getRecentFeedback).toHaveBeenCalledWith('user123', 14);
 
     expect(selectRecommendation).toHaveBeenCalledWith({
       quiz: expect.any(Object),
