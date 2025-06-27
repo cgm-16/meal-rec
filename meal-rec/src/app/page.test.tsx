@@ -72,7 +72,7 @@ describe('Home Page', () => {
         });
       }),
       http.post('/api/feedback', async ({ request }) => {
-        const body = await request.json() as any;
+        const body = await request.json() as { mealId: string; type: string };
         expect(body.mealId).toBe('1');
         expect(body.type).toBe('like');
         feedbackReceived = true;
@@ -101,7 +101,7 @@ describe('Home Page', () => {
 
     server.use(
       http.post('/api/feedback', async ({ request }) => {
-        const body = await request.json() as any;
+        const body = await request.json() as { mealId: string; type: string };
         expect(body.type).toBe('interested');
         feedbackReceived = true;
         return HttpResponse.json({ ok: true });
@@ -126,7 +126,7 @@ describe('Home Page', () => {
 
     server.use(
       http.post('/api/feedback', async ({ request }) => {
-        const body = await request.json() as any;
+        const body = await request.json() as { mealId: string; type: string };
         expect(body.type).toBe('dislike');
         feedbackReceived = true;
         return HttpResponse.json({ ok: true });

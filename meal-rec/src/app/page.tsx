@@ -31,7 +31,7 @@ export default function Home() {
 
   const handleFeedback = async (mealId: string, type: 'like' | 'interested' | 'dislike') => {
     try {
-      const response = await fetch('/api/feedback', {
+      await fetch('/api/feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

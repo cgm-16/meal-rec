@@ -27,7 +27,7 @@ describe('Quiz Page', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useRouter as any).mockReturnValue({
+    (useRouter as ReturnType<typeof vi.fn>).mockReturnValue({
       push: mockPush
     });
   });

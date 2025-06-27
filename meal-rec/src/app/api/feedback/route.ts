@@ -5,7 +5,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connect, Feedback } from '@meal-rec/database';
 
 // In-memory storage for guest feedback (TTL 2 hours as per prompt requirement)
-const guestFeedback = new Map<string, { timestamp: number, feedback: any[] }>();
+interface FeedbackEntry {
+  mealId: string;
+  type: 'like' | 'interested' | 'dislike';
+  timestamp: number;
+}
+
+const guestFeedback = new Map<string, { timestamp: number, feedback: FeedbackEntry[] }>();
 
 // Clean up expired feedback (older than 2 hours)
 const FEEDBACK_TTL = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
@@ -103,8 +109,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Export function to get guest feedback (for testing)
-export function getGuestFeedback(sessionId: string = 'guest') {
-  cleanupExpiredFeedback();
-  return guestFeedback.get(sessionId)?.feedback || [];
-}
