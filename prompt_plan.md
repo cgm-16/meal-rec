@@ -187,7 +187,7 @@ Return module + tests.
 
 ---
 
-## Prompt 10 — Integrate Engine into `/api/recommend`
+## Prompt 10 — Integrate Engine into `/api/recommend` ✅ COMPLETED
 
 ```text
 Add new endpoint `/api/recommend`.
