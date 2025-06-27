@@ -131,7 +131,7 @@ Return code + tests.
 
 ---
 
-## Prompt 07 — Feedback API & Model Tests
+## Prompt 07 — Feedback API & Model Tests ✅ COMPLETED
 
 ```text
 Implement `POST /api/feedback`.
@@ -149,7 +149,7 @@ Return code + tests.
 
 ---
 
-## Prompt 08 — Quiz Flow & Local Storage
+## Prompt 08 — Quiz Flow & Local Storage ✅ COMPLETED
 
 ```text
 Add `/quiz` route.
@@ -164,7 +164,7 @@ Provide component code + RTL tests (simulate form fill + submit).
 
 ---
 
-## Prompt 09 — Recommendation Enginev1
+## Prompt 09 — Recommendation Enginev1 ✅ COMPLETED
 
 ```text
 Create pure TS module `packages/core/recommender.ts`.

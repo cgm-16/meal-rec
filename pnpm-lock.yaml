@@ -17,6 +17,9 @@ importers:
 
   meal-rec:
     dependencies:
+      '@meal-rec/core':
+        specifier: workspace:*
+        version: link:../packages/core
       '@meal-rec/database':
         specifier: workspace:*
         version: link:../packages/database
