@@ -2,7 +2,9 @@
 // ABOUTME: Stores feedback in memory for guests, persists to database for authenticated users
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import { connect, Feedback } from '@meal-rec/database';
+import { authOptions } from '@/lib/auth';
 
 // In-memory storage for guest feedback (TTL 2 hours as per prompt requirement)
 interface FeedbackEntry {
@@ -45,9 +47,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for authenticated user (for now, check x-user-id header)
-    // In future prompts, this will be replaced with proper session/auth
-    const userId = request.headers.get('x-user-id');
+    // Check for authenticated user using NextAuth session
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
 
     if (userId) {
       // Authenticated user: persist to database
