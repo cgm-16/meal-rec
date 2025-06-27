@@ -221,7 +221,7 @@ Return code + tests.
 
 ---
 
-## Prompt 12 — Persisted Feedback & Sliding Window
+## Prompt 12 — Persisted Feedback & Sliding Window ✅ COMPLETED
 
 ```text
 Modify Feedback model & query helpers.
