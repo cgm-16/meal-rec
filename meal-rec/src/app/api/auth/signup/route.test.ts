@@ -12,7 +12,7 @@ const mockUserSave = vi.fn();
 vi.mock('@meal-rec/database', () => ({
   connect: vi.fn().mockResolvedValue(undefined),
   User: Object.assign(
-    vi.fn().mockImplementation((data: any) => ({
+    vi.fn().mockImplementation((data: unknown) => ({
       ...data,
       _id: 'user123',
       save: mockUserSave
