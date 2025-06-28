@@ -340,7 +340,7 @@ Commit code & CI yaml.
 
 ---
 
-## Prompt 20 — Release & Handover
+## Prompt 20 — Release & Handover ✅ COMPLETED
 
 ```text
 Produce `RELEASE_NOTES.md` summarising features, env vars, and run‑book.
