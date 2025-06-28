@@ -1,0 +1,16 @@
+{
+  "name": "@meal-rec/scripts",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "loadtest": "ts-node loadtest.ts"
+  },
+  "dependencies": {
+    "artillery": "*"
+  },
+  "devDependencies": {
+    "@types/node": "*",
+    "ts-node": "*",
+    "typescript": "*"
+  }
+}

@@ -1,0 +1,127 @@
+# ABOUTME: GitHub Actions workflow for performance testing with Artillery load testing
+# ABOUTME: Runs load tests when PR is labeled with 'performance' label
+
+name: Performance Testing
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  load-test:
+    if: contains(github.event.label.name, 'performance')
+    runs-on: ubuntu-latest
+    
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application
+        run: pnpm build
+        env:
+          MONGO_URL: mongodb://localhost:27017/mealrec-test
+          NEXTAUTH_SECRET: test-secret-for-performance-testing
+          NEXTAUTH_URL: http://localhost:3000
+
+      - name: Start application
+        run: |
+          pnpm start &
+          sleep 10
+          # Wait for app to be ready
+          npx wait-on http://localhost:3000 --timeout 60000
+        env:
+          MONGO_URL: mongodb://localhost:27017/mealrec-test
+          NEXTAUTH_SECRET: test-secret-for-performance-testing
+          NEXTAUTH_URL: http://localhost:3000
+
+      - name: Seed test data
+        run: pnpm seed || true
+        env:
+          MONGO_URL: mongodb://localhost:27017/mealrec-test
+
+      - name: Run load test
+        run: |
+          cd packages/scripts
+          npx ts-node loadtest.ts http://localhost:3000
+        timeout-minutes: 15
+
+      - name: Generate load test report
+        run: |
+          cd loadtest-results
+          ls -la *.json | head -1 | xargs npx artillery report
+        if: always()
+
+      - name: Upload load test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: load-test-results
+          path: |
+            loadtest-results/
+          retention-days: 30
+
+      - name: Comment performance results
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Find the latest results file
+            const resultsDir = 'loadtest-results';
+            if (fs.existsSync(resultsDir)) {
+              const files = fs.readdirSync(resultsDir)
+                .filter(file => file.endsWith('.json'))
+                .sort()
+                .reverse();
+              
+              if (files.length > 0) {
+                const resultsPath = path.join(resultsDir, files[0]);
+                const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+                
+                const summary = results.aggregate || {};
+                const comment = `## 🚀 Performance Test Results
+                
+            **Test Duration:** ${Math.round(summary.duration || 0 / 1000)}s
+            **Total Requests:** ${summary.requestsCompleted || 0}
+            **Success Rate:** ${summary.requestsCompleted ? Math.round((summary.requestsCompleted / (summary.requestsCompleted + (summary.requestsFailed || 0))) * 100) : 0}%
+            **Average Response Time:** ${Math.round(summary.latency?.mean || 0)}ms
+            **95th Percentile:** ${Math.round(summary.latency?.p95 || 0)}ms
+            **99th Percentile:** ${Math.round(summary.latency?.p99 || 0)}ms
+            
+            📊 [Download detailed results](${context.payload.pull_request.html_url}/checks) from the artifacts section.
+            `;
+                
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: comment
+                });
+              }
+            }

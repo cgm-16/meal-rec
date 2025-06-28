@@ -316,7 +316,7 @@ Deliver code only.
 
 ---
 
-## Prompt 18 — Performance & Monitoring
+## Prompt 18 — Performance & Monitoring ✅ COMPLETED
 
 ```text
 1. Add `@sentry/nextjs`, DSN from env.  
