@@ -92,8 +92,7 @@ loadtest-results/
 .cache
 .parcel-cache
 
-# Next.js build output
-.next
+# Next.js build output (already covered above)
 out
 
 # Nuxt.js build / generate output
@@ -101,7 +100,7 @@ out
 
 # Gatsby files
 .cache/
-public
+# NOTE: public/ directory should be committed for Next.js apps
 
 # Storybook build outputs
 .out
