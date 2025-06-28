@@ -92,7 +92,7 @@ SENTRY_PROJECT=your-project
    ```bash
    git clone <repository-url>
    cd meal-rec
-   pnpm install
+   pnpm install  # Automatically sets up pre-commit hooks
    ```
 
 2. **Environment Setup**
@@ -247,6 +247,7 @@ pnpm update --interactive
 - **PIN Security**: Enforce strong 4-digit PINs, consider rate limiting
 - **Database Security**: Use MongoDB authentication and network security
 - **Headers**: Implement security headers in production
+- **Code Quality**: Pre-commit hooks automatically enforce linting standards
 
 #### Regular Security Tasks
 - **Dependency Updates**: Keep dependencies updated for security patches
@@ -301,6 +302,7 @@ pnpm lighthouse
 - **API Endpoints**: See `src/app/api/` for endpoint documentation
 - **Database Models**: See `packages/database/src/models/`
 - **Component Library**: See `src/components/`
+- **Pre-commit Hooks**: Automatically run linting and testing on staged files
 
 ## 🔄 Release Process
 
