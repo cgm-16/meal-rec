@@ -268,7 +268,7 @@ Integration tests verifying chart renders with mock data.
 
 ---
 
-## Prompt 15 — Admin Portal
+## Prompt 15 — Admin Portal ✅ COMPLETED
 
 ```text
 Add `/admin` route gated by role.
@@ -284,7 +284,7 @@ Return code + tests.
 
 ---
 
-## Prompt 16 — PWA & Service Worker
+## Prompt 16 — PWA & Service Worker ✅ COMPLETED
 
 ```text
 Enable `next-pwa`.

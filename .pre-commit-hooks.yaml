@@ -1,0 +1,19 @@
+# ABOUTME: Pre-commit hooks configuration for dependency and code quality checks
+# ABOUTME: Runs automated checks before commits to catch deprecated packages early
+
+repos:
+  - repo: local
+    hooks:
+      - id: check-deprecated-deps
+        name: Check for deprecated dependencies
+        entry: bash -c 'pnpm audit --audit-level moderate && echo "✓ No deprecated packages found"'
+        language: system
+        pass_filenames: false
+        files: package\.json$
+        
+      - id: dependency-review
+        name: Review new dependencies
+        entry: bash -c 'if git diff --cached --name-only | grep -q package.json; then echo "⚠️  package.json modified - review new dependencies"; fi'
+        language: system
+        pass_filenames: false
+        files: package\.json$
