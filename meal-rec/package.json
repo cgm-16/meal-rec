@@ -44,6 +44,7 @@
     "cypress": "^14.5.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
+    "jest-axe": "^10.0.0",
     "jsdom": "^26.1.0",
     "mongodb-memory-server": "^10.1.4",
     "msw": "^2.10.2",

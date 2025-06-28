@@ -13,9 +13,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://mealrec.app'),
   title: "Meal Recommendation PWA",
   description: "A Progressive Web App for personalized meal recommendations",
   manifest: "/manifest.json",
+  openGraph: {
+    title: "Meal Recommendation PWA",
+    description: "A Progressive Web App for personalized meal recommendations",
+    type: "website",
+    url: "https://mealrec.app",
+    images: [
+      {
+        url: "/og-default-meal.jpg",
+        width: 1200,
+        height: 630,
+        alt: "MealRec - Personalized Meal Recommendations",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Meal Recommendation PWA",
+    description: "A Progressive Web App for personalized meal recommendations",
+    images: ["/og-default-meal.jpg"],
+  },
 };
 
 export default function RootLayout({
