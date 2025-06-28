@@ -300,7 +300,7 @@ Code only.
 
 ---
 
-## Prompt 17 — Open Graph & SEO
+## Prompt 17 — Open Graph & SEO ✅ COMPLETED
 
 ```text
 Add `<Head>` tags in `_app.tsx`.
