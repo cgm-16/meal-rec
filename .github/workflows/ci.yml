@@ -35,3 +35,122 @@ jobs:
     
     - name: Test seed script (dry run)
       run: pnpm seed --dry-run
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+    
+    - name: Install dependencies
+      run: pnpm install
+    
+    - name: Install Playwright Browsers
+      run: cd meal-rec && npx playwright install --with-deps
+    
+    - name: Build application
+      run: cd meal-rec && pnpm build
+    
+    - name: Run E2E tests
+      run: cd meal-rec && pnpm test:e2e
+    
+    - name: Upload E2E test results
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: e2e-test-results
+        path: meal-rec/test-results/
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    needs: test
+    if: contains(github.event.pull_request.labels.*.name, 'performance')
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+    
+    - name: Install dependencies
+      run: pnpm install
+    
+    - name: Build application
+      run: cd meal-rec && pnpm build
+    
+    - name: Run Lighthouse CI
+      run: cd meal-rec && pnpm lighthouse
+    
+    - name: Upload Lighthouse results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: lighthouse-results
+        path: meal-rec/.lighthouseci/
+
+  cypress:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+    
+    - name: Install dependencies
+      run: pnpm install
+    
+    - name: Build application
+      run: cd meal-rec && pnpm build
+    
+    - name: Start application
+      run: cd meal-rec && pnpm start &
+    
+    - name: Wait for server
+      run: npx wait-on http://localhost:3000
+    
+    - name: Run Cypress tests
+      run: cd meal-rec && pnpm cypress:run
+    
+    - name: Upload Cypress screenshots
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: cypress-screenshots
+        path: meal-rec/cypress/screenshots/
+    
+    - name: Upload Cypress videos
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: cypress-videos
+        path: meal-rec/cypress/videos/

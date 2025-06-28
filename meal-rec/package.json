@@ -9,9 +9,12 @@
     "lint": "next lint",
     "test": "vitest",
     "test:pwa": "playwright test",
+    "test:e2e": "playwright test tests/e2e-flows.spec.ts",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "e2e": "cypress run",
+    "lighthouse": "lhci autorun",
+    "lighthouse:local": "lighthouse http://localhost:3000 --output json --output html --output-path ./lighthouse-report",
     "deps:check": "pnpm audit && pnpm outdated",
     "deps:update": "pnpm update --interactive",
     "deps:clean": "pnpm prune && pnpm install"
@@ -32,6 +35,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.53.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.6.3",
@@ -48,13 +52,15 @@
     "eslint-config-next": "15.3.4",
     "jest-axe": "^10.0.0",
     "jsdom": "^26.1.0",
+    "lighthouse": "^12.7.0",
     "mongodb-memory-server": "^10.1.4",
     "msw": "^2.10.2",
     "playwright": "^1.53.1",
     "supertest": "^7.1.1",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wait-on": "^8.0.3"
   },
   "packageManager": "pnpm@10.12.3+sha512.467df2c586056165580ad6dfb54ceaad94c5a30f80893ebdec5a44c5aa73c205ae4a5bb9d5ed6bb84ea7c249ece786642bbb49d06a307df218d03da41c317417"
 }
