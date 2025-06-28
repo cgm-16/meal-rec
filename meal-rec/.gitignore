@@ -13,6 +13,7 @@
 # testing
 /coverage
 /test-results
+test-results.json
 /playwright-report
 /cypress/videos
 /cypress/screenshots
