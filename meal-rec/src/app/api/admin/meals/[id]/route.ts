@@ -7,15 +7,16 @@ import { requireAdmin } from '@/lib/admin-auth';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await requireAdmin();
   if (authError) return authError;
   
   try {
     await connect();
+    const resolvedParams = await params;
     
-    const meal = await Meal.findById(params.id);
+    const meal = await Meal.findById(resolvedParams.id);
     if (!meal) {
       return NextResponse.json(
         { error: 'Meal not found' },
@@ -35,13 +36,14 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await requireAdmin();
   if (authError) return authError;
   
   try {
     await connect();
+    const resolvedParams = await params;
     
     const body = await request.json();
     const {
@@ -82,7 +84,7 @@ export async function PUT(
     }
     
     const meal = await Meal.findByIdAndUpdate(
-      params.id,
+      resolvedParams.id,
       {
         name,
         cuisine,
@@ -118,15 +120,16 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await requireAdmin();
   if (authError) return authError;
   
   try {
     await connect();
+    const resolvedParams = await params;
     
-    const meal = await Meal.findByIdAndDelete(params.id);
+    const meal = await Meal.findByIdAndDelete(resolvedParams.id);
     if (!meal) {
       return NextResponse.json(
         { error: 'Meal not found' },

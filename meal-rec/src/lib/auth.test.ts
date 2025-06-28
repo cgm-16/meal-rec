@@ -4,6 +4,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import bcrypt from 'bcryptjs';
 import { authOptions } from './auth';
+import type { CredentialsConfig } from 'next-auth/providers/credentials';
 
 // Mock dependencies
 vi.mock('@meal-rec/database', () => ({
@@ -31,7 +32,7 @@ describe('Auth Configuration', () => {
   });
 
   describe('CredentialsProvider authorize', () => {
-    const getCredentialsProvider = () => authOptions.providers[0] as any;
+    const getCredentialsProvider = () => authOptions.providers[0] as CredentialsConfig;
     const getAuthorize = () => getCredentialsProvider().authorize;
 
     it('should return null for missing credentials', async () => {
@@ -126,7 +127,7 @@ describe('Auth Configuration', () => {
       const token = {};
       const user = { id: 'user123' };
 
-      const result = await authOptions.callbacks!.jwt!({ token, user } as any);
+      const result = await authOptions.callbacks!.jwt!({ token, user } as Parameters<NonNullable<typeof authOptions.callbacks.jwt>>[0]);
 
       expect(result).toEqual({ userId: 'user123' });
     });
@@ -134,7 +135,7 @@ describe('Auth Configuration', () => {
     it('should preserve existing token when no user', async () => {
       const token = { userId: 'existing123', other: 'data' };
 
-      const result = await authOptions.callbacks!.jwt!({ token } as any);
+      const result = await authOptions.callbacks!.jwt!({ token } as Parameters<NonNullable<typeof authOptions.callbacks.jwt>>[0]);
 
       expect(result).toEqual({ userId: 'existing123', other: 'data' });
     });
@@ -143,7 +144,7 @@ describe('Auth Configuration', () => {
       const session = { user: {} };
       const token = { userId: 'user123' };
 
-      const result = await authOptions.callbacks!.session!({ session, token } as any);
+      const result = await authOptions.callbacks!.session!({ session, token } as Parameters<NonNullable<typeof authOptions.callbacks.session>>[0]);
 
       expect(result).toEqual({
         user: { id: 'user123' }
@@ -154,7 +155,7 @@ describe('Auth Configuration', () => {
       const session = { user: { name: 'test' } };
       const token = {};
 
-      const result = await authOptions.callbacks!.session!({ session, token } as any);
+      const result = await authOptions.callbacks!.session!({ session, token } as Parameters<NonNullable<typeof authOptions.callbacks.session>>[0]);
 
       expect(result).toEqual({
         user: { name: 'test' }

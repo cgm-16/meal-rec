@@ -68,7 +68,7 @@ describe('/api/admin/meals', () => {
         sort: vi.fn().mockReturnThis(),
         limit: vi.fn().mockResolvedValue(mockMeals)
       };
-      MockMeal.find.mockReturnValue(mockFind as any);
+      MockMeal.find.mockReturnValue(mockFind as ReturnType<typeof MockMeal.find>);
 
       const response = await GET();
       const data = await response.json();

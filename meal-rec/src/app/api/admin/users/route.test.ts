@@ -64,7 +64,7 @@ describe('/api/admin/users GET', () => {
       sort: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue(mockUsers)
     };
-    vi.mocked(User.find).mockReturnValue(mockFind as any);
+    vi.mocked(User.find).mockReturnValue(mockFind as ReturnType<typeof User.find>);
 
     const response = await GET();
     const data = await response.json();
@@ -98,7 +98,7 @@ describe('/api/admin/users GET', () => {
       sort: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue(mockUsers)
     };
-    vi.mocked(User.find).mockReturnValue(mockFind as any);
+    vi.mocked(User.find).mockReturnValue(mockFind as ReturnType<typeof User.find>);
 
     await GET();
 

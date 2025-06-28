@@ -30,9 +30,8 @@ describe('/api/auth/signup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     User.findOne = vi.fn();
-    (User as any).mockImplementation = MockUser;
-    // Set User constructor
-    (User as any) = MockUser;
+    // Mock User constructor and methods
+    Object.assign(User, MockUser);
   });
 
   afterEach(() => {

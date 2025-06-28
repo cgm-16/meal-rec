@@ -11,6 +11,18 @@ import mongoose from 'mongoose';
 import { NextRequest } from 'next/server';
 import { POST } from './route';
 import { Feedback, User, Meal } from '@meal-rec/database';
+import { getServerSession } from 'next-auth/next';
+
+// Mock NextAuth and Next.js headers/cookies
+vi.mock('next-auth/next', () => ({
+  getServerSession: vi.fn()
+}));
+
+// Mock Next.js headers function
+vi.mock('next/headers', () => ({
+  headers: vi.fn(() => new Map()),
+  cookies: vi.fn(() => new Map())
+}));
 
 describe('/api/feedback', () => {
   let mongoServer: MongoMemoryServer;
@@ -48,6 +60,8 @@ describe('/api/feedback', () => {
     // Clear feedback between tests
     await Feedback.deleteMany({});
     vi.clearAllMocks();
+    // Default to no session (guest user)
+    vi.mocked(getServerSession).mockResolvedValue(null);
   });
 
   it('stores feedback for guest users', async () => {
@@ -214,6 +228,11 @@ describe('/api/feedback', () => {
   });
 
   it('persists feedback for authenticated users', async () => {
+    // Mock authenticated session
+    vi.mocked(getServerSession).mockResolvedValue({
+      user: { id: testUser._id.toString() }
+    } as { user: { id: string } });
+
     const request = new NextRequest('http://localhost:3000/api/feedback', {
       method: 'POST',
       headers: {
@@ -244,6 +263,11 @@ describe('/api/feedback', () => {
   });
 
   it('updates existing feedback for authenticated users', async () => {
+    // Mock authenticated session
+    vi.mocked(getServerSession).mockResolvedValue({
+      user: { id: testUser._id.toString() }
+    } as { user: { id: string } });
+
     // Create initial feedback
     const initialFeedback = new Feedback({
       user: testUser._id,
@@ -305,7 +329,9 @@ describe('/api/feedback', () => {
   });
 
   it('handles both guest and authenticated users in same test run', async () => {
-    // Guest feedback
+    // Guest feedback - ensure no session
+    vi.mocked(getServerSession).mockResolvedValue(null);
+    
     const guestRequest = new NextRequest('http://localhost:3000/api/feedback', {
       method: 'POST',
       headers: {
@@ -321,7 +347,10 @@ describe('/api/feedback', () => {
     const guestResponse = await POST(guestRequest);
     expect(guestResponse.status).toBe(200);
 
-    // Authenticated user feedback
+    // Authenticated user feedback - mock session
+    vi.mocked(getServerSession).mockResolvedValue({
+      user: { id: testUser._id.toString() }
+    } as { user: { id: string } });
     const authRequest = new NextRequest('http://localhost:3000/api/feedback', {
       method: 'POST',
       headers: {

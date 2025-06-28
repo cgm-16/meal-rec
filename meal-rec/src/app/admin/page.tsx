@@ -31,7 +31,8 @@ interface User {
 }
 
 export default function AdminPage() {
-  const { data: session, status } = useSession();
+  const sessionResult = useSession();
+  const { data: session, status } = sessionResult || { data: null, status: 'loading' };
   const router = useRouter();
   
   const [meals, setMeals] = useState<Meal[]>([]);

@@ -7,13 +7,14 @@ import { requireAdmin } from '@/lib/admin-auth';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await requireAdmin();
   if (authError) return authError;
   
   try {
     await connect();
+    const resolvedParams = await params;
     
     const body = await request.json();
     const { banned } = body;
@@ -26,7 +27,7 @@ export async function POST(
     }
     
     const user = await User.findByIdAndUpdate(
-      params.id,
+      resolvedParams.id,
       { banned },
       { new: true, runValidators: true }
     ).select('-hashedPin');
