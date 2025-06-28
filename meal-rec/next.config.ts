@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 // @ts-ignore - next-pwa doesn't have proper TypeScript declarations
 const withPWA = require("next-pwa");
@@ -7,7 +8,7 @@ const nextConfig: NextConfig = {
   /* config options here */
 };
 
-export default withPWA({
+const configWithPWA = withPWA({
   dest: "public",
   runtimeCaching: [
     {
@@ -23,3 +24,13 @@ export default withPWA({
     }
   ]
 })(nextConfig);
+
+export default withSentryConfig(configWithPWA, {
+  org: "mealrec",
+  project: "meal-recommendation-pwa",
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  tunnelRoute: "/monitoring",
+  disableLogger: true,
+  automaticVercelMonitors: true,
+});
