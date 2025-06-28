@@ -5,33 +5,30 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { POST } from './route';
 import { NextRequest } from 'next/server';
 
+// Mock save function 
+const mockUserSave = vi.fn();
+
 // Mock dependencies
 vi.mock('@meal-rec/database', () => ({
   connect: vi.fn().mockResolvedValue(undefined),
-  User: {
-    findOne: vi.fn(),
-    prototype: {
-      save: vi.fn()
+  User: Object.assign(
+    vi.fn().mockImplementation((data: any) => ({
+      ...data,
+      _id: 'user123',
+      save: mockUserSave
+    })),
+    {
+      findOne: vi.fn()
     }
-  }
+  )
 }));
 
 import { connect, User } from '@meal-rec/database';
-
-// Mock User constructor
-const mockUserSave = vi.fn();
-const MockUser = vi.fn().mockImplementation((data) => ({
-  ...data,
-  _id: 'user123',
-  save: mockUserSave
-}));
 
 describe('/api/auth/signup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     User.findOne = vi.fn();
-    // Mock User constructor and methods
-    Object.assign(User, MockUser);
   });
 
   afterEach(() => {

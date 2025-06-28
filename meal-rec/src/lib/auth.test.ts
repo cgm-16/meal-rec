@@ -2,11 +2,9 @@
 // ABOUTME: Tests credential validation, PIN verification, and session management
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import bcrypt from 'bcryptjs';
-import { authOptions } from './auth';
 import type { CredentialsConfig } from 'next-auth/providers/credentials';
 
-// Mock dependencies
+// Mock dependencies BEFORE importing anything else
 vi.mock('@meal-rec/database', () => ({
   connect: vi.fn().mockResolvedValue(undefined),
   User: {
@@ -20,9 +18,14 @@ vi.mock('bcryptjs', () => ({
   }
 }));
 
+import bcrypt from 'bcryptjs';
 import { connect, User } from '@meal-rec/database';
+import { authOptions } from './auth';
 
 describe('Auth Configuration', () => {
+  const getCredentialsProvider = () => authOptions.providers[0] as CredentialsConfig;
+  const getAuthorize = () => getCredentialsProvider().authorize;
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -32,8 +35,6 @@ describe('Auth Configuration', () => {
   });
 
   describe('CredentialsProvider authorize', () => {
-    const getCredentialsProvider = () => authOptions.providers[0] as CredentialsConfig;
-    const getAuthorize = () => getCredentialsProvider().authorize;
 
     it('should return null for missing credentials', async () => {
       const authorize = getAuthorize();
@@ -61,6 +62,10 @@ describe('Auth Configuration', () => {
         username: 'nonexistent',
         pin: '1234'
       });
+
+      console.log('Result:', result);
+      console.log('User.findOne calls:', vi.mocked(User.findOne).mock.calls);
+      console.log('connect calls:', vi.mocked(connect).mock.calls);
 
       expect(result).toBeNull();
       expect(User.findOne).toHaveBeenCalledWith({ username: 'nonexistent' });
@@ -180,7 +185,7 @@ describe('Auth Configuration', () => {
     it('should have credentials provider configured', () => {
       const credentialsProvider = getCredentialsProvider();
       expect(authOptions.providers).toHaveLength(1);
-      expect(credentialsProvider.name).toBe('credentials');
+      expect(credentialsProvider.name).toBe('Credentials');
       expect(credentialsProvider.credentials).toEqual({
         username: { label: 'Username', type: 'text' },
         pin: { label: 'PIN', type: 'password', maxLength: 4 }

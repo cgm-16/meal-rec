@@ -11,18 +11,18 @@ import mongoose from 'mongoose';
 import { NextRequest } from 'next/server';
 import { POST } from './route';
 import { Feedback, User, Meal } from '@meal-rec/database';
-import { getServerSession } from 'next-auth/next';
 
-// Mock NextAuth and Next.js headers/cookies
-vi.mock('next-auth/next', () => ({
+// Mock the auth options import to avoid circular dependencies
+vi.mock('@/lib/auth', () => ({
+  authOptions: {}
+}));
+
+// Mock NextAuth getServerSession
+vi.mock('next-auth', () => ({
   getServerSession: vi.fn()
 }));
 
-// Mock Next.js headers function
-vi.mock('next/headers', () => ({
-  headers: vi.fn(() => new Map()),
-  cookies: vi.fn(() => new Map())
-}));
+import { getServerSession } from 'next-auth';
 
 describe('/api/feedback', () => {
   let mongoServer: MongoMemoryServer;
@@ -231,7 +231,7 @@ describe('/api/feedback', () => {
     // Mock authenticated session
     vi.mocked(getServerSession).mockResolvedValue({
       user: { id: testUser._id.toString() }
-    } as { user: { id: string } });
+    });
 
     const request = new NextRequest('http://localhost:3000/api/feedback', {
       method: 'POST',
@@ -266,7 +266,7 @@ describe('/api/feedback', () => {
     // Mock authenticated session
     vi.mocked(getServerSession).mockResolvedValue({
       user: { id: testUser._id.toString() }
-    } as { user: { id: string } });
+    });
 
     // Create initial feedback
     const initialFeedback = new Feedback({
@@ -308,7 +308,11 @@ describe('/api/feedback', () => {
   });
 
   it('handles database errors gracefully for authenticated users', async () => {
-    // Use invalid user ID to trigger database error
+    // Mock authenticated session with invalid user ID to trigger database error
+    vi.mocked(getServerSession).mockResolvedValue({
+      user: { id: 'invalid-user-id-format' }
+    });
+
     const request = new NextRequest('http://localhost:3000/api/feedback', {
       method: 'POST',
       headers: {
@@ -350,7 +354,7 @@ describe('/api/feedback', () => {
     // Authenticated user feedback - mock session
     vi.mocked(getServerSession).mockResolvedValue({
       user: { id: testUser._id.toString() }
-    } as { user: { id: string } });
+    });
     const authRequest = new NextRequest('http://localhost:3000/api/feedback', {
       method: 'POST',
       headers: {
