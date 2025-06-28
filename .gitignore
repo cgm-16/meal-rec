@@ -52,6 +52,15 @@ coverage/
 # nyc test coverage
 .nyc_output
 
+# Test results and reports
+test-results/
+playwright-report/
+cypress/videos/
+cypress/screenshots/
+.lighthouseci/
+lighthouse-report*
+loadtest-results/
+
 # TypeScript cache
 *.tsbuildinfo
 

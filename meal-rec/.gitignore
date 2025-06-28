@@ -12,6 +12,12 @@
 
 # testing
 /coverage
+/test-results
+/playwright-report
+/cypress/videos
+/cypress/screenshots
+/.lighthouseci
+/lighthouse-report*
 
 # next.js
 /.next/
