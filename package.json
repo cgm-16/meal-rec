@@ -9,11 +9,22 @@
     "test": "pnpm -r test",
     "seed": "ts-node packages/database/src/seed.ts",
     "loadtest": "cd packages/scripts && ts-node loadtest.ts",
-    "loadtest:report": "cd loadtest-results && ls -t *.json | head -1 | xargs npx artillery report"
+    "loadtest:report": "cd loadtest-results && ls -t *.json | head -1 | xargs npx artillery report",
+    "prepare": "husky"
   },
   "packageManager": "pnpm@10.12.3+sha512.467df2c586056165580ad6dfb54ceaad94c5a30f80893ebdec5a44c5aa73c205ae4a5bb9d5ed6bb84ea7c249ece786642bbb49d06a307df218d03da41c317417",
+  "lint-staged": {
+    "meal-rec/src/**/*.{js,jsx,ts,tsx}": [
+      "bash -c 'cd meal-rec && pnpm lint --fix'"
+    ],
+    "packages/**/*.{js,ts}": [
+      "eslint --fix"
+    ]
+  },
   "devDependencies": {
     "artillery": "^2.0.23",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
