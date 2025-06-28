@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { APP_CONSTANTS } from '@/lib/constants';
 
 interface AnalyticsData {
   topLikedMeals: Array<{
@@ -141,7 +142,7 @@ export default function ExplorePage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Most Liked Meals</h2>
             {data.topLikedMeals.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data.topLikedMeals.slice(0, 5)}>
+                <BarChart data={data.topLikedMeals.slice(0, APP_CONSTANTS.CHART_DISPLAY_LIMIT)}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="name" 
@@ -165,7 +166,7 @@ export default function ExplorePage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Most Disliked Meals</h2>
             {data.topDislikedMeals.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data.topDislikedMeals.slice(0, 5)}>
+                <BarChart data={data.topDislikedMeals.slice(0, APP_CONSTANTS.CHART_DISPLAY_LIMIT)}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="name" 

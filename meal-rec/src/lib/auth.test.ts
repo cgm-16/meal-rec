@@ -63,10 +63,6 @@ describe('Auth Configuration', () => {
         pin: '1234'
       });
 
-      console.log('Result:', result);
-      console.log('User.findOne calls:', vi.mocked(User.findOne).mock.calls);
-      console.log('connect calls:', vi.mocked(connect).mock.calls);
-
       expect(result).toBeNull();
       expect(User.findOne).toHaveBeenCalledWith({ username: 'nonexistent' });
     });

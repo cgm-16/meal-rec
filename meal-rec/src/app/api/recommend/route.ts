@@ -5,10 +5,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connect, Meal, getRecentFeedback } from '@meal-rec/database';
 import { selectRecommendation } from '@meal-rec/core';
 import type { QuizAnswers, FeedbackEntry, WeatherCondition } from '@meal-rec/core';
+import { APP_CONSTANTS } from '@/lib/constants';
+import type { Types } from 'mongoose';
 
 interface RecommendRequest {
   weather?: WeatherCondition;
   quiz?: QuizAnswers;
+}
+
+// Type for feedback records with populated meal field
+interface PopulatedFeedbackRecord {
+  meal: { _id: Types.ObjectId };
+  type: 'like' | 'interested' | 'dislike';
+  timestamp: Date;
 }
 
 
@@ -22,19 +31,18 @@ export async function POST(request: NextRequest) {
     // 1. Gather quiz answers from request body or default values
     const quiz: QuizAnswers = body.quiz || {
       ingredientsToAvoid: [],
-      spiciness: 2,
-      surpriseFactor: 5
+      spiciness: APP_CONSTANTS.DEFAULT_QUIZ_SPICINESS,
+      surpriseFactor: APP_CONSTANTS.DEFAULT_QUIZ_SURPRISE_FACTOR
     };
 
     // 2. Get user feedback from last 14 days using helper function
     let recentFeedback: FeedbackEntry[] = [];
     if (userId) {
-      const feedbackRecords = await getRecentFeedback(userId, 14);
+      const feedbackRecords = await getRecentFeedback(userId, APP_CONSTANTS.RECENT_FEEDBACK_DAYS) as PopulatedFeedbackRecord[];
 
       recentFeedback = feedbackRecords.map(record => ({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mealId: (record.meal as any)._id.toString(),
-        type: record.type as 'like' | 'interested' | 'dislike',
+        mealId: record.meal._id.toString(),
+        type: record.type,
         timestamp: record.timestamp
       }));
     }
@@ -42,9 +50,9 @@ export async function POST(request: NextRequest) {
     // 3. Get weather condition from request or default to 'normal'
     const weather: WeatherCondition = body.weather || 'normal';
 
-    // 4. Query 50 random candidate meals from database
+    // 4. Query random candidate meals from database
     const candidateMeals = await Meal.aggregate([
-      { $sample: { size: 50 } }
+      { $sample: { size: APP_CONSTANTS.CANDIDATE_MEALS_SAMPLE_SIZE } }
     ]);
 
     if (candidateMeals.length === 0) {

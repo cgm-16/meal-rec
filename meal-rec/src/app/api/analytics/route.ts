@@ -3,6 +3,7 @@
 
 import { NextResponse } from 'next/server';
 import { connect, Feedback } from '@meal-rec/database';
+import { APP_CONSTANTS } from '@/lib/constants';
 
 export async function GET() {
   try {
@@ -39,7 +40,7 @@ async function getTopLikedMeals() {
       }
     },
     { $sort: { likeCount: -1 } },
-    { $limit: 10 },
+    { $limit: APP_CONSTANTS.ANALYTICS_RESULTS_LIMIT },
     {
       $lookup: {
         from: 'meals',
@@ -73,7 +74,7 @@ async function getTopDislikedMeals() {
       }
     },
     { $sort: { dislikeCount: -1 } },
-    { $limit: 10 },
+    { $limit: APP_CONSTANTS.ANALYTICS_RESULTS_LIMIT },
     {
       $lookup: {
         from: 'meals',
@@ -117,7 +118,7 @@ async function getTopFlavorTags() {
       }
     },
     { $sort: { count: -1 } },
-    { $limit: 10 },
+    { $limit: APP_CONSTANTS.ANALYTICS_RESULTS_LIMIT },
     {
       $project: {
         tag: '$_id',
