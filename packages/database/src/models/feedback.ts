@@ -39,4 +39,4 @@ const FeedbackSchema = new Schema<IFeedback>({
 
 FeedbackSchema.index({ user: 1, meal: 1 }, { unique: true });
 
-export const Feedback = mongoose.model<IFeedback>('Feedback', FeedbackSchema);
+export const Feedback = mongoose.models.Feedback || mongoose.model<IFeedback>('Feedback', FeedbackSchema);

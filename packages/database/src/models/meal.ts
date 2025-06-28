@@ -45,4 +45,4 @@ const MealSchema = new Schema<IMeal>({
   timestamps: true
 });
 
-export const Meal = mongoose.model<IMeal>('Meal', MealSchema);
+export const Meal = mongoose.models.Meal || mongoose.model<IMeal>('Meal', MealSchema);

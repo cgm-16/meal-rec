@@ -8,7 +8,6 @@
     "timeOfDay": ["dinner"],
     "spiciness": 3,
     "heaviness": 4,
-    "imageUrl": "https://example.com/chicken-tikka-masala.jpg",
     "description": "Tender chicken in a rich, creamy tomato-based curry sauce",
     "flavorTags": ["savory", "creamy", "aromatic"]
   },
@@ -21,7 +20,6 @@
     "timeOfDay": ["lunch", "dinner"],
     "spiciness": 0,
     "heaviness": 2,
-    "imageUrl": "https://example.com/caesar-salad.jpg",
     "description": "Crisp romaine lettuce with parmesan, croutons, and classic caesar dressing",
     "flavorTags": ["fresh", "tangy", "crisp"]
   },
@@ -34,7 +32,6 @@
     "timeOfDay": ["lunch", "dinner"],
     "spiciness": 2,
     "heaviness": 4,
-    "imageUrl": "https://example.com/beef-ramen.jpg",
     "description": "Rich beef broth with tender noodles, topped with soft-boiled egg",
     "flavorTags": ["umami", "warming", "savory"]
   },
@@ -47,7 +44,6 @@
     "timeOfDay": ["lunch", "dinner"],
     "spiciness": 0,
     "heaviness": 3,
-    "imageUrl": "https://example.com/margherita-pizza.jpg",
     "description": "Classic pizza with fresh tomato sauce, mozzarella, and basil",
     "flavorTags": ["fresh", "herbal", "classic"]
   },
@@ -60,7 +56,6 @@
     "timeOfDay": ["lunch", "dinner"],
     "spiciness": 4,
     "heaviness": 3,
-    "imageUrl": "https://example.com/thai-green-curry.jpg",
     "description": "Aromatic and spicy curry with coconut milk and fresh vegetables",
     "flavorTags": ["spicy", "aromatic", "coconut"]
   }
