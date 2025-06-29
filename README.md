@@ -1,8 +1,5 @@
 # Meal Recommendation PWA
 
-## ABOUTME: Progressive Web Application for personalized meal recommendations using ML-based scoring
-## ABOUTME: TypeScript monorepo with Next.js frontend, MongoDB backend, and comprehensive test suite
-
 > **⚠️ PROJECT STATUS: 95% Complete - Near Production Ready**
 > 
 > This is a comprehensive meal recommendation system built following a 20-prompt LLM code generation plan. Core functionality is implemented and tested, with minor remaining issues documented below.
@@ -153,3 +150,6 @@ The project follows established patterns and has comprehensive test coverage. Se
 **Built with**: Next.js 15, React 19, TypeScript, MongoDB, Tailwind CSS, Vitest, Playwright  
 **Status**: 95% Complete - Production deployment ready pending minor cleanup  
 **Last Updated**: June 29, 2025
+
+<!-- ABOUTME: Progressive Web Application for personalized meal recommendations using ML-based scoring -->
+<!-- ABOUTME: TypeScript monorepo with Next.js frontend, MongoDB backend, and comprehensive test suite -->
