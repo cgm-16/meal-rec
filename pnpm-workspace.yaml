@@ -1,3 +1,17 @@
 packages:
-  - 'packages/*'
-  - 'meal-rec'
+  - packages/*
+  - meal-rec
+
+onlyBuiltDependencies:
+  - '@playwright/browser-chromium'
+  - '@sentry/cli'
+  - '@tailwindcss/oxide'
+  - aws-sdk
+  - cypress
+  - esbuild
+  - mongodb-memory-server
+  - msw
+  - protobufjs
+  - sharp
+  - unix-dgram
+  - unrs-resolver
