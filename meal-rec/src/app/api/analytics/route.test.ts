@@ -20,7 +20,7 @@ const mockTopLikedMeals = [
     _id: '507f1f77bcf86cd799439011',
     name: 'Pasta Carbonara',
     cuisine: 'Italian',
-    imageUrl: 'https://example.com/carbonara.jpg',
+    imageUrl: 'https://picsum.photos/400/300?random=8',
     flavorTags: ['creamy', 'savory'],
     likeCount: 15
   },
@@ -28,7 +28,7 @@ const mockTopLikedMeals = [
     _id: '507f1f77bcf86cd799439012',
     name: 'Chicken Tikka Masala',
     cuisine: 'Indian',
-    imageUrl: 'https://example.com/tikka.jpg',
+    imageUrl: 'https://picsum.photos/400/300?random=9',
     flavorTags: ['spicy', 'aromatic'],
     likeCount: 12
   }
@@ -39,7 +39,7 @@ const mockTopDislikedMeals = [
     _id: '507f1f77bcf86cd799439013',
     name: 'Brussels Sprouts Salad',
     cuisine: 'American',
-    imageUrl: 'https://example.com/sprouts.jpg',
+    imageUrl: 'https://picsum.photos/400/300?random=10',
     flavorTags: ['bitter', 'healthy'],
     dislikeCount: 8
   }

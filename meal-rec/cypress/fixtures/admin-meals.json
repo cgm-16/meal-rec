@@ -10,7 +10,7 @@
       "timeOfDay": ["dinner"],
       "spiciness": 1,
       "heaviness": 4,
-      "imageUrl": "https://example.com/carbonara.jpg",
+      "imageUrl": "https://picsum.photos/400/300?random=3",
       "description": "Classic Italian pasta dish",
       "flavorTags": ["creamy", "savory"]
     },
@@ -24,7 +24,7 @@
       "timeOfDay": ["lunch", "dinner"],
       "spiciness": 4,
       "heaviness": 3,
-      "imageUrl": "https://example.com/curry.jpg",
+      "imageUrl": "https://picsum.photos/400/300?random=4",
       "description": "Authentic Thai curry with coconut milk",
       "flavorTags": ["spicy", "aromatic"]
     }

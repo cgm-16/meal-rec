@@ -33,7 +33,7 @@ const mockMeals = [
     spiciness: 1,
     heaviness: 4,
     flavorTags: ['creamy', 'savory'],
-    imageUrl: 'https://example.com/carbonara.jpg',
+    imageUrl: 'https://picsum.photos/400/300?random=5',
     description: 'Classic Italian pasta dish'
   },
   {
@@ -47,7 +47,7 @@ const mockMeals = [
     spiciness: 4,
     heaviness: 3,
     flavorTags: ['spicy', 'aromatic'],
-    imageUrl: 'https://example.com/curry.jpg',
+    imageUrl: 'https://picsum.photos/400/300?random=6',
     description: 'Authentic Thai curry with coconut milk'
   }
 ];

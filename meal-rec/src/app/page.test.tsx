@@ -17,7 +17,7 @@ const mockMeal = {
   timeOfDay: ['dinner'],
   spiciness: 3,
   heaviness: 4,
-  imageUrl: 'https://example.com/curry.jpg',
+  imageUrl: 'https://picsum.photos/400/300?random=1',
   description: 'A delicious curry',
   flavorTags: ['spicy', 'aromatic']
 };

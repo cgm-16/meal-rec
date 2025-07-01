@@ -34,13 +34,13 @@ describe('OG Utils', () => {
     it('should use custom image when provided', () => {
       const meal = {
         name: 'Test Meal',
-        imageUrl: 'https://example.com/meal.jpg'
+        imageUrl: 'https://picsum.photos/400/300?random=7'
       };
 
       const metadata = generateMealOGMetadata(meal);
 
       expect(metadata.openGraph?.images?.[0]).toEqual({
-        url: 'https://example.com/meal.jpg',
+        url: 'https://picsum.photos/400/300?random=7',
         width: 1200,
         height: 630,
         alt: 'Test Meal - MealRec',
@@ -104,7 +104,7 @@ describe('OG Utils', () => {
 
     it('should use custom URL and image when provided', () => {
       const customUrl = 'https://mealrec.app/about';
-      const customImage = 'https://example.com/about.jpg';
+      const customImage = 'https://picsum.photos/400/300?random=11';
 
       const metadata = generatePageOGMetadata(
         'About',
