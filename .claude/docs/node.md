@@ -1,0 +1,3 @@
+- I prefer to use pnpm as node package manager.
+- I prefer to use fnm as node version manager.
+- If any scaffolding code (something like pnpm create next-app) fails because it requires human input, ***do not*** try to do it yourself. Ask me for help.
