@@ -53,6 +53,7 @@
     "cypress": "^14.5.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "jest-axe": "^10.0.0",
     "jsdom": "^26.1.0",
     "lighthouse": "^12.7.0",
