@@ -3,7 +3,6 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getCurrentWeather, clearWeatherCache } from './weather';
-import type { WeatherCondition } from './recommender';
 
 // Mock fetch globally
 const mockFetch = vi.fn();

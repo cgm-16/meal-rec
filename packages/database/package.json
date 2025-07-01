@@ -7,6 +7,8 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest",
+    "lint": "eslint src --ext .ts,.js",
+    "lint:fix": "eslint src --ext .ts,.js --fix",
     "seed-admin": "ts-node src/seed-admin.ts"
   },
   "dependencies": {
@@ -15,8 +17,12 @@
     "node-cron": "^4.1.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.29.0",
     "@types/node": "^20",
     "@types/node-cron": "^3.0.11",
+    "@typescript-eslint/eslint-plugin": "^8.35.1",
+    "@typescript-eslint/parser": "^8.35.1",
+    "eslint": "^9.29.0",
     "mongodb-memory-server": "^10.1.4",
     "ts-node": "^10.9.2",
     "typescript": "^5",

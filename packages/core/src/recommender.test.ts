@@ -301,7 +301,7 @@ describe('Recommendation Engine', () => {
         allergens: [],
         weather: ['normal'],
         timeOfDay: ['lunch'],
-        spiciness: undefined as any, // Missing spiciness
+        spiciness: undefined as unknown as number, // Missing spiciness for test
         heaviness: 2,
         flavorTags: ['mystery']
       };

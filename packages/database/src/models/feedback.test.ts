@@ -2,14 +2,14 @@
 // ABOUTME: Validates required fields, enum constraints, and compound unique index
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { Feedback } from './feedback';
-import { User } from './user';
-import { Meal } from './meal';
+import { Feedback, type IFeedback } from './feedback';
+import { User, type IUser } from './user';
+import { Meal, type IMeal } from './meal';
 import { setupTestDb, teardownTestDb, clearTestDb } from '../test-setup';
 
 describe('Feedback Model', () => {
-  let testUser: any;
-  let testMeal: any;
+  let testUser: IUser;
+  let testMeal: IMeal;
 
   beforeAll(async () => {
     await setupTestDb();
@@ -54,7 +54,7 @@ describe('Feedback Model', () => {
     const feedback = new Feedback({
       user: testUser._id,
       meal: testMeal._id,
-      type: 'invalid' as any
+      type: 'invalid' as IFeedback['type']
     });
 
     await expect(feedback.save()).rejects.toThrow();

@@ -7,13 +7,19 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts,.js",
+    "lint:fix": "eslint src --ext .ts,.js --fix"
   },
   "dependencies": {},
   "devDependencies": {
+    "@eslint/js": "^9.29.0",
+    "@typescript-eslint/eslint-plugin": "^8.35.1",
+    "@typescript-eslint/parser": "^8.35.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.29.0",
     "typescript": "^5.6.3",
-    "vitest": "^3.2.4",
-    "@vitest/coverage-v8": "^3.2.4"
+    "vitest": "^3.2.4"
   },
   "peerDependencies": {
     "@meal-rec/database": "workspace:*"

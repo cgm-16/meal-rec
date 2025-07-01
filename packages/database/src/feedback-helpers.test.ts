@@ -3,6 +3,14 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Types } from 'mongoose';
+
+// Type for the Mongoose query chain mock
+interface MockQueryChain {
+  populate: ReturnType<typeof vi.fn>;
+  sort: ReturnType<typeof vi.fn>;
+}
+
+// Types for mocks - defined inline to avoid unused interface warnings
 import { 
   getRecentFeedback, 
   deleteOldFeedback, 
@@ -63,11 +71,11 @@ describe('Feedback Helpers', () => {
 
   describe('getRecentFeedback', () => {
     it('should get feedback within default 14 day window', async () => {
-      const mockFind = {
+      const mockFind: MockQueryChain = {
         populate: vi.fn().mockReturnThis(),
         sort: vi.fn().mockResolvedValue(mockFeedbackData)
       };
-      vi.mocked(Feedback.find).mockReturnValue(mockFind as any);
+      vi.mocked(Feedback.find).mockReturnValue(mockFind as never);
 
       const userId = 'user123';
       const result = await getRecentFeedback(userId);
@@ -82,11 +90,11 @@ describe('Feedback Helpers', () => {
     });
 
     it('should get feedback within custom day window', async () => {
-      const mockFind = {
+      const mockFind: MockQueryChain = {
         populate: vi.fn().mockReturnThis(),
         sort: vi.fn().mockResolvedValue(mockFeedbackData)
       };
-      vi.mocked(Feedback.find).mockReturnValue(mockFind as any);
+      vi.mocked(Feedback.find).mockReturnValue(mockFind as never);
 
       const userId = 'user123';
       const days = 7;
@@ -105,11 +113,11 @@ describe('Feedback Helpers', () => {
     });
 
     it('should handle empty results', async () => {
-      const mockFind = {
+      const mockFind: MockQueryChain = {
         populate: vi.fn().mockReturnThis(),
         sort: vi.fn().mockResolvedValue([])
       };
-      vi.mocked(Feedback.find).mockReturnValue(mockFind as any);
+      vi.mocked(Feedback.find).mockReturnValue(mockFind as never);
 
       const result = await getRecentFeedback('user123');
       expect(result).toEqual([]);
@@ -119,7 +127,7 @@ describe('Feedback Helpers', () => {
   describe('deleteOldFeedback', () => {
     it('should delete feedback older than default 14 days', async () => {
       const mockDeleteResult = { deletedCount: 5 };
-      vi.mocked(Feedback.deleteMany).mockResolvedValue(mockDeleteResult as any);
+      vi.mocked(Feedback.deleteMany).mockResolvedValue(mockDeleteResult as never);
 
       const result = await deleteOldFeedback();
 
@@ -132,7 +140,7 @@ describe('Feedback Helpers', () => {
 
     it('should delete feedback older than custom days', async () => {
       const mockDeleteResult = { deletedCount: 3 };
-      vi.mocked(Feedback.deleteMany).mockResolvedValue(mockDeleteResult as any);
+      vi.mocked(Feedback.deleteMany).mockResolvedValue(mockDeleteResult as never);
 
       const days = 30;
       const result = await deleteOldFeedback(days);
@@ -153,7 +161,7 @@ describe('Feedback Helpers', () => {
 
     it('should handle zero deletions', async () => {
       const mockDeleteResult = { deletedCount: 0 };
-      vi.mocked(Feedback.deleteMany).mockResolvedValue(mockDeleteResult as any);
+      vi.mocked(Feedback.deleteMany).mockResolvedValue(mockDeleteResult as never);
 
       const result = await deleteOldFeedback();
       expect(result).toEqual({ deletedCount: 0 });
@@ -228,11 +236,11 @@ describe('Feedback Helpers', () => {
 
   describe('getMealFeedback', () => {
     it('should get feedback for a specific meal', async () => {
-      const mockFind = {
+      const mockFind: MockQueryChain = {
         populate: vi.fn().mockReturnThis(),
         sort: vi.fn().mockResolvedValue(mockFeedbackData)
       };
-      vi.mocked(Feedback.find).mockReturnValue(mockFind as any);
+      vi.mocked(Feedback.find).mockReturnValue(mockFind as never);
 
       const mealId = 'meal123';
       const result = await getMealFeedback(mealId);
@@ -247,11 +255,11 @@ describe('Feedback Helpers', () => {
     });
 
     it('should support custom time window', async () => {
-      const mockFind = {
+      const mockFind: MockQueryChain = {
         populate: vi.fn().mockReturnThis(),
         sort: vi.fn().mockResolvedValue([])
       };
-      vi.mocked(Feedback.find).mockReturnValue(mockFind as any);
+      vi.mocked(Feedback.find).mockReturnValue(mockFind as never);
 
       const mealId = 'meal123';
       const days = 7;
@@ -269,7 +277,7 @@ describe('Feedback Helpers', () => {
       const mockScheduledTask = {
         stop: vi.fn()
       };
-      vi.mocked(cron.schedule).mockReturnValue(mockScheduledTask as any);
+      vi.mocked(cron.schedule).mockReturnValue(mockScheduledTask as never);
 
       const result = startFeedbackCleanupCron();
 
@@ -288,7 +296,7 @@ describe('Feedback Helpers', () => {
       const mockScheduledTask = {
         stop: vi.fn()
       };
-      vi.mocked(cron.schedule).mockReturnValue(mockScheduledTask as any);
+      vi.mocked(cron.schedule).mockReturnValue(mockScheduledTask as never);
 
       // Start first job
       const result1 = startFeedbackCleanupCron();
@@ -304,7 +312,7 @@ describe('Feedback Helpers', () => {
       const mockScheduledTask = {
         stop: vi.fn()
       };
-      vi.mocked(cron.schedule).mockReturnValue(mockScheduledTask as any);
+      vi.mocked(cron.schedule).mockReturnValue(mockScheduledTask as never);
 
       startFeedbackCleanupCron();
       stopFeedbackCleanupCron();
@@ -320,12 +328,12 @@ describe('Feedback Helpers', () => {
 
     it('should execute cleanup task when CRON job runs', async () => {
       const mockDeleteResult = { deletedCount: 3 };
-      vi.mocked(Feedback.deleteMany).mockResolvedValue(mockDeleteResult as any);
+      vi.mocked(Feedback.deleteMany).mockResolvedValue(mockDeleteResult as never);
       
-      let cronCallback: Function;
-      vi.mocked(cron.schedule).mockImplementation((schedule, callback, options) => {
+      let cronCallback: () => Promise<void>;
+      vi.mocked(cron.schedule).mockImplementation((schedule, callback) => {
         cronCallback = callback;
-        return { stop: vi.fn() } as any;
+        return { stop: vi.fn() } as never;
       });
 
       startFeedbackCleanupCron();
@@ -344,10 +352,10 @@ describe('Feedback Helpers', () => {
       const mockError = new Error('Database error');
       vi.mocked(Feedback.deleteMany).mockRejectedValue(mockError);
       
-      let cronCallback: Function;
-      vi.mocked(cron.schedule).mockImplementation((schedule, callback, options) => {
+      let cronCallback: () => Promise<void>;
+      vi.mocked(cron.schedule).mockImplementation((schedule, callback) => {
         cronCallback = callback;
-        return { stop: vi.fn() } as any;
+        return { stop: vi.fn() } as never;
       });
 
       startFeedbackCleanupCron();
