@@ -6,6 +6,15 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { connect, User } from '@meal-rec/database';
 
+interface ExtendedUser {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role?: string;
+  isAdmin?: boolean;
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -35,7 +44,8 @@ export const authOptions: NextAuthOptions = {
           return {
             id: (user._id as string).toString(),
             name: user.username,
-            email: null
+            email: null,
+            role: user.role || 'user' // Include role from database
           };
         } catch (error) {
           console.error('Authentication error:', error);
@@ -52,12 +62,17 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.userId = user.id;
+        token.role = user.role;
+        token.isAdmin = user.role === 'admin';
       }
       return token;
     },
     async session({ session, token }) {
       if (token.userId) {
-        session.user.id = token.userId as string;
+        const user = session.user as ExtendedUser;
+        user.id = token.userId;
+        user.role = token.role;
+        user.isAdmin = token.isAdmin;
       }
       return session;
     }

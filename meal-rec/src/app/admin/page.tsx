@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { ExtendedSession } from '@/types/session';
 
 interface Meal {
   _id: string;
@@ -33,6 +34,7 @@ interface User {
 export default function AdminPage() {
   const sessionResult = useSession();
   const { data: session, status } = sessionResult || { data: null, status: 'loading' };
+  const extendedSession = session as ExtendedSession | null;
   const router = useRouter();
   
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -50,14 +52,18 @@ export default function AdminPage() {
     if (status === 'loading') return;
     
     if (!session) {
-      router.push('/auth/signin');
+      router.push('/auth/signin?callbackUrl=/admin');
       return;
     }
     
-    // Note: In a real app, you'd check the user's role from the session
-    // For now, we'll let the API handle the admin check
+    // Check if user is admin
+    if (!extendedSession?.user.isAdmin) {
+      setError('Admin access required');
+      return;
+    }
+    
     fetchData();
-  }, [session, status, router]);
+  }, [session, status, router, extendedSession?.user.isAdmin]);
 
   const fetchData = async () => {
     try {
