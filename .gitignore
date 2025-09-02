@@ -7,6 +7,11 @@ dist/
 build/
 .next/
 
+# Generated service worker files
+public/sw.js
+public/workbox-*.js
+public/sw.js.map
+
 # Environment variables
 .env
 .env.local
