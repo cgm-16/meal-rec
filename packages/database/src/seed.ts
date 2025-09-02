@@ -1,6 +1,7 @@
 // ABOUTME: Database seeding script for importing meal data from JSON
 // ABOUTME: Connects to MongoDB, clears existing meals, and bulk inserts from data/meals.json
 
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { connect, disconnect } from './connect';
