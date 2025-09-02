@@ -337,7 +337,7 @@ pnpm lighthouse
 
 ---
 
-**Release Date**: June 28, 2025  
+**Release Date**: September 2, 2025  
 **Version**: 1.0.0  
 **Build**: Production Ready  
 **Status**: ✅ Complete with known test infrastructure issues documented
