@@ -9,7 +9,7 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  transpilePackages: ['@meal-rec/database', '@meal-rec/core'],
 };
 
 const configWithPWA = withSerwist(nextConfig);
