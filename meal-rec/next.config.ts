@@ -14,12 +14,17 @@ const nextConfig: NextConfig = {
 
 const configWithPWA = withSerwist(nextConfig);
 
-export default withSentryConfig(configWithPWA, {
-  org: "mealrec",
-  project: "meal-recommendation-pwa",
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  tunnelRoute: "/monitoring",
-  disableLogger: true,
-  automaticVercelMonitors: true,
-});
+// Only enable Sentry if auth token is provided and not explicitly disabled
+const shouldUseSentry = process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_AUTH_TOKEN !== 'disabled';
+
+export default shouldUseSentry 
+  ? withSentryConfig(configWithPWA, {
+      org: "mealrec",
+      project: "meal-recommendation-pwa",
+      silent: !process.env.CI,
+      widenClientFileUpload: true,
+      tunnelRoute: "/monitoring",
+      disableLogger: true,
+      automaticVercelMonitors: true,
+    })
+  : configWithPWA;
