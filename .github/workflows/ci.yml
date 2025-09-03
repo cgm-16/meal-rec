@@ -50,6 +50,12 @@ jobs:
     needs: test
     if: "!contains(github.event.head_commit.message, '[skip e2e]')"
 
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+
     steps:
     - uses: actions/checkout@v4
     
@@ -85,6 +91,10 @@ jobs:
     
     - name: Run E2E tests
       run: cd meal-rec && pnpm test:e2e
+      env:
+        NEXTAUTH_SECRET: test-secret-for-ci-only
+        NEXTAUTH_URL: http://localhost:3000
+        MONGO_URL: mongodb://localhost:27017/meal-rec-e2e-test
     
     - name: Upload E2E test results
       uses: actions/upload-artifact@v4
@@ -137,6 +147,12 @@ jobs:
     needs: test
     if: "!contains(github.event.head_commit.message, '[skip cypress]')"
 
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+
     steps:
     - uses: actions/checkout@v4
     
@@ -163,12 +179,20 @@ jobs:
     
     - name: Start application
       run: cd meal-rec && pnpm start &
+      env:
+        NEXTAUTH_SECRET: test-secret-for-ci-only
+        NEXTAUTH_URL: http://localhost:3000
+        MONGO_URL: mongodb://localhost:27017/meal-rec-e2e-test
     
     - name: Wait for server
       run: pnpm exec wait-on http://localhost:3000
     
     - name: Run Cypress tests
       run: cd meal-rec && pnpm cypress:run
+      env:
+        NEXTAUTH_SECRET: test-secret-for-ci-only
+        NEXTAUTH_URL: http://localhost:3000
+        MONGO_URL: mongodb://localhost:27017/meal-rec-e2e-test
     
     - name: Upload Cypress screenshots
       uses: actions/upload-artifact@v4
