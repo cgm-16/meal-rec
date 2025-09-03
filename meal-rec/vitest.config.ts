@@ -15,6 +15,8 @@ export default defineConfig({
     hookTimeout: 30000,
     // Use pool 'forks' for better isolation between different test types
     pool: 'forks',
+    // Exclude Playwright tests from vitest
+    exclude: ['**/tests/**', '**/node_modules/**', '**/dist/**'],
   },
   resolve: {
     alias: {

@@ -14,12 +14,12 @@ vi.mock('next/navigation', () => ({
   })
 }));
 
-// Mock bcrypt
-vi.mock('bcryptjs', () => ({
-  default: {
-    hash: vi.fn().mockResolvedValue('$2b$10$hashedpin')
-  }
-}));
+// Mock bcrypt - no need to mock, just let it work
+// vi.mock('bcryptjs', () => ({
+//   default: {
+//     hash: vi.fn().mockResolvedValue('$2b$10$hashedpin')
+//   }
+// }));
 
 // Mock fetch
 global.fetch = vi.fn();
@@ -53,12 +53,13 @@ describe('SignUpPage', () => {
     const submitButton = screen.getByRole('button', { name: 'Sign up' });
 
     await user.type(usernameInput, 'testuser');
+    await user.clear(pinInput);
     await user.type(pinInput, '123'); // 3 digits
     await user.click(submitButton);
 
     await waitFor(() => {
       expect(screen.getByText('PIN must be exactly 4 digits')).toBeInTheDocument();
-    });
+    }, { timeout: 5000 });
 
     expect(fetch).not.toHaveBeenCalled();
   });
@@ -100,16 +101,22 @@ describe('SignUpPage', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/auth/signup', {
+      expect(fetch).toHaveBeenCalledWith('/api/auth/signup', expect.objectContaining({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          username: 'testuser',
-          hashedPin: '$2b$10$hashedpin'
-        }),
-      });
+        body: expect.stringContaining('testuser')
+      }));
+    });
+
+    // Verify the body contains both username and hashedPin
+    await waitFor(() => {
+      const fetchCall = vi.mocked(fetch).mock.calls[0];
+      const body = JSON.parse(fetchCall![1]!.body as string);
+      expect(body).toHaveProperty('username', 'testuser');
+      expect(body).toHaveProperty('hashedPin');
+      expect(body.hashedPin).toMatch(/^\$2b\$10\$/); // bcrypt hash format
     });
 
     await waitFor(() => {

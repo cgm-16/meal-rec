@@ -4,6 +4,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { usePathname } from 'next/navigation';
 import { vi } from 'vitest';
+import { SessionProvider } from 'next-auth/react';
 import Navigation from './Navigation';
 
 // Mock next/navigation
@@ -13,13 +14,22 @@ vi.mock('next/navigation', () => ({
 
 const mockUsePathname = vi.mocked(usePathname);
 
+// Helper to render Navigation with SessionProvider
+const renderNavigation = (session = null) => {
+  return render(
+    <SessionProvider session={session}>
+      <Navigation />
+    </SessionProvider>
+  );
+};
+
 describe('Navigation', () => {
   beforeEach(() => {
     mockUsePathname.mockReturnValue('/');
   });
 
   it('renders all navigation items', () => {
-    render(<Navigation />);
+    renderNavigation();
     
     expect(screen.getByText('MealRec')).toBeInTheDocument();
     expect(screen.getByText('Home')).toBeInTheDocument();
@@ -30,14 +40,14 @@ describe('Navigation', () => {
 
   it('shows active state for current page', () => {
     mockUsePathname.mockReturnValue('/explore');
-    render(<Navigation />);
+    renderNavigation();
     
     const exploreLink = screen.getByText('Explore');
     expect(exploreLink).toHaveClass('bg-blue-100', 'text-blue-700');
   });
 
   it('toggles mobile menu when hamburger is clicked', () => {
-    render(<Navigation />);
+    renderNavigation();
     
     const hamburgerButton = screen.getByLabelText('Toggle navigation menu');
     
@@ -54,7 +64,7 @@ describe('Navigation', () => {
   });
 
   it('closes mobile menu when a link is clicked', () => {
-    render(<Navigation />);
+    renderNavigation();
     
     const hamburgerButton = screen.getByLabelText('Toggle navigation menu');
     fireEvent.click(hamburgerButton);
@@ -72,7 +82,7 @@ describe('Navigation', () => {
 
   it('highlights correct active link for home page', () => {
     mockUsePathname.mockReturnValue('/');
-    render(<Navigation />);
+    renderNavigation();
     
     const homeLink = screen.getAllByText('Home')[0]; // Desktop version
     expect(homeLink).toHaveClass('bg-blue-100', 'text-blue-700');
@@ -80,7 +90,7 @@ describe('Navigation', () => {
 
   it('highlights correct active link for auth pages', () => {
     mockUsePathname.mockReturnValue('/auth/signin');
-    render(<Navigation />);
+    renderNavigation();
     
     const signInLink = screen.getAllByText('Sign In')[0]; // Desktop version
     expect(signInLink).toHaveClass('bg-blue-100', 'text-blue-700');

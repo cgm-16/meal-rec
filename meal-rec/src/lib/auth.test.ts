@@ -28,6 +28,7 @@ describe('Auth Configuration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   afterEach(() => {
@@ -56,19 +57,22 @@ describe('Auth Configuration', () => {
 
     it('should return null for non-existent user', async () => {
       const authorize = getAuthorize();
+      vi.mocked(connect).mockResolvedValue(undefined);
       vi.mocked(User.findOne).mockResolvedValue(null);
 
       const result = await authorize({
         username: 'nonexistent',
         pin: '1234'
-      });
+      }, {} as Parameters<NonNullable<typeof authorize>>[1]);
 
       expect(result).toBeNull();
+      expect(connect).toHaveBeenCalled();
       expect(User.findOne).toHaveBeenCalledWith({ username: 'nonexistent' });
     });
 
     it('should return null for invalid PIN', async () => {
       const authorize = getAuthorize();
+      vi.mocked(connect).mockResolvedValue(undefined);
       vi.mocked(User.findOne).mockResolvedValue({
         _id: 'user123',
         username: 'testuser',
@@ -79,9 +83,11 @@ describe('Auth Configuration', () => {
       const result = await authorize({
         username: 'testuser',
         pin: '1234'
-      });
+      }, {} as Parameters<NonNullable<typeof authorize>>[1]);
 
       expect(result).toBeNull();
+      expect(connect).toHaveBeenCalled();
+      expect(User.findOne).toHaveBeenCalledWith({ username: 'testuser' });
       expect(bcrypt.compare).toHaveBeenCalledWith('1234', '$2b$10$hashedpin');
     });
 
@@ -90,20 +96,23 @@ describe('Auth Configuration', () => {
       const mockUser = {
         _id: 'user123',
         username: 'testuser',
-        hashedPin: '$2b$10$hashedpin'
+        hashedPin: '$2b$10$hashedpin',
+        role: 'user'
       };
+      vi.mocked(connect).mockResolvedValue(undefined);
       vi.mocked(User.findOne).mockResolvedValue(mockUser);
       vi.mocked(bcrypt.compare).mockResolvedValue(true);
 
       const result = await authorize({
         username: 'testuser',
         pin: '1234'
-      });
+      }, {} as Parameters<NonNullable<typeof authorize>>[1]);
 
       expect(result).toEqual({
         id: 'user123',
         name: 'testuser',
-        email: null
+        email: null,
+        role: 'user'
       });
       expect(connect).toHaveBeenCalled();
       expect(User.findOne).toHaveBeenCalledWith({ username: 'testuser' });
@@ -126,11 +135,15 @@ describe('Auth Configuration', () => {
   describe('Callbacks', () => {
     it('should add userId to JWT token when user is present', async () => {
       const token = {};
-      const user = { id: 'user123' };
+      const user = { id: 'user123', role: 'user' };
 
       const result = await authOptions.callbacks!.jwt!({ token, user } as Parameters<NonNullable<typeof authOptions.callbacks.jwt>>[0]);
 
-      expect(result).toEqual({ userId: 'user123' });
+      expect(result).toEqual({ 
+        userId: 'user123',
+        role: 'user',
+        isAdmin: false
+      });
     });
 
     it('should preserve existing token when no user', async () => {

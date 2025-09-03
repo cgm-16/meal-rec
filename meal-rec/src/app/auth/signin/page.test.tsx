@@ -4,6 +4,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { signIn, getSession } from 'next-auth/react';
 import SignInPage from './page';
 
 // Mock Next.js router and navigation
@@ -18,11 +19,9 @@ vi.mock('next/navigation', () => ({
 }));
 
 // Mock NextAuth
-const mockSignIn = vi.fn();
-const mockGetSession = vi.fn();
 vi.mock('next-auth/react', () => ({
-  signIn: mockSignIn,
-  getSession: mockGetSession
+  signIn: vi.fn(),
+  getSession: vi.fn()
 }));
 
 describe('SignInPage', () => {
@@ -54,8 +53,8 @@ describe('SignInPage', () => {
 
   it('should submit form with valid credentials and redirect on success', async () => {
     const user = userEvent.setup();
-    mockSignIn.mockResolvedValue({ error: null });
-    mockGetSession.mockResolvedValue({ user: { id: 'user123', name: 'testuser' } });
+    vi.mocked(signIn).mockResolvedValue({ error: null });
+    vi.mocked(getSession).mockResolvedValue({ user: { id: 'user123', name: 'testuser' } });
 
     render(<SignInPage />);
 
@@ -68,7 +67,7 @@ describe('SignInPage', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(mockSignIn).toHaveBeenCalledWith('credentials', {
+      expect(signIn).toHaveBeenCalledWith('credentials', {
         username: 'testuser',
         pin: '1234',
         redirect: false
@@ -76,14 +75,14 @@ describe('SignInPage', () => {
     });
 
     await waitFor(() => {
-      expect(mockGetSession).toHaveBeenCalled();
+      expect(getSession).toHaveBeenCalled();
       expect(mockPush).toHaveBeenCalledWith('/');
     });
   });
 
   it('should display error message for invalid credentials', async () => {
     const user = userEvent.setup();
-    mockSignIn.mockResolvedValue({ error: 'CredentialsSignin' });
+    vi.mocked(signIn).mockResolvedValue({ error: 'CredentialsSignin' });
 
     render(<SignInPage />);
 
@@ -104,8 +103,8 @@ describe('SignInPage', () => {
 
   it('should handle session creation failure', async () => {
     const user = userEvent.setup();
-    mockSignIn.mockResolvedValue({ error: null });
-    mockGetSession.mockResolvedValue(null);
+    vi.mocked(signIn).mockResolvedValue({ error: null });
+    vi.mocked(getSession).mockResolvedValue(null);
 
     render(<SignInPage />);
 
@@ -126,7 +125,7 @@ describe('SignInPage', () => {
 
   it('should handle network errors', async () => {
     const user = userEvent.setup();
-    mockSignIn.mockRejectedValue(new Error('Network error'));
+    vi.mocked(signIn).mockRejectedValue(new Error('Network error'));
 
     render(<SignInPage />);
 
@@ -147,7 +146,7 @@ describe('SignInPage', () => {
 
   it('should disable form during submission', async () => {
     const user = userEvent.setup();
-    mockSignIn.mockImplementation(() => new Promise(() => {})); // Never resolves
+    vi.mocked(signIn).mockImplementation(() => new Promise(() => {})); // Never resolves
 
     render(<SignInPage />);
 
