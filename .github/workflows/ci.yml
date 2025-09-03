@@ -60,7 +60,7 @@ jobs:
       run: pnpm -r build
     
     - name: Install Playwright Browsers
-      run: cd meal-rec && npx playwright install --with-deps
+      run: cd meal-rec && pnpm exec playwright install --with-deps
     
     - name: Run E2E tests
       run: cd meal-rec && pnpm test:e2e
@@ -131,7 +131,7 @@ jobs:
       run: cd meal-rec && pnpm start &
     
     - name: Wait for server
-      run: npx wait-on http://localhost:3000
+      run: pnpm exec wait-on http://localhost:3000
     
     - name: Run Cypress tests
       run: cd meal-rec && pnpm cypress:run
