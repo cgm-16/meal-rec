@@ -8,7 +8,7 @@ import { setupTestDb, teardownTestDb, clearTestDb } from '../test-setup';
 describe('User Model', () => {
   beforeAll(async () => {
     await setupTestDb();
-  }, 30000);
+  });
 
   afterAll(async () => {
     await teardownTestDb();

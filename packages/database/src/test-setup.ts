@@ -1,24 +1,19 @@
-// ABOUTME: Test setup for in-memory MongoDB instance
-// ABOUTME: Manages MongoDB Memory Server lifecycle for database tests
+// ABOUTME: Test setup for database connections using global MongoDB instance
+// ABOUTME: Manages mongoose connections to the globally-created test database
 
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 
-let mongoServer: MongoMemoryServer;
-
 export async function setupTestDb() {
-  mongoServer = await MongoMemoryServer.create();
-  const mongoUri = mongoServer.getUri();
+  const mongoUri = process.env.MONGODB_URI;
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI not found in environment. Make sure global setup is configured.');
+  }
   await mongoose.connect(mongoUri);
 }
 
 export async function teardownTestDb() {
   if (mongoose.connection.readyState !== 0) {
-    await mongoose.connection.dropDatabase();
     await mongoose.disconnect();
-  }
-  if (mongoServer) {
-    await mongoServer.stop();
   }
 }
 

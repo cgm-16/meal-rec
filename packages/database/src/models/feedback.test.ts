@@ -13,7 +13,7 @@ describe('Feedback Model', () => {
 
   beforeAll(async () => {
     await setupTestDb();
-  }, 30000);
+  });
 
   beforeEach(async () => {
     await clearTestDb();
