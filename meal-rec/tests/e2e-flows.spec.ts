@@ -361,6 +361,250 @@ test.describe('E2E User Flows', () => {
     await expect(page.locator('button:has-text("Add New Meal")')).toBeVisible();
   });
 
+  test('Admin Flow - Comprehensive meal management (CRUD operations)', async ({ page }) => {
+    // Mock admin session
+    await page.route('/api/auth/session', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          user: { id: 'admin-user-id', name: 'admin', email: null },
+          expires: '2024-12-31T23:59:59.999Z'
+        })
+      });
+    });
+
+    // Mock initial meals data
+    await page.route('/api/admin/meals', async route => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            meals: [{
+              _id: 'existing-meal-id',
+              name: 'Existing Meal',
+              cuisine: 'Test Cuisine',
+              primaryIngredients: ['test ingredient'],
+              spiciness: 2,
+              heaviness: 3
+            }],
+            total: 1
+          })
+        });
+      } else if (route.request().method() === 'POST') {
+        // Mock meal creation
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            meal: {
+              _id: 'new-meal-id',
+              name: 'Test Meal',
+              cuisine: 'Test Cuisine',
+              primaryIngredients: ['test ingredient'],
+              spiciness: 3,
+              heaviness: 2
+            }
+          })
+        });
+      }
+    });
+
+    // Mock meal update
+    await page.route('/api/admin/meals/*', async route => {
+      if (route.request().method() === 'PUT') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            meal: {
+              _id: 'existing-meal-id',
+              name: 'Updated Meal',
+              cuisine: 'Updated Cuisine'
+            }
+          })
+        });
+      } else if (route.request().method() === 'DELETE') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ message: 'Meal deleted successfully' })
+        });
+      }
+    });
+
+    await page.route('/api/admin/users', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ users: [], total: 0 })
+      });
+    });
+
+    // 1. Visit admin page
+    await page.goto('/admin');
+    await expect(page.locator('h1')).toContainText('Admin Panel');
+
+    // 2. Test meal creation
+    await page.click('[data-cy="add-meal-btn"]');
+    await expect(page.locator('[data-cy="meal-dialog"]')).toBeVisible();
+
+    await page.fill('input[name="name"]', 'Test Meal');
+    await page.fill('input[name="cuisine"]', 'Test Cuisine');
+    await page.fill('input[name="spiciness"]', '3');
+    await page.fill('input[name="primaryIngredients"]', 'test ingredient');
+
+    await page.click('[data-cy="save-meal-btn"]');
+    
+    // 3. Test meal editing
+    await page.click('[data-cy="edit-meal-btn"]');
+    await page.fill('input[name="name"]', 'Updated Meal');
+    await page.click('[data-cy="save-meal-btn"]');
+
+    // 4. Test meal deletion
+    page.on('dialog', dialog => dialog.accept());
+    await page.click('[data-cy="delete-meal-btn"]');
+  });
+
+  test('Admin Flow - User management (ban/unban operations)', async ({ page }) => {
+    // Mock admin session
+    await page.route('/api/auth/session', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          user: { id: 'admin-user-id', name: 'admin', email: null },
+          expires: '2024-12-31T23:59:59.999Z'
+        })
+      });
+    });
+
+    await page.route('/api/admin/meals', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ meals: [], total: 0 })
+      });
+    });
+
+    // Mock users data
+    await page.route('/api/admin/users', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          users: [{
+            _id: 'user-1',
+            username: 'testuser',
+            banned: false,
+            createdAt: '2024-01-01T00:00:00.000Z'
+          }],
+          total: 1
+        })
+      });
+    });
+
+    // Mock user ban/unban operations
+    await page.route('/api/admin/users/*/ban', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          message: 'User status updated successfully',
+          user: {
+            _id: 'user-1',
+            username: 'testuser',
+            banned: !JSON.parse(route.request().postData() || '{}').banned
+          }
+        })
+      });
+    });
+
+    // 1. Visit admin page and switch to users tab
+    await page.goto('/admin');
+    await page.click('[data-cy="users-tab"]');
+    await expect(page.locator('text=User Management')).toBeVisible();
+    await expect(page.locator('text=testuser')).toBeVisible();
+
+    // 2. Test user banning
+    page.on('dialog', dialog => dialog.accept());
+    await page.click('[data-cy="ban-user-btn"]');
+
+    // 3. Test user unbanning
+    await page.click('[data-cy="unban-user-btn"]');
+  });
+
+  test('Admin Flow - Error handling scenarios', async ({ page }) => {
+    // Mock admin session
+    await page.route('/api/auth/session', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          user: { id: 'admin-user-id', name: 'admin', email: null },
+          expires: '2024-12-31T23:59:59.999Z'
+        })
+      });
+    });
+
+    // Mock server errors
+    await page.route('/api/admin/meals', async route => {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Internal server error' })
+      });
+    });
+
+    await page.route('/api/admin/users', async route => {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Internal server error' })
+      });
+    });
+
+    // 1. Visit admin page and expect error handling
+    await page.goto('/admin');
+    await expect(page.locator('text=Failed to load admin data')).toBeVisible();
+  });
+
+  test('Admin Flow - Regular user access prevention', async ({ page }) => {
+    // Mock regular user session
+    await page.route('/api/auth/session', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          user: { id: 'regular-user-id', name: 'regularuser', email: null },
+          expires: '2024-12-31T23:59:59.999Z'
+        })
+      });
+    });
+
+    // Mock unauthorized admin API responses
+    await page.route('/api/admin/meals', async route => {
+      await route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Admin access required' })
+      });
+    });
+
+    await page.route('/api/admin/users', async route => {
+      await route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Admin access required' })
+      });
+    });
+
+    // 1. Visit admin page as regular user
+    await page.goto('/admin');
+    await expect(page.locator('text=Admin access required')).toBeVisible();
+  });
+
   test('Offline Functionality - Service worker and offline page', async ({ page }) => {
     // 1. Visit homepage to register service worker
     await page.goto('/');
