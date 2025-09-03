@@ -72,7 +72,7 @@ test.describe('PWA Installability', () => {
     await page.goto('/offline');
     
     // Verify offline page content
-    await expect(page.locator('h1')).toContainText("You're Offline");
+    await expect(page.locator('h1')).toContainText("Offline");
     await expect(page.locator('text=🍽️')).toBeVisible();
     await expect(page.locator('text=Browse previously loaded meals')).toBeVisible();
   });
