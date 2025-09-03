@@ -1,12 +1,13 @@
 // ABOUTME: Test setup for database connections using global MongoDB instance
 // ABOUTME: Manages mongoose connections to the globally-created test database
 
+import { inject } from 'vitest';
 import mongoose from 'mongoose';
 
 export async function setupTestDb() {
-  const mongoUri = process.env.MONGODB_URI;
+  const mongoUri = inject('MONGO_URI');
   if (!mongoUri) {
-    throw new Error('MONGODB_URI not found in environment. Make sure global setup is configured.');
+    throw new Error('MONGO_URI not found in test context. Make sure global setup is configured.');
   }
   await mongoose.connect(mongoUri);
 }
