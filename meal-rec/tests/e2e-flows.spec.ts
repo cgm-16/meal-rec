@@ -97,19 +97,23 @@ test.describe('E2E User Flows', () => {
   test('Quiz Flow - Take quiz and get recommendations', async ({ page }) => {
     // 1. Navigate to quiz
     await page.goto('/quiz');
-    await expect(page.locator('h1')).toContainText('Food Preferences');
+    await expect(page.locator('h1')).toContainText('Food Preferences Quiz');
 
-    // 2. Fill out step 1 - ingredients to avoid
-    await page.fill('input[name="ingredientsToAvoid"]', 'shellfish, peanuts');
-    await page.click('button:has-text("Next")');
+    // 2. Step 1 - Select ingredients to avoid using buttons
+    await expect(page.locator('text=Step 1 of 3')).toBeVisible();
+    await page.click('[data-testid="ingredient-shellfish"]');
+    await page.click('[data-testid="ingredient-nuts"]');
+    await page.click('[data-testid="next-step-1"]');
 
-    // 3. Fill out step 2 - spiciness preference
-    await page.fill('input[name="spiciness"]', '3');
-    await page.click('button:has-text("Next")');
+    // 3. Step 2 - Set spiciness preference using slider
+    await expect(page.locator('text=Step 2 of 3')).toBeVisible();
+    await page.locator('[data-testid="spiciness-slider"]').fill('3');
+    await page.click('[data-testid="next-step-2"]');
 
-    // 4. Fill out step 3 - surprise factor
-    await page.fill('input[name="surpriseFactor"]', '7');
-    await page.click('button:has-text("Get Recommendations")');
+    // 4. Step 3 - Set surprise factor using slider
+    await expect(page.locator('text=Step 3 of 3')).toBeVisible();
+    await page.locator('[data-testid="surprise-slider"]').fill('7');
+    await page.click('[data-testid="submit-quiz"]');
 
     // 5. Should redirect to home with personalized recommendation
     await expect(page).toHaveURL('/');
@@ -195,7 +199,7 @@ test.describe('E2E User Flows', () => {
     await page.click('button[type="submit"]');
     
     // Should show error and stay on signin page
-    await expect(page.locator('text=Sign in failed')).toBeVisible();
+    await expect(page.locator('text=Invalid username or PIN')).toBeVisible();
     await expect(page).toHaveURL('/auth/signin');
 
     // 2. Test invalid PIN
@@ -204,7 +208,7 @@ test.describe('E2E User Flows', () => {
     await page.click('button[type="submit"]');
     
     // Should show error and stay on signin page
-    await expect(page.locator('text=Sign in failed')).toBeVisible();
+    await expect(page.locator('text=Invalid username or PIN')).toBeVisible();
     await expect(page).toHaveURL('/auth/signin');
   });
 
@@ -243,14 +247,14 @@ test.describe('E2E User Flows', () => {
   test('Explore Analytics Flow - View meal analytics', async ({ page }) => {
     // 1. Navigate to explore page
     await page.goto('/explore');
-    await expect(page.locator('h1')).toContainText('Meal Analytics');
+    await expect(page.locator('h1')).toContainText('Explore Food Trends');
 
     // 2. Wait for analytics data to load
     await expect(page.locator('text=Popular Pasta')).toBeVisible();
     await expect(page.locator('text=Tasty Burger')).toBeVisible();
 
-    // 3. Check that charts are rendered
-    await expect(page.locator('.recharts-wrapper')).toBeVisible();
+    // 3. Check that charts are rendered (multiple charts exist)
+    await expect(page.locator('.recharts-wrapper').first()).toBeVisible();
 
     // 4. Verify analytics summary
     await expect(page.locator('text=Most Loved Meals')).toBeVisible();
@@ -281,10 +285,10 @@ test.describe('E2E User Flows', () => {
 
     // 2. Should show access denied message
     await expect(page.locator('text=Admin access required')).toBeVisible();
-    await expect(page.locator('button:has-text("Go Home")')).toBeVisible();
+    await expect(page.locator('button:has-text("Go to Home")')).toBeVisible();
 
     // 3. Click go home button
-    await page.click('button:has-text("Go Home")');
+    await page.click('button:has-text("Go to Home")');
     await expect(page).toHaveURL('/');
   });
 
