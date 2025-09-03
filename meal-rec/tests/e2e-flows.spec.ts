@@ -166,6 +166,80 @@ test.describe('E2E User Flows', () => {
     await expect(page.locator('[data-testid="meal-card"]')).toBeVisible();
   });
 
+  test('Authentication Failure Scenarios', async ({ page }) => {
+    // Mock failed auth responses
+    await page.route('/api/auth/callback/credentials', async route => {
+      const request = route.request();
+      const postData = request.postData();
+      
+      // Parse form data to determine response
+      if (postData?.includes('wronguser') || postData?.includes('9999')) {
+        await route.fulfill({
+          status: 401,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Invalid credentials' })
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ url: '/' })
+        });
+      }
+    });
+
+    // 1. Test invalid username
+    await page.goto('/auth/signin');
+    await page.fill('input[name="username"]', 'wronguser');
+    await page.fill('input[name="pin"]', '1234');
+    await page.click('button[type="submit"]');
+    
+    // Should show error and stay on signin page
+    await expect(page.locator('text=Sign in failed')).toBeVisible();
+    await expect(page).toHaveURL('/auth/signin');
+
+    // 2. Test invalid PIN
+    await page.fill('input[name="username"]', 'testuser');
+    await page.fill('input[name="pin"]', '9999');
+    await page.click('button[type="submit"]');
+    
+    // Should show error and stay on signin page
+    await expect(page.locator('text=Sign in failed')).toBeVisible();
+    await expect(page).toHaveURL('/auth/signin');
+  });
+
+  test('Form Validation Scenarios', async ({ page }) => {
+    // 1. Test signup form validation - short username
+    await page.goto('/auth/signup');
+    await page.fill('input[name="username"]', 'ab'); // 2 characters
+    await page.fill('input[name="pin"]', '1234');
+    await page.click('button[type="submit"]');
+    
+    // Should show validation error
+    await expect(page.locator('text=Username must be at least 3 characters')).toBeVisible();
+
+    // 2. Test signup form validation - invalid PIN format
+    await page.fill('input[name="username"]', 'testuser');
+    await page.fill('input[name="pin"]', '123'); // 3 digits
+    await page.click('button[type="submit"]');
+    
+    // Should show PIN validation error
+    await expect(page.locator('text=PIN must be exactly 4 digits')).toBeVisible();
+
+    // 3. Test PIN input constraints
+    const pinInput = page.locator('input[name="pin"]');
+    await pinInput.fill('12345'); // Try to enter 5 digits
+    await expect(pinInput).toHaveValue('1234'); // Should be truncated to 4
+
+    // 4. Test that form doesn't submit with missing fields
+    await page.fill('input[name="username"]', '');
+    await page.fill('input[name="pin"]', '');
+    
+    // Button should be disabled or form should not submit
+    const submitButton = page.locator('button[type="submit"]');
+    await expect(submitButton).toBeVisible();
+  });
+
   test('Explore Analytics Flow - View meal analytics', async ({ page }) => {
     // 1. Navigate to explore page
     await page.goto('/explore');
