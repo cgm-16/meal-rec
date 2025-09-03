@@ -44,7 +44,7 @@ export function MealCard({ meal, onLike, onInterested, onDislike }: MealCardProp
   };
 
   return (
-    <div className="max-w-[420px] w-full bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+    <div data-testid="meal-card" className="max-w-[420px] w-full bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
       {/* Image Section */}
       <div className="relative h-48 w-full bg-gray-100">
         {meal.imageUrl && !imageError ? (
@@ -100,6 +100,7 @@ export function MealCard({ meal, onLike, onInterested, onDislike }: MealCardProp
         {/* Action Buttons */}
         <div className="flex gap-2 justify-between">
           <button
+            data-testid="dislike-button"
             onClick={handleDislike}
             className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors text-sm font-medium"
             type="button"
@@ -108,6 +109,7 @@ export function MealCard({ meal, onLike, onInterested, onDislike }: MealCardProp
           </button>
           
           <button
+            data-testid="interested-button"
             onClick={handleInterested}
             className="flex-1 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-md hover:bg-yellow-200 transition-colors text-sm font-medium"
             type="button"
@@ -116,6 +118,7 @@ export function MealCard({ meal, onLike, onInterested, onDislike }: MealCardProp
           </button>
           
           <button
+            data-testid="like-button"
             onClick={handleLike}
             className="flex-1 px-3 py-2 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors text-sm font-medium"
             type="button"
