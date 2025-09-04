@@ -35,6 +35,12 @@ describe('Database Connection', () => {
     const mongoose = await import('mongoose');
     await connect();
     
-    expect(mongoose.default.connect).toHaveBeenCalledWith('mongodb://localhost:27017/test');
+    expect(mongoose.default.connect).toHaveBeenCalledWith('mongodb://localhost:27017/test', {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      minPoolSize: 5,
+    });
   });
 });

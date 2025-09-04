@@ -10,6 +10,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+
     steps:
     - uses: actions/checkout@v4
     
@@ -41,6 +47,10 @@ jobs:
     
     - name: Run tests
       run: pnpm test
+      env:
+        MONGO_URL: mongodb://localhost:27017/meal-rec-test
+        NEXTAUTH_SECRET: test-secret-for-ci-only
+        NEXTAUTH_URL: http://localhost:3000
     
     - name: Test seed script (dry run)
       run: pnpm seed --dry-run
