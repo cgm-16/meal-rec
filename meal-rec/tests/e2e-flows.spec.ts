@@ -549,7 +549,7 @@ test.describe('E2E User Flows', () => {
     await expect(page.locator('text=🍽️')).toBeVisible();
 
     // 4. Test navigation back to main app
-    await expect(page.locator('a:has-text("Browse previously loaded meals")')).toBeVisible();
+    await expect(page.locator('text=Browse previously loaded meals')).toBeVisible();
   });
 
   test('Navigation and responsiveness', async ({ page }) => {

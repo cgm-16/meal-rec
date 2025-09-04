@@ -3,6 +3,8 @@
 
 'use client';
 
+import Link from 'next/link';
+
 export default function OfflinePage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -26,12 +28,21 @@ export default function OfflinePage() {
           </ul>
         </div>
         
-        <button 
-          onClick={() => window.history.back()}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Go Back
-        </button>
+        <div className="space-y-3">
+          <Link 
+            href="/"
+            className="block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Browse previously loaded meals
+          </Link>
+          
+          <button 
+            onClick={() => window.history.back()}
+            className="text-blue-600 hover:text-blue-700"
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     </div>
   );
