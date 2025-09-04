@@ -113,3 +113,4 @@ When you are using /compact, please focus on our conversation, your most recent 
 - @.claude/docs/node.md
 - @.claude/docs/pnpm_commands.md
 - @.claude/docs/fnm_commands.md
+- @.claude/docs/sentry.md
