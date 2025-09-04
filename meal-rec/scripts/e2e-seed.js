@@ -2,6 +2,7 @@
 // ABOUTME: Seeds minimal test data directly to the E2E test database
 
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 // Simple meal schema for seeding (matches the main schema)
 const MealSchema = new mongoose.Schema({
@@ -18,7 +19,32 @@ const MealSchema = new mongoose.Schema({
   flavorTags: [String],
 }, { timestamps: true });
 
+// User schema for seeding
+const UserSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  hashedPin: { type: String, required: true },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  banned: { type: Boolean, default: false },
+  preferences: {
+    spiciness: { type: Number, min: 0, max: 5 },
+    surpriseFactor: { type: Number, min: 0, max: 10 },
+    ingredientsToAvoid: [String]
+  }
+}, { timestamps: true });
+
+// Feedback schema for seeding
+const FeedbackSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  meal: { type: mongoose.Schema.Types.ObjectId, ref: 'Meal', required: true },
+  type: { type: String, enum: ['like', 'interested', 'dislike'], required: true },
+  timestamp: { type: Date, default: Date.now }
+}, { timestamps: true });
+
+FeedbackSchema.index({ user: 1, meal: 1 }, { unique: true });
+
 const Meal = mongoose.model('Meal', MealSchema);
+const User = mongoose.model('User', UserSchema);
+const Feedback = mongoose.model('Feedback', FeedbackSchema);
 
 // Minimal test data for E2E tests
 const testMeals = [
@@ -63,6 +89,25 @@ const testMeals = [
   }
 ];
 
+// Test users for feedback data
+const testUsers = [
+  {
+    username: 'e2e-test-user1',
+    hashedPin: '', // Will be populated with hashed PIN
+    role: 'user'
+  },
+  {
+    username: 'e2e-test-user2', 
+    hashedPin: '', // Will be populated with hashed PIN
+    role: 'user'
+  },
+  {
+    username: 'e2e-test-admin',
+    hashedPin: '', // Will be populated with hashed PIN
+    role: 'admin'
+  }
+];
+
 async function seedE2EDatabase() {
   try {
     const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017/meal-rec-e2e-test';
@@ -75,11 +120,48 @@ async function seedE2EDatabase() {
 
     // Clear existing data
     await Meal.deleteMany({});
-    console.log('Cleared existing test meals');
+    await User.deleteMany({});
+    await Feedback.deleteMany({});
+    console.log('Cleared existing test data');
+
+    // Hash PINs for test users
+    for (const user of testUsers) {
+      user.hashedPin = await bcrypt.hash('1234', 10);
+    }
 
     // Insert test data
-    await Meal.insertMany(testMeals);
-    console.log(`Seeded ${testMeals.length} test meals for E2E testing`);
+    const insertedMeals = await Meal.insertMany(testMeals);
+    console.log(`Seeded ${insertedMeals.length} test meals for E2E testing`);
+
+    const insertedUsers = await User.insertMany(testUsers);
+    console.log(`Seeded ${insertedUsers.length} test users for E2E testing`);
+
+    // Create feedback data for analytics
+    const feedbackData = [];
+    
+    // Create various feedback combinations to populate analytics
+    // Pasta gets lots of likes
+    feedbackData.push(
+      { user: insertedUsers[0]._id, meal: insertedMeals[0]._id, type: 'like' },
+      { user: insertedUsers[1]._id, meal: insertedMeals[0]._id, type: 'like' },
+      { user: insertedUsers[2]._id, meal: insertedMeals[0]._id, type: 'interested' }
+    );
+    
+    // Salad gets mixed feedback
+    feedbackData.push(
+      { user: insertedUsers[0]._id, meal: insertedMeals[1]._id, type: 'interested' },
+      { user: insertedUsers[1]._id, meal: insertedMeals[1]._id, type: 'like' }
+    );
+    
+    // Curry gets some dislikes
+    feedbackData.push(
+      { user: insertedUsers[0]._id, meal: insertedMeals[2]._id, type: 'dislike' },
+      { user: insertedUsers[1]._id, meal: insertedMeals[2]._id, type: 'interested' },
+      { user: insertedUsers[2]._id, meal: insertedMeals[2]._id, type: 'like' }
+    );
+
+    const insertedFeedback = await Feedback.insertMany(feedbackData);
+    console.log(`Seeded ${insertedFeedback.length} feedback entries for analytics testing`);
 
     await mongoose.disconnect();
     console.log('E2E database seeding completed successfully');

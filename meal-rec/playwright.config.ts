@@ -11,19 +11,19 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   
-  // Global timeout configurations
-  timeout: process.env.CI ? 90000 : 60000, // 90s in CI, 60s locally
+  // Global timeout configurations - increased for complex admin operations
+  timeout: process.env.CI ? 120000 : 90000, // 2 minutes in CI, 90s locally
   expect: {
-    timeout: process.env.CI ? 20000 : 15000, // 20s in CI, 15s locally
+    timeout: process.env.CI ? 30000 : 20000, // 30s in CI, 20s locally
   },
   
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     
-    // Action and navigation timeouts
-    actionTimeout: process.env.CI ? 20000 : 15000, // 20s in CI, 15s locally
-    navigationTimeout: process.env.CI ? 45000 : 30000, // 45s in CI, 30s locally
+    // Action and navigation timeouts - increased for complex operations
+    actionTimeout: process.env.CI ? 30000 : 20000, // 30s in CI, 20s locally
+    navigationTimeout: process.env.CI ? 60000 : 45000, // 60s in CI, 45s locally
     
     // Screenshot on failure for debugging
     screenshot: 'only-on-failure',

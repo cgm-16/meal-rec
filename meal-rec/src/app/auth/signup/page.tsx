@@ -108,7 +108,11 @@ export default function SignUpPage() {
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="4-digit PIN"
                 value={formData.pin}
-                onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
+                onChange={(e) => {
+                  // Only allow digits and limit to 4 characters
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                  setFormData({ ...formData, pin: value });
+                }}
                 disabled={isLoading}
               />
             </div>

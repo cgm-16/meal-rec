@@ -140,9 +140,9 @@ export default function ExplorePage() {
           {/* Top Liked Meals Chart */}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Most Liked Meals</h2>
-            {data.topLikedMeals.length > 0 ? (
+            {data.topLikedMeals.length > 0 && data.topLikedMeals.some(meal => meal.likeCount > 0) ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data.topLikedMeals.slice(0, APP_CONSTANTS.CHART_DISPLAY_LIMIT)}>
+                <BarChart data={data.topLikedMeals.slice(0, APP_CONSTANTS.CHART_DISPLAY_LIMIT).filter(meal => meal.likeCount > 0)}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="name" 
@@ -164,9 +164,9 @@ export default function ExplorePage() {
           {/* Top Disliked Meals Chart */}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Most Disliked Meals</h2>
-            {data.topDislikedMeals.length > 0 ? (
+            {data.topDislikedMeals.length > 0 && data.topDislikedMeals.some(meal => meal.dislikeCount > 0) ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data.topDislikedMeals.slice(0, APP_CONSTANTS.CHART_DISPLAY_LIMIT)}>
+                <BarChart data={data.topDislikedMeals.slice(0, APP_CONSTANTS.CHART_DISPLAY_LIMIT).filter(meal => meal.dislikeCount > 0)}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="name" 
@@ -189,13 +189,13 @@ export default function ExplorePage() {
         {/* Flavor Tags Pie Chart */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Popular Flavor Tags</h2>
-          {data.topFlavorTags.length > 0 ? (
+          {data.topFlavorTags.length > 0 && data.topFlavorTags.some(tag => tag.count > 0) ? (
             <div className="flex flex-col lg:flex-row items-center">
               <div className="w-full lg:w-1/2">
                 <ResponsiveContainer width="100%" height={400}>
                   <PieChart>
                     <Pie
-                      data={data.topFlavorTags}
+                      data={data.topFlavorTags.filter(tag => tag.count > 0)}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
@@ -204,7 +204,7 @@ export default function ExplorePage() {
                       fill="#8884d8"
                       dataKey="count"
                     >
-                      {data.topFlavorTags.map((entry, index) => (
+                      {data.topFlavorTags.filter(tag => tag.count > 0).map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
