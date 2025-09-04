@@ -114,3 +114,4 @@ When you are using /compact, please focus on our conversation, your most recent 
 - @.claude/docs/pnpm_commands.md
 - @.claude/docs/fnm_commands.md
 - @.claude/docs/sentry.md
+- Remember to check where you are, this is a monolithic codebase with multiple package.json and environments
