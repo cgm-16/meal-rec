@@ -53,6 +53,9 @@ export default defineConfig({
       MONGO_URL: 'mongodb://localhost:27017/meal-rec-e2e-test',
       NEXTAUTH_SECRET: 'test-secret-for-playwright',
       NEXTAUTH_URL: 'http://localhost:3000',
+      // Disable Sentry in E2E tests to avoid DSN errors
+      NEXT_PUBLIC_SENTRY_DSN: '',
+      SENTRY_AUTH_TOKEN: 'disabled',
     },
   },
 });

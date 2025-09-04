@@ -22,7 +22,7 @@
   "dependencies": {
     "@meal-rec/core": "workspace:*",
     "@meal-rec/database": "workspace:*",
-    "@sentry/nextjs": "^9.33.0",
+    "@sentry/nextjs": "^10.9.0",
     "@serwist/next": "^9.0.15",
     "bcryptjs": "^3.0.2",
     "mongoose": "^8.16.0",

@@ -24,8 +24,8 @@ const shouldUseSentry = process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_AUTH
 
 export default shouldUseSentry 
   ? withSentryConfig(configWithPWA, {
-      org: "mealrec",
-      project: "meal-recommendation-pwa",
+      org: "ori-9l",
+      project: "javascript-nextjs",
       silent: !process.env.CI,
       widenClientFileUpload: true,
       tunnelRoute: "/monitoring",
