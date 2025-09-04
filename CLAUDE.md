@@ -109,9 +109,13 @@ YOU MUST follow this debugging framework for ANY technical issue:
 
 When you are using /compact, please focus on our conversation, your most recent (and most significant) learnings, and what you need to do next. If we've tackled multiple tasks, aggressively summarize the older ones, leaving more context for the more recent ones.
 
+# Navigation
+
+- Remember to check where you are using pwd, this is a monolithic codebase with multiple package.json and environments
+
 # Technical knowledge
+
 - @.claude/docs/node.md
 - @.claude/docs/pnpm_commands.md
 - @.claude/docs/fnm_commands.md
 - @.claude/docs/sentry.md
-- Remember to check where you are, this is a monolithic codebase with multiple package.json and environments

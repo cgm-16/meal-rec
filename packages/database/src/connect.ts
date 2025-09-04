@@ -1,7 +1,7 @@
 // ABOUTME: Database connection helper for MongoDB using Mongoose
 // ABOUTME: Provides a reusable connection function that reads from MONGO_URL environment variable
 
-import mongoose from 'mongoose';
+import mongoose, { MongooseError } from 'mongoose';
 
 export async function connect(): Promise<void> {
   const mongoUrl = process.env.MONGO_URL;
@@ -21,20 +21,32 @@ export async function connect(): Promise<void> {
     console.log(`Connected to MongoDB at ${mongoUrl.replace(/\/\/.*@/, '//***@')}`);
   } catch (error) {
     const sanitizedUrl = mongoUrl.replace(/\/\/.*@/, '//***@');
-    console.error(`MongoDB connection failed for ${sanitizedUrl}:`, {
-      name: error.name,
-      message: error.message,
-      code: error.code,
-    });
+    
+    // Type guard for Error objects with proper typing
+    let errorInfo: { name: string; message: string; code?: string | number };
+    
+    if (error instanceof MongooseError) {
+      errorInfo = { 
+        name: error.name, 
+        message: error.message, 
+        code: 'code' in error ? (error as { code: string | number }).code : undefined 
+      };
+    } else if (error instanceof Error) {
+      errorInfo = { name: error.name, message: error.message };
+    } else {
+      errorInfo = { name: 'Unknown', message: String(error) };
+    }
+    
+    console.error(`MongoDB connection failed for ${sanitizedUrl}:`, errorInfo);
     
     // Provide more helpful error messages
-    if (error.name === 'MongooseServerSelectionError') {
+    if (errorInfo.name === 'MongooseServerSelectionError') {
       console.error('Possible causes: MongoDB server not running, incorrect connection string, or network issues');
-    } else if (error.name === 'MongooseTimeoutError') {
+    } else if (errorInfo.name === 'MongooseTimeoutError') {
       console.error('Connection timed out - check if MongoDB is accessible and responsive');
     }
     
-    throw new Error(`Database connection failed: ${error.message}`);
+    throw new Error(`Database connection failed: ${errorInfo.message}`);
   }
 }
 
