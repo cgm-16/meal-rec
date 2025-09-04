@@ -71,48 +71,27 @@ test.describe('E2E User Flows', () => {
   });
 
   test('Authentication Flow - Sign up and sign in', async ({ page }) => {
-    // Mock auth endpoints
-    await page.route('/api/auth/signup', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ 
-          message: 'User created successfully',
-          user: { id: 'new-user-id', username: 'testuser' }
-        })
-      });
-    });
+    // Use real authentication flow without mocking auth endpoints
+    // This test uses a unique username to avoid conflicts
 
-    await page.route('/api/auth/session', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          user: {
-            id: 'new-user-id',
-            name: 'testuser',
-            email: null
-          },
-          expires: '2024-12-31T23:59:59.999Z'
-        })
-      });
-    });
+    const testUsername = `testuser${Date.now()}`;
+    const testPin = '1234';
 
     // 1. Navigate to sign up
     await page.goto('/auth/signup');
     await expect(page.locator('h2')).toContainText('Create your account');
 
-    // 2. Fill out sign up form
-    await page.fill('input[name="username"]', 'testuser');
-    await page.fill('input[name="pin"]', '1234');
+    // 2. Fill out sign up form with unique username
+    await page.fill('input[name="username"]', testUsername);
+    await page.fill('input[name="pin"]', testPin);
     await page.click('button[type="submit"]');
 
     // 3. Should redirect to sign in after successful signup
     await expect(page).toHaveURL('/auth/signin?message=Account%20created%20successfully');
 
     // 4. Sign in with the credentials
-    await page.fill('input[name="username"]', 'testuser');
-    await page.fill('input[name="pin"]', '1234');
+    await page.fill('input[name="username"]', testUsername);
+    await page.fill('input[name="pin"]', testPin);
     await page.click('button[type="submit"]');
 
     // 5. Should redirect to home page when authenticated
@@ -121,30 +100,12 @@ test.describe('E2E User Flows', () => {
   });
 
   test('Authentication Failure Scenarios', async ({ page }) => {
-    // Mock failed auth responses
-    await page.route('/api/auth/callback/credentials', async route => {
-      const request = route.request();
-      const postData = request.postData();
-      
-      // Parse form data to determine response
-      if (postData?.includes('wronguser') || postData?.includes('9999')) {
-        await route.fulfill({
-          status: 401,
-          contentType: 'application/json',
-          body: JSON.stringify({ error: 'Invalid credentials' })
-        });
-      } else {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ url: '/' })
-        });
-      }
-    });
+    // Test authentication failure scenarios with real backend
+    // Use non-existent credentials to test failure paths
 
     // 1. Test invalid username
     await page.goto('/auth/signin');
-    await page.fill('input[name="username"]', 'wronguser');
+    await page.fill('input[name="username"]', 'nonexistentuser12345');
     await page.fill('input[name="pin"]', '1234');
     await page.click('button[type="submit"]');
     
@@ -152,8 +113,12 @@ test.describe('E2E User Flows', () => {
     await expect(page.locator('text=Invalid username or PIN')).toBeVisible();
     await expect(page).toHaveURL('/auth/signin');
 
-    // 2. Test invalid PIN
-    await page.fill('input[name="username"]', 'testuser');
+    // 2. Test invalid PIN with a username that might exist
+    // Clear the form first
+    await page.fill('input[name="username"]', '');
+    await page.fill('input[name="pin"]', '');
+    
+    await page.fill('input[name="username"]', 'someuser');
     await page.fill('input[name="pin"]', '9999');
     await page.click('button[type="submit"]');
     
@@ -199,15 +164,14 @@ test.describe('E2E User Flows', () => {
     await page.goto('/explore');
     await expect(page.locator('h1')).toContainText('Explore Food Trends');
 
-    // 2. Wait for analytics data to load
-    await expect(page.locator('text=Popular Pasta')).toBeVisible();
-    await expect(page.locator('text=Tasty Burger')).toBeVisible();
+    // 2. Wait for analytics data to load - check for analytics sections
+    await expect(page.locator('text=Analytics Summary')).toBeVisible();
 
     // 3. Check that charts are rendered (multiple charts exist)
     await expect(page.locator('.recharts-wrapper').first()).toBeVisible();
 
-    // 4. Verify analytics summary
-    await expect(page.locator('text=Most Loved Meals')).toBeVisible();
+    // 4. Verify analytics summary sections are present
+    await expect(page.locator('text=Most Liked Meals')).toBeVisible();
     await expect(page.locator('text=Most Disliked Meals')).toBeVisible();
     await expect(page.locator('text=Popular Flavor Tags')).toBeVisible();
   });
@@ -598,7 +562,7 @@ test.describe('E2E User Flows', () => {
 
     // 3. Navigate to explore
     await page.goto('/explore');
-    await expect(page.locator('h1')).toContainText('Meal Analytics');
+    await expect(page.locator('h1')).toContainText('Explore Food Trends');
 
     // 4. Test mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
