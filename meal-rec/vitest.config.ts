@@ -13,6 +13,10 @@ export default defineConfig({
     globals: true,
     testTimeout: 30000,
     hookTimeout: 30000,
+    env: {
+      // Load .env from monorepo root
+      dotenv: path.resolve(__dirname, '../.env'),
+    },
     // Use pool 'forks' for better isolation between different test types
     pool: 'forks',
     // Exclude Playwright tests from vitest

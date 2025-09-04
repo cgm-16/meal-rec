@@ -69,6 +69,16 @@ test.describe('E2E User Flows', () => {
         })
       });
     });
+
+    // Catch-all for any unmocked API calls to prevent real DB hits
+    await page.route('/api/**', async route => {
+      console.warn(`Unmocked API call detected: ${route.request().url()}`);
+      await route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Service temporarily unavailable (mocked)' })
+      });
+    });
   });
 
   test('Guest User Flow - Browse and provide feedback', async ({ page }) => {
@@ -158,7 +168,7 @@ test.describe('E2E User Flows', () => {
     await page.click('button[type="submit"]');
 
     // 3. Should redirect to sign in after successful signup
-    await expect(page).toHaveURL('/auth/signin');
+    await expect(page).toHaveURL('/auth/signin?message=Account%20created%20successfully');
 
     // 4. Sign in with the credentials
     await page.fill('input[name="username"]', 'testuser');
@@ -615,7 +625,7 @@ test.describe('E2E User Flows', () => {
     await expect(page.locator('h1')).toContainText('MealRec');
 
     // 2. Wait for service worker registration
-    await page.waitForTimeout(2000);
+    await page.waitForFunction(() => 'serviceWorker' in navigator, { timeout: 10000 });
 
     // 3. Navigate to offline page
     await page.goto('/offline');

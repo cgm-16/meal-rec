@@ -66,7 +66,7 @@ test.describe('PWA Installability', () => {
     await page.goto('/');
     
     // Wait for service worker to be ready
-    await page.waitForTimeout(2000);
+    await page.waitForFunction(() => 'serviceWorker' in navigator, { timeout: 10000 });
     
     // Navigate to offline page directly to test it
     await page.goto('/offline');
