@@ -80,8 +80,7 @@ describe('Auth Configuration', () => {
 
       expect(result).toEqual({ 
         userId: 'user123',
-        role: 'user',
-        isAdmin: false
+        role: 'user'
       });
     });
 
