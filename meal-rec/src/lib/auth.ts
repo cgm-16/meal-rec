@@ -12,7 +12,6 @@ interface ExtendedUser {
   email?: string | null;
   image?: string | null;
   role?: string;
-  isAdmin?: boolean;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -63,7 +62,6 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.userId = user.id;
         token.role = user.role;
-        token.isAdmin = user.role === 'admin';
       }
       return token;
     },
@@ -72,7 +70,6 @@ export const authOptions: NextAuthOptions = {
         const user = session.user as ExtendedUser;
         user.id = token.userId;
         user.role = token.role;
-        user.isAdmin = token.isAdmin;
       }
       return session;
     }

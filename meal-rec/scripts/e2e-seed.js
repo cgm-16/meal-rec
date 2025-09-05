@@ -23,7 +23,7 @@ const MealSchema = new mongoose.Schema({
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   hashedPin: { type: String, required: true },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  role: { type: String, enum: ['user'], default: 'user' },
   banned: { type: Boolean, default: false },
   preferences: {
     spiciness: { type: Number, min: 0, max: 5 },
@@ -101,11 +101,6 @@ const testUsers = [
     hashedPin: '', // Will be populated with hashed PIN
     role: 'user'
   },
-  {
-    username: 'e2e-test-admin',
-    hashedPin: '', // Will be populated with hashed PIN
-    role: 'admin'
-  }
 ];
 
 async function seedE2EDatabase() {
@@ -143,8 +138,7 @@ async function seedE2EDatabase() {
     // Pasta gets lots of likes
     feedbackData.push(
       { user: insertedUsers[0]._id, meal: insertedMeals[0]._id, type: 'like' },
-      { user: insertedUsers[1]._id, meal: insertedMeals[0]._id, type: 'like' },
-      { user: insertedUsers[2]._id, meal: insertedMeals[0]._id, type: 'interested' }
+      { user: insertedUsers[1]._id, meal: insertedMeals[0]._id, type: 'like' }
     );
     
     // Salad gets mixed feedback
@@ -156,8 +150,7 @@ async function seedE2EDatabase() {
     // Curry gets some dislikes
     feedbackData.push(
       { user: insertedUsers[0]._id, meal: insertedMeals[2]._id, type: 'dislike' },
-      { user: insertedUsers[1]._id, meal: insertedMeals[2]._id, type: 'interested' },
-      { user: insertedUsers[2]._id, meal: insertedMeals[2]._id, type: 'like' }
+      { user: insertedUsers[1]._id, meal: insertedMeals[2]._id, type: 'interested' }
     );
 
     const insertedFeedback = await Feedback.insertMany(feedbackData);

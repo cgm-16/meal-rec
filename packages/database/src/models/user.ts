@@ -6,7 +6,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IUser extends Document {
   username: string;
   hashedPin: string;
-  role: 'user' | 'admin';
+  role: 'user';
   banned: boolean;
   preferences?: {
     spiciness?: number;
@@ -28,7 +28,7 @@ const UserSchema = new Schema<IUser>({
   },
   role: {
     type: String,
-    enum: ['user', 'admin'],
+    enum: ['user'],
     default: 'user'
   },
   banned: {

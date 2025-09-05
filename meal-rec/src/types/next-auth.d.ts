@@ -1,5 +1,5 @@
 // ABOUTME: NextAuth type extensions for custom user properties
-// ABOUTME: Adds role and isAdmin properties to User and Session types
+// ABOUTME: Adds role property to User and Session types
 
 import 'next-auth';
 
@@ -13,6 +13,5 @@ declare module 'next-auth/jwt' {
   interface JWT {
     userId?: string;
     role?: string;
-    isAdmin?: boolean;
   }
 }

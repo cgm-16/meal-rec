@@ -7,7 +7,6 @@ export interface ExtendedUser {
   email?: string | null;
   image?: string | null;
   role?: string;
-  isAdmin?: boolean;
 }
 
 export interface ExtendedSession {

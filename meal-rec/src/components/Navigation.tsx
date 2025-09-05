@@ -7,7 +7,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import { ExtendedSession } from '@/types/session';
 
 interface NavigationItem {
   name: string;
@@ -20,7 +19,6 @@ export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
-  const extendedSession = session as ExtendedSession | null;
 
   // Build navigation items based on authentication status
   const navItems: NavigationItem[] = [
@@ -29,10 +27,6 @@ export default function Navigation() {
     { name: 'Quiz', href: '/quiz', description: 'Preference quiz' },
   ];
 
-  // Add admin link if user is admin
-  if (extendedSession?.user && extendedSession.user.isAdmin) {
-    navItems.push({ name: 'Admin', href: '/admin', description: 'Admin dashboard' });
-  }
 
   // Add auth link based on login status
   if (session?.user) {
