@@ -18,7 +18,6 @@ The Meal Recommendation PWA is a TypeScript monorepo application that provides p
 
 ### Advanced Features
 - **Analytics Dashboard**: Visual insights into meal popularity and trends
-- **Admin Portal**: Meal management, user administration, and moderation tools
 - **PWA Support**: Offline functionality, app installation, service worker caching
 - **Performance Monitoring**: Sentry integration for error tracking and performance
 
@@ -62,10 +61,6 @@ MONGO_URL=mongodb://localhost:27017/meal-rec
 # Authentication
 NEXTAUTH_SECRET=your-secret-key-here
 NEXTAUTH_URL=http://localhost:3000
-
-# Admin Setup
-ADMIN_USERNAME=admin
-ADMIN_PIN=1234
 
 # Monitoring (Optional)
 NEXT_PUBLIC_SENTRY_DSN=https://your-public-dsn@sentry.io/project-id
@@ -252,7 +247,7 @@ pnpm update --interactive
 #### Regular Security Tasks
 - **Dependency Updates**: Keep dependencies updated for security patches
 - **Vulnerability Scanning**: Use `pnpm audit` and security scanning tools
-- **Access Review**: Regularly review admin user access
+- **Access Control**: Review user authentication and access patterns
 
 ## 📊 Performance Benchmarks
 

@@ -16,7 +16,6 @@
 
 ### ✅ Advanced Features (Complete)
 - **Analytics Dashboard** - Visual insights with Recharts
-- **Admin Portal** - Meal management and user administration
 - **PWA Support** - Offline functionality, service worker caching
 - **Performance Monitoring** - Sentry integration
 - **Recommendation Engine** - ML-based scoring with feedback loops
@@ -63,7 +62,6 @@ meal-rec/
 - ✅ `/api/recommend` - ML-powered recommendations
 - ✅ `/api/feedback` - User feedback processing
 - ✅ `/api/auth/*` - Authentication system
-- ✅ `/api/admin/*` - Admin panel functionality
 - ✅ `/api/analytics` - Usage analytics
 
 ## ⚠️ Known Issues (Minor)
@@ -104,8 +102,6 @@ MONGO_URL=mongodb://localhost:27017/meal-rec
 
 NEXTAUTH_SECRET=your-secret-key-here-minimum-32-characters
 NEXTAUTH_URL=http://localhost:3000
-ADMIN_USERNAME=admin
-ADMIN_PIN=1234
 
 # Optional monitoring
 NEXT_PUBLIC_SENTRY_DSN=https://your-dsn@sentry.io/project-id

@@ -43,8 +43,6 @@ This application is successfully deployed using Vercel for hosting and MongoDB A
    MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/meal-rec?retryWrites=true&w=majority&appName=meal-rec
    NEXTAUTH_SECRET=your-production-secret-minimum-32-characters
    NEXTAUTH_URL=https://your-app.vercel.app
-   ADMIN_USERNAME=your-admin-username
-   ADMIN_PIN=your-admin-pin
    NEXT_PUBLIC_SENTRY_DSN=https://your-dsn@sentry.io/project-id
    ```
 
@@ -98,8 +96,6 @@ MONGO_URL="your-production-mongo-url" pnpm seed
 | `MONGO_URL` | MongoDB connection string | `mongodb+srv://user:pass@cluster.mongodb.net/meal-rec?options` |
 | `NEXTAUTH_SECRET` | NextAuth.js secret key | `32-character-random-string` |
 | `NEXTAUTH_URL` | Application base URL | `https://meal-rec.vercel.app` |
-| `ADMIN_USERNAME` | Admin panel username | `admin` |
-| `ADMIN_PIN` | Admin panel PIN | `1234` |
 
 ### Optional Environment Variables
 
@@ -181,7 +177,7 @@ Vercel automatically deploys on:
 1. Visit https://meal-rec.vercel.app
 2. Test user signup/signin
 3. Verify random meal recommendations work
-4. Check admin panel access
+4. Test quiz and personalized recommendations
 5. Test offline PWA functionality
 ```
 
