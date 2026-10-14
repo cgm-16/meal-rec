@@ -2,7 +2,7 @@
 // ABOUTME: Tests scoring algorithm, edge cases, and all business rules
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { selectRecommendation, getLikedFlavorTags, SeededRandom, type QuizAnswers, type FeedbackEntry, type Meal, type RecommendationInput } from './recommender';
+import { selectRecommendation, SeededRandom, type QuizAnswers, type FeedbackEntry, type Meal, type RecommendationInput, type ScoredMeal } from './recommender';
 
 describe('Recommendation Engine', () => {
   let mockMeals: Meal[];
@@ -403,116 +403,56 @@ describe('Recommendation Engine', () => {
     });
   });
 
-  describe('getLikedFlavorTags', () => {
-    it('returns flavor tags from liked meals within 2 weeks', () => {
-      const recentDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 1 week ago
-      const feedback: FeedbackEntry[] = [
-        {
-          mealId: 'meal1',
-          type: 'like',
-          timestamp: recentDate
-        },
-        {
-          mealId: 'meal3',
-          type: 'like',
-          timestamp: recentDate
-        }
-      ];
+  describe('attribute similarity from feedback', () => {
+    // Disliked/liked meal that is NOT among the candidates; only its attributes are known
+    const reviewedMeal = { cuisine: 'Thai', heaviness: 3, spiciness: 4 };
+    const baseMeal: Meal = {
+      _id: '', name: 'Candidate', primaryIngredients: [], allergens: [], weather: [],
+      timeOfDay: ['dinner'], spiciness: 0, heaviness: 0, flavorTags: []
+    };
+    const twin: Meal = { ...baseMeal, _id: 'twin', ...reviewedMeal };
+    const unrelated: Meal = { ...baseMeal, _id: 'unrelated', cuisine: 'Italian', heaviness: 0, spiciness: 0 };
+    const scoreOf = (candidate: Meal, type: FeedbackEntry['type']) =>
+      (selectRecommendation({
+        quiz: { ingredientsToAvoid: [], spiciness: 2, surpriseFactor: 0 },
+        recentFeedback: [{ mealId: 'reviewed', type, timestamp: new Date(), meal: reviewedMeal }],
+        weather: 'normal',
+        candidateMeals: [candidate],
+        randomSeed: 1
+      }) as ScoredMeal).scoreBreakdown.attributeSimilarity;
 
-      const result = getLikedFlavorTags(feedback, mockMeals);
-      
-      expect(result).toContain('spicy');
-      expect(result).toContain('thai');
-      expect(result).toContain('creamy');
-      expect(result).toContain('warming');
-      expect(result).toContain('healthy');
-      expect(result).toContain('comfort');
+    it('lowers the score of meals similar to a disliked meal', () => {
+      expect(scoreOf(twin, 'dislike')).toBeLessThan(0);
+      expect(scoreOf(unrelated, 'dislike')).toBe(0);
     });
 
-    it('ignores disliked meals', () => {
-      const feedback: FeedbackEntry[] = [
-        {
-          mealId: 'meal1',
-          type: 'dislike',
-          timestamp: new Date()
-        }
-      ];
-
-      const result = getLikedFlavorTags(feedback, mockMeals);
-      expect(result).toHaveLength(0);
+    it('raises the score of meals similar to a liked meal', () => {
+      expect(scoreOf(twin, 'like')).toBeGreaterThan(0);
+      expect(scoreOf(unrelated, 'like')).toBe(0);
     });
 
-    it('ignores interested meals', () => {
-      const feedback: FeedbackEntry[] = [
-        {
-          mealId: 'meal1',
-          type: 'interested',
-          timestamp: new Date()
-        }
-      ];
-
-      const result = getLikedFlavorTags(feedback, mockMeals);
-      expect(result).toHaveLength(0);
+    it('ignores interested feedback', () => {
+      expect(scoreOf(twin, 'interested')).toBe(0);
     });
 
-    it('ignores old feedback outside 2-week window', () => {
-      const oldDate = new Date(Date.now() - 21 * 24 * 60 * 60 * 1000); // 3 weeks ago
-      const feedback: FeedbackEntry[] = [
-        {
-          mealId: 'meal1',
-          type: 'like',
-          timestamp: oldDate
-        }
-      ];
-
-      const result = getLikedFlavorTags(feedback, mockMeals);
-      expect(result).toHaveLength(0);
+    it('stays smaller than the exact-meal feedback term so it cannot swamp it', () => {
+      expect(Math.abs(scoreOf(twin, 'dislike'))).toBeLessThan(0.4);
+      expect(scoreOf(twin, 'like')).toBeLessThan(0.4);
     });
 
-    it('handles non-existent meal IDs gracefully', () => {
-      const feedback: FeedbackEntry[] = [
-        {
-          mealId: 'non-existent-meal',
-          type: 'like',
-          timestamp: new Date()
-        }
-      ];
-
-      const result = getLikedFlavorTags(feedback, mockMeals);
-      expect(result).toHaveLength(0);
-    });
-
-    it('returns unique tags when multiple meals share tags', () => {
-      const mealWithDuplicateTag: Meal = {
-        _id: 'meal6',
-        name: 'Another Thai Dish',
-        primaryIngredients: ['rice'],
-        allergens: [],
-        weather: ['normal'],
-        timeOfDay: ['dinner'],
-        spiciness: 3,
-        heaviness: 2,
-        flavorTags: ['thai', 'aromatic'] // 'thai' is duplicate
-      };
-
-      const feedback: FeedbackEntry[] = [
-        {
-          mealId: 'meal1',
-          type: 'like',
-          timestamp: new Date()
-        },
-        {
-          mealId: 'meal6',
-          type: 'like',
-          timestamp: new Date()
-        }
-      ];
-
-      const result = getLikedFlavorTags(feedback, [...mockMeals, mealWithDuplicateTag]);
-      
-      // Should only contain 'thai' once
-      const thaiCount = result.filter(tag => tag === 'thai').length;
-      expect(thaiCount).toBe(1);
+    it('prefers an unrelated meal over the twin of a disliked meal', () => {
+      const counts = { twin: 0, unrelated: 0 };
+      for (let seed = 0; seed < 400; seed++) {
+        const result = selectRecommendation({
+          quiz: { ingredientsToAvoid: [], spiciness: 2, surpriseFactor: 0 },
+          recentFeedback: [{ mealId: 'reviewed', type: 'dislike', timestamp: new Date(), meal: reviewedMeal }],
+          weather: 'normal',
+          candidateMeals: [twin, unrelated],
+          randomSeed: seed
+        });
+        counts[result!._id as 'twin' | 'unrelated']++;
+      }
+      expect(counts.unrelated).toBeGreaterThan(counts.twin * 1.15);
     });
   });
 

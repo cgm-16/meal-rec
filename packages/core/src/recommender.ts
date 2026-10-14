@@ -11,6 +11,8 @@ export interface FeedbackEntry {
   mealId: string;
   type: 'like' | 'interested' | 'dislike';
   timestamp: Date;
+  // Attributes of the reviewed meal, so feedback generalises to similar meals
+  meal?: Pick<Meal, 'cuisine' | 'heaviness' | 'spiciness'>;
 }
 
 export interface Meal {
@@ -43,6 +45,7 @@ export interface ScoredMeal extends Meal {
   scoreBreakdown: {
     base: number;
     feedbackBonus: number;
+    attributeSimilarity: number;
     spicinessDistance: number;
     weatherMatch: number;
     surpriseFactor: number;
@@ -75,6 +78,32 @@ export class SeededRandom {
 // Number of best-scoring meals the final pick is sampled from
 const TOP_K_SAMPLE_SIZE = 5;
 
+// Largest score change from attribute similarity; kept below the 0.4 exact-meal feedback term
+const MAX_ATTRIBUTE_SIMILARITY_BONUS = 0.2;
+
+// Similarity in [0, 1] from coarse attributes; flavour tags are too sparse to compare meals
+function attributeSimilarity(a: Pick<Meal, 'cuisine' | 'heaviness' | 'spiciness'>, b: Pick<Meal, 'cuisine' | 'heaviness' | 'spiciness'>): number {
+  let similarity = 0;
+  if (a.cuisine && a.cuisine === b.cuisine) similarity += 0.5;
+  if (Math.abs((a.heaviness ?? 0) - (b.heaviness ?? 0)) <= 1) similarity += 0.25;
+  if (Math.abs((a.spiciness ?? 0) - (b.spiciness ?? 0)) <= 1) similarity += 0.25;
+  return similarity;
+}
+
+// Mean signed similarity to liked (+) and disliked (-) meals, scaled to the bonus cap
+function attributeSimilarityBonus(
+  meal: Meal,
+  ratedMeals: Array<FeedbackEntry & { meal: NonNullable<FeedbackEntry['meal']> }>
+): number {
+  const others = ratedMeals.filter(feedback => feedback.mealId !== meal._id);
+  if (others.length === 0) return 0;
+  const total = others.reduce(
+    (sum, feedback) => sum + (feedback.type === 'like' ? 1 : -1) * attributeSimilarity(meal, feedback.meal),
+    0
+  );
+  return MAX_ATTRIBUTE_SIMILARITY_BONUS * total / others.length;
+}
+
 export function selectRecommendation(input: RecommendationInput): Meal | null {
   const { quiz, recentFeedback, weather, candidateMeals, randomSeed } = input;
   
@@ -94,11 +123,17 @@ export function selectRecommendation(input: RecommendationInput): Meal | null {
     }
   }
 
+  const ratedMeals = [...feedbackMap.values()].filter(
+    (feedback): feedback is FeedbackEntry & { meal: NonNullable<FeedbackEntry['meal']> } =>
+      feedback.type !== 'interested' && feedback.meal !== undefined
+  );
+
   // Score each meal
   const scoredMeals: ScoredMeal[] = candidateMeals.map(meal => {
     const scoreBreakdown = {
       base: 1.0,
       feedbackBonus: 0,
+      attributeSimilarity: 0,
       spicinessDistance: 0,
       weatherMatch: 0,
       surpriseFactor: 0,
@@ -131,6 +166,10 @@ export function selectRecommendation(input: RecommendationInput): Meal | null {
       }
       // 'interested' feedback doesn't change score
     }
+
+    // Generalise likes/dislikes to meals sharing coarse attributes
+    scoreBreakdown.attributeSimilarity = attributeSimilarityBonus(meal, ratedMeals);
+    score += scoreBreakdown.attributeSimilarity;
 
     // Spiciness distance penalty
     const spicinessDistance = Math.abs(quiz.spiciness - (meal.spiciness || 0));
@@ -174,23 +213,4 @@ export function selectRecommendation(input: RecommendationInput): Meal | null {
     }
   }
   return topMeals[topMeals.length - 1];
-}
-
-// Helper function to get liked flavor tags from recent feedback
-export function getLikedFlavorTags(recentFeedback: FeedbackEntry[], meals: Meal[]): string[] {
-  const mealMap = new Map(meals.map(meal => [meal._id, meal]));
-  const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-  
-  const likedTags = new Set<string>();
-  
-  for (const feedback of recentFeedback) {
-    if (feedback.timestamp >= twoWeeksAgo && feedback.type === 'like') {
-      const meal = mealMap.get(feedback.mealId);
-      if (meal) {
-        meal.flavorTags.forEach(tag => likedTags.add(tag));
-      }
-    }
-  }
-  
-  return Array.from(likedTags);
 }

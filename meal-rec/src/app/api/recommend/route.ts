@@ -17,7 +17,7 @@ interface RecommendRequest {
 
 // Type for feedback records with populated meal field
 interface PopulatedFeedbackRecord {
-  meal: { _id: Types.ObjectId };
+  meal: { _id: Types.ObjectId; cuisine?: string; heaviness: number; spiciness: number } | null;
   type: 'like' | 'interested' | 'dislike';
   timestamp: Date;
 }
@@ -41,13 +41,15 @@ export async function POST(request: NextRequest) {
     // 2. Get user feedback from last 14 days using helper function
     let recentFeedback: FeedbackEntry[] = [];
     if (userId) {
-      const feedbackRecords = await getRecentFeedback(userId, APP_CONSTANTS.RECENT_FEEDBACK_DAYS) as PopulatedFeedbackRecord[];
+      const feedbackRecords = await getRecentFeedback(userId, APP_CONSTANTS.RECENT_FEEDBACK_DAYS) as unknown as PopulatedFeedbackRecord[];
 
-      recentFeedback = feedbackRecords.map(record => ({
-        mealId: record.meal._id.toString(),
-        type: record.type,
-        timestamp: record.timestamp
-      }));
+      // Feedback on a since-deleted meal populates to null; it can no longer be scored
+      recentFeedback = feedbackRecords.flatMap(({ meal, type, timestamp }) => meal ? [{
+        mealId: meal._id.toString(),
+        type,
+        timestamp,
+        meal: { cuisine: meal.cuisine, heaviness: meal.heaviness, spiciness: meal.spiciness }
+      }] : []);
     }
 
     // 3. Get weather condition from request or default to 'normal'
