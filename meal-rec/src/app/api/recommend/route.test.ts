@@ -18,6 +18,16 @@ vi.mock('@meal-rec/core', () => ({
   selectRecommendation: vi.fn()
 }));
 
+vi.mock('@/lib/auth', () => ({
+  authOptions: {}
+}));
+
+vi.mock('next-auth', () => ({
+  getServerSession: vi.fn()
+}));
+
+import { getServerSession } from 'next-auth';
+
 import { connect, Meal, getRecentFeedback } from '@meal-rec/database';
 import { selectRecommendation } from '@meal-rec/core';
 
@@ -71,6 +81,7 @@ describe('/api/recommend', () => {
     vi.mocked(Meal.aggregate).mockResolvedValue(mockMeals);
     vi.mocked(getRecentFeedback).mockResolvedValue(mockFeedbackData);
     vi.mocked(selectRecommendation).mockReturnValue(mockMeals[0]);
+    vi.mocked(getServerSession).mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -136,11 +147,9 @@ describe('/api/recommend', () => {
   });
 
   it('should fetch recent user feedback when user is authenticated', async () => {
+    vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'user123' }, expires: '' });
     const request = new NextRequest('http://localhost/api/recommend', {
       method: 'POST',
-      headers: {
-        'x-user-id': 'user123'
-      },
       body: JSON.stringify({})
     });
 
@@ -158,6 +167,39 @@ describe('/api/recommend', () => {
       weather: 'normal',
       candidateMeals: mockMeals
     });
+  });
+
+  it('should ignore a spoofed x-user-id header when there is no session', async () => {
+    const request = new NextRequest('http://localhost/api/recommend', {
+      method: 'POST',
+      headers: {
+        'x-user-id': 'user123'
+      },
+      body: JSON.stringify({})
+    });
+
+    await POST(request);
+
+    expect(getRecentFeedback).not.toHaveBeenCalled();
+    expect(selectRecommendation).toHaveBeenCalledWith(expect.objectContaining({
+      recentFeedback: []
+    }));
+  });
+
+  it('should use the session user rather than an x-user-id header naming another user', async () => {
+    vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'session-user' }, expires: '' });
+    const request = new NextRequest('http://localhost/api/recommend', {
+      method: 'POST',
+      headers: {
+        'x-user-id': 'other-user'
+      },
+      body: JSON.stringify({})
+    });
+
+    await POST(request);
+
+    expect(getRecentFeedback).toHaveBeenCalledWith('session-user', 14);
+    expect(getRecentFeedback).not.toHaveBeenCalledWith('other-user', expect.anything());
   });
 
   it('should query 50 random candidate meals from database', async () => {
