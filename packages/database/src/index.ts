@@ -9,7 +9,5 @@ export {
   getRecentFeedback, 
   deleteOldFeedback, 
   getFeedbackStats, 
-  getMealFeedback,
-  startFeedbackCleanupCron, 
-  stopFeedbackCleanupCron 
+  getMealFeedback
 } from './feedback-helpers';

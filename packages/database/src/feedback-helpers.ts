@@ -1,8 +1,7 @@
 // ABOUTME: Query helpers and utilities for feedback data with sliding window functionality
-// ABOUTME: Provides recent feedback queries and automated cleanup of old feedback data
+// ABOUTME: Provides recent feedback queries, statistics, and manual cleanup of old feedback data
 
 import { Feedback, IFeedback } from './models/feedback';
-import * as cron from 'node-cron';
 
 /**
  * Get recent feedback for a user within a specified number of days
@@ -74,43 +73,6 @@ export async function getFeedbackStats(userId: string, days: number = 14) {
   });
   
   return result;
-}
-
-/**
- * CRON job to automatically delete feedback older than 14 days
- * Runs daily at 2:00 AM
- */
-let cleanupCronJob: cron.ScheduledTask | null = null;
-
-export function startFeedbackCleanupCron(): cron.ScheduledTask {
-  if (cleanupCronJob) {
-    console.log('Feedback cleanup CRON job is already running');
-    return cleanupCronJob;
-  }
-  
-  // Run daily at 2:00 AM
-  cleanupCronJob = cron.schedule('0 2 * * *', async () => {
-    try {
-      console.log('Starting scheduled feedback cleanup...');
-      const result = await deleteOldFeedback(14);
-      console.log(`Scheduled cleanup completed: ${result.deletedCount} entries deleted`);
-    } catch (error) {
-      console.error('Error during scheduled feedback cleanup:', error);
-    }
-  }, {
-    timezone: 'UTC'
-  });
-  
-  console.log('Feedback cleanup CRON job started (daily at 2:00 AM UTC)');
-  return cleanupCronJob;
-}
-
-export function stopFeedbackCleanupCron(): void {
-  if (cleanupCronJob) {
-    cleanupCronJob.stop();
-    cleanupCronJob = null;
-    console.log('Feedback cleanup CRON job stopped');
-  }
 }
 
 /**
