@@ -196,18 +196,20 @@ describe('Recommendation Engine', () => {
         surpriseFactor: 5
       };
 
-      const input: RecommendationInput = {
-        quiz,
-        recentFeedback: mockFeedback,
-        weather: 'normal',
-        candidateMeals: mockMeals,
-        randomSeed: 12345
-      };
-
-      const result = selectRecommendation(input);
-      expect(result).toBeTruthy();
       // Should favor meals with lower spiciness
-      expect(result!.spiciness).toBeLessThanOrEqual(2);
+      const counts = new Map<string, number>();
+      for (let seed = 0; seed < 400; seed++) {
+        const result = selectRecommendation({
+          quiz,
+          recentFeedback: mockFeedback,
+          weather: 'normal',
+          candidateMeals: mockMeals,
+          randomSeed: seed
+        });
+        counts.set(result!._id, (counts.get(result!._id) ?? 0) + 1);
+      }
+      // meal2 (spiciness 0) should beat meal1 (spiciness 4)
+      expect(counts.get('meal2') ?? 0).toBeGreaterThan(counts.get('meal1') ?? 0);
     });
 
     it('applies weather match bonus correctly', () => {
@@ -264,12 +266,11 @@ describe('Recommendation Engine', () => {
       expect(result1Again!._id).toBe(result1!._id);
     });
 
-    it('returns highest scoring meal', () => {
-      // Create a scenario where we can predict the winner
+    it('favours the highest scoring meal without always returning it', () => {
       const quiz: QuizAnswers = {
         ingredientsToAvoid: [],
         spiciness: 1, // Close to meal3's spiciness
-        surpriseFactor: 0 // No randomness
+        surpriseFactor: 0 // No score noise
       };
 
       const feedback: FeedbackEntry[] = [
@@ -280,17 +281,58 @@ describe('Recommendation Engine', () => {
         }
       ];
 
-      const input: RecommendationInput = {
-        quiz,
-        recentFeedback: feedback,
-        weather: 'rain', // Matches meal3
-        candidateMeals: mockMeals,
-        randomSeed: 12345
-      };
+      const counts = new Map<string, number>();
+      for (let seed = 0; seed < 200; seed++) {
+        const result = selectRecommendation({
+          quiz,
+          recentFeedback: feedback,
+          weather: 'rain', // Matches meal3
+          candidateMeals: mockMeals,
+          randomSeed: seed
+        });
+        counts.set(result!._id, (counts.get(result!._id) ?? 0) + 1);
+      }
 
-      const result = selectRecommendation(input);
-      expect(result).toBeTruthy();
-      expect(result!._id).toBe('meal3');
+      const liked = counts.get('meal3')!;
+      expect(liked).toBeLessThan(200);
+      for (const [mealId, count] of counts) {
+        if (mealId !== 'meal3') expect(liked).toBeGreaterThan(count);
+      }
+    });
+
+    it('returns varied meals across repeated unseeded calls with identical input', () => {
+      const quiz: QuizAnswers = { ingredientsToAvoid: [], spiciness: 2, surpriseFactor: 0 };
+      const ids = new Set<string>();
+      for (let call = 0; call < 100; call++) {
+        ids.add(selectRecommendation({
+          quiz,
+          recentFeedback: [],
+          weather: 'normal',
+          candidateMeals: mockMeals
+        })!._id);
+      }
+      expect(ids.size).toBeGreaterThan(1);
+    });
+
+    it('only samples from the top-scoring meals', () => {
+      const topMeals = Array.from({ length: 5 }, (_, i) => ({
+        ...mockMeals[2], _id: `top${i}`, spiciness: 2, weather: ['rain']
+      }));
+      const lowMeals = Array.from({ length: 15 }, (_, i) => ({
+        ...mockMeals[2], _id: `low${i}`, spiciness: 5, weather: ['hot']
+      }));
+      const quiz: QuizAnswers = { ingredientsToAvoid: [], spiciness: 2, surpriseFactor: 0 };
+      // top: 1 + 0.2 weather = 1.2; low: 1 - 0.05 * 3 spiciness = 0.85
+      for (let seed = 0; seed < 100; seed++) {
+        const result = selectRecommendation({
+          quiz,
+          recentFeedback: [],
+          weather: 'rain',
+          candidateMeals: [...lowMeals, ...topMeals],
+          randomSeed: seed
+        });
+        expect(result!._id).toMatch(/^top/);
+      }
     });
 
     it('handles meals with missing spiciness values', () => {
