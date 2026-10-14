@@ -2,7 +2,7 @@
 // ABOUTME: Tests scoring algorithm, edge cases, and all business rules
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { selectRecommendation, getLikedFlavorTags, type QuizAnswers, type FeedbackEntry, type Meal, type RecommendationInput } from './recommender';
+import { selectRecommendation, getLikedFlavorTags, SeededRandom, type QuizAnswers, type FeedbackEntry, type Meal, type RecommendationInput } from './recommender';
 
 describe('Recommendation Engine', () => {
   let mockMeals: Meal[];
@@ -531,5 +531,29 @@ describe('Recommendation Engine', () => {
       const result = selectRecommendation(input);
       expect(result).toBeTruthy();
     });
+  });
+});
+describe('SeededRandom', () => {
+  const draw = (seed: number, count: number) => {
+    const random = new SeededRandom(seed);
+    return Array.from({ length: count }, () => random.next());
+  };
+
+  it('is deterministic for a given seed', () => {
+    expect(draw(12345, 20)).toEqual(draw(12345, 20));
+  });
+
+  it('produces independent streams for seeds that share a residue mod 233280', () => {
+    const seed = 1_700_000_000_000;
+    expect(draw(seed, 5)).not.toEqual(draw(seed + 233280, 5));
+  });
+
+  it('produces uniform values in [0, 1) from a Date.now()-sized seed', () => {
+    const values = draw(1_700_000_000_000, 10000);
+    expect(values.every(value => value >= 0 && value < 1)).toBe(true);
+    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+    expect(mean).toBeGreaterThan(0.48);
+    expect(mean).toBeLessThan(0.52);
+    expect(new Set(values).size).toBeGreaterThan(9900);
   });
 });
