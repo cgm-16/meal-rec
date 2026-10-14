@@ -1,3 +1,6 @@
+// ABOUTME: Home page that shows one recommended meal and collects like/maybe/dislike feedback
+// ABOUTME: Requests recommendations from /api/recommend using quiz answers stored in localStorage
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,19 +12,26 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRandomMeal = async () => {
+  const fetchRecommendation = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/meals/random');
+      const storedQuizAnswers = localStorage.getItem('quizAnswers');
+      const response = await fetch('/api/recommend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(storedQuizAnswers ? { quiz: JSON.parse(storedQuizAnswers) } : {}),
+      });
       const data = await response.json();
       
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch meal');
       }
       
-      setMeal(data.meal);
+      setMeal(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -40,11 +50,11 @@ export default function Home() {
       });
 
       // Always fetch a new meal after feedback attempt, regardless of success
-      await fetchRandomMeal();
+      await fetchRecommendation();
     } catch (err) {
       console.error('Failed to submit feedback:', err);
       // Still fetch a new meal even if feedback fails
-      await fetchRandomMeal();
+      await fetchRecommendation();
     }
   };
 
@@ -53,7 +63,7 @@ export default function Home() {
   const handleDislike = (mealId: string) => handleFeedback(mealId, 'dislike');
 
   useEffect(() => {
-    fetchRandomMeal();
+    fetchRecommendation();
   }, []);
 
   return (
@@ -71,7 +81,7 @@ export default function Home() {
             <div className="text-center p-8">
               <p className="text-red-600 mb-4">{error}</p>
               <button
-                onClick={fetchRandomMeal}
+                onClick={fetchRecommendation}
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
               >
                 Try Again
@@ -90,7 +100,7 @@ export default function Home() {
         {!loading && !error && meal && (
           <div className="text-center mt-6">
             <button
-              onClick={fetchRandomMeal}
+              onClick={fetchRecommendation}
               className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
             >
               Get Another Recommendation

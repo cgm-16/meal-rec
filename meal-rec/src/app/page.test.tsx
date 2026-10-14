@@ -23,9 +23,9 @@ const mockMeal = {
 };
 
 const server = setupServer(
-  // Mock /api/meals/random endpoint
-  http.get('/api/meals/random', () => {
-    return HttpResponse.json({ meal: mockMeal });
+  // Mock /api/recommend endpoint
+  http.post('/api/recommend', () => {
+    return HttpResponse.json(mockMeal);
   }),
 
   // Mock /api/feedback endpoint
@@ -56,19 +56,57 @@ describe('Home Page', () => {
     expect(screen.getByText('aromatic')).toBeInTheDocument();
   });
 
+  it('sends stored quiz answers with the recommendation request', async () => {
+    const quizAnswers = { ingredientsToAvoid: ['gluten'], spiciness: 3, surpriseFactor: 7 };
+    localStorage.setItem('quizAnswers', JSON.stringify(quizAnswers));
+    let receivedBody: unknown;
+
+    server.use(
+      http.post('/api/recommend', async ({ request }) => {
+        receivedBody = await request.json();
+        return HttpResponse.json(mockMeal);
+      })
+    );
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Chicken Curry')).toBeInTheDocument();
+    });
+    expect(receivedBody).toEqual({ quiz: quizAnswers });
+
+    localStorage.removeItem('quizAnswers');
+  });
+
+  it('requests a recommendation without quiz answers when none are stored', async () => {
+    let receivedBody: unknown;
+
+    server.use(
+      http.post('/api/recommend', async ({ request }) => {
+        receivedBody = await request.json();
+        return HttpResponse.json(mockMeal);
+      })
+    );
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Chicken Curry')).toBeInTheDocument();
+    });
+    expect(receivedBody).toEqual({});
+  });
+
   it('submits feedback and fetches new meal on like', async () => {
     let feedbackReceived = false;
     let mealFetchCount = 0;
 
     server.use(
-      http.get('/api/meals/random', () => {
+      http.post('/api/recommend', () => {
         mealFetchCount++;
         return HttpResponse.json({ 
-          meal: { 
-            ...mockMeal, 
-            name: mealFetchCount === 1 ? 'First Meal' : 'Second Meal',
-            _id: mealFetchCount.toString()
-          }
+          ...mockMeal, 
+          name: mealFetchCount === 1 ? 'First Meal' : 'Second Meal',
+          _id: mealFetchCount.toString()
         });
       }),
       http.post('/api/feedback', async ({ request }) => {
@@ -148,7 +186,7 @@ describe('Home Page', () => {
 
   it('handles API error gracefully', async () => {
     server.use(
-      http.get('/api/meals/random', () => {
+      http.post('/api/recommend', () => {
         return HttpResponse.json(
           { error: 'No meals found' },
           { status: 404 }
@@ -169,14 +207,12 @@ describe('Home Page', () => {
     let fetchCount = 0;
 
     server.use(
-      http.get('/api/meals/random', () => {
+      http.post('/api/recommend', () => {
         fetchCount++;
         return HttpResponse.json({ 
-          meal: { 
-            ...mockMeal, 
-            name: `Meal ${fetchCount}`,
-            _id: fetchCount.toString()
-          }
+          ...mockMeal, 
+          name: `Meal ${fetchCount}`,
+          _id: fetchCount.toString()
         });
       })
     );
@@ -200,14 +236,12 @@ describe('Home Page', () => {
     let mealFetchCount = 0;
 
     server.use(
-      http.get('/api/meals/random', () => {
+      http.post('/api/recommend', () => {
         mealFetchCount++;
         return HttpResponse.json({ 
-          meal: { 
-            ...mockMeal, 
-            name: `Meal ${mealFetchCount}`,
-            _id: mealFetchCount.toString()
-          }
+          ...mockMeal, 
+          name: `Meal ${mealFetchCount}`,
+          _id: mealFetchCount.toString()
         });
       }),
       http.post('/api/feedback', () => {
