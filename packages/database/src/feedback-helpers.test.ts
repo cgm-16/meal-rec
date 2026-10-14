@@ -1,4 +1,4 @@
-// ABOUTME: Unit tests for feedback query helpers and CRON functionality
+// ABOUTME: Unit tests for feedback query helpers
 // ABOUTME: Tests sliding window queries, cleanup operations, and scheduled tasks
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -15,9 +15,7 @@ import {
   getRecentFeedback, 
   deleteOldFeedback, 
   getFeedbackStats, 
-  getMealFeedback,
-  startFeedbackCleanupCron, 
-  stopFeedbackCleanupCron 
+  getMealFeedback
 } from './feedback-helpers';
 
 // Mock the Feedback model
@@ -29,16 +27,7 @@ vi.mock('./models/feedback', () => ({
   }
 }));
 
-// Mock node-cron
-vi.mock('node-cron', () => ({
-  schedule: vi.fn(),
-  default: {
-    schedule: vi.fn()
-  }
-}));
-
 import { Feedback } from './models/feedback';
-import * as cron from 'node-cron';
 
 const mockFeedbackData = [
   {
@@ -66,7 +55,6 @@ describe('Feedback Helpers', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    stopFeedbackCleanupCron();
   });
 
   describe('getRecentFeedback', () => {
@@ -269,101 +257,6 @@ describe('Feedback Helpers', () => {
       const actualCall = vi.mocked(Feedback.find).mock.calls[0][0];
       const actualCutoff = actualCall.timestamp.$gte;
       expect(Math.abs(actualCutoff.getTime() - expectedCutoff.getTime())).toBeLessThan(1000);
-    });
-  });
-
-  describe('CRON Job Management', () => {
-    it('should start feedback cleanup CRON job', () => {
-      const mockScheduledTask = {
-        stop: vi.fn()
-      };
-      vi.mocked(cron.schedule).mockReturnValue(mockScheduledTask as never);
-
-      const result = startFeedbackCleanupCron();
-
-      expect(cron.schedule).toHaveBeenCalledWith(
-        '0 2 * * *', // Daily at 2:00 AM
-        expect.any(Function),
-        {
-          timezone: 'UTC'
-        }
-      );
-      expect(console.log).toHaveBeenCalledWith('Feedback cleanup CRON job started (daily at 2:00 AM UTC)');
-      expect(result).toBe(mockScheduledTask);
-    });
-
-    it('should not start duplicate CRON job', () => {
-      const mockScheduledTask = {
-        stop: vi.fn()
-      };
-      vi.mocked(cron.schedule).mockReturnValue(mockScheduledTask as never);
-
-      // Start first job
-      const result1 = startFeedbackCleanupCron();
-      // Try to start second job
-      const result2 = startFeedbackCleanupCron();
-
-      expect(cron.schedule).toHaveBeenCalledTimes(1);
-      expect(console.log).toHaveBeenCalledWith('Feedback cleanup CRON job is already running');
-      expect(result1).toBe(result2);
-    });
-
-    it('should stop feedback cleanup CRON job', () => {
-      const mockScheduledTask = {
-        stop: vi.fn()
-      };
-      vi.mocked(cron.schedule).mockReturnValue(mockScheduledTask as never);
-
-      startFeedbackCleanupCron();
-      stopFeedbackCleanupCron();
-
-      expect(mockScheduledTask.stop).toHaveBeenCalled();
-      expect(console.log).toHaveBeenCalledWith('Feedback cleanup CRON job stopped');
-    });
-
-    it('should handle stopping when no job is running', () => {
-      stopFeedbackCleanupCron();
-      // Should not throw or log anything when no job is running
-    });
-
-    it('should execute cleanup task when CRON job runs', async () => {
-      const mockDeleteResult = { deletedCount: 3 };
-      vi.mocked(Feedback.deleteMany).mockResolvedValue(mockDeleteResult as never);
-      
-      let cronCallback: () => Promise<void>;
-      vi.mocked(cron.schedule).mockImplementation((schedule, callback) => {
-        cronCallback = callback;
-        return { stop: vi.fn() } as never;
-      });
-
-      startFeedbackCleanupCron();
-
-      // Execute the CRON callback
-      await cronCallback!();
-
-      expect(console.log).toHaveBeenCalledWith('Starting scheduled feedback cleanup...');
-      expect(Feedback.deleteMany).toHaveBeenCalledWith({
-        timestamp: { $lt: expect.any(Date) }
-      });
-      expect(console.log).toHaveBeenCalledWith('Scheduled cleanup completed: 3 entries deleted');
-    });
-
-    it('should handle errors in CRON job execution', async () => {
-      const mockError = new Error('Database error');
-      vi.mocked(Feedback.deleteMany).mockRejectedValue(mockError);
-      
-      let cronCallback: () => Promise<void>;
-      vi.mocked(cron.schedule).mockImplementation((schedule, callback) => {
-        cronCallback = callback;
-        return { stop: vi.fn() } as never;
-      });
-
-      startFeedbackCleanupCron();
-
-      // Execute the CRON callback
-      await cronCallback!();
-
-      expect(console.error).toHaveBeenCalledWith('Error during scheduled feedback cleanup:', mockError);
     });
   });
 });

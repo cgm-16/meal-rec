@@ -1,7 +1,10 @@
 // ABOUTME: Database connection helper for MongoDB using Mongoose
-// ABOUTME: Provides a reusable connection function that reads from MONGO_URL environment variable
+// ABOUTME: Provides a cached, serverless-safe connection function that reads from MONGO_URL
 
 import mongoose, { MongooseError } from 'mongoose';
+
+// In-flight connection attempt shared by concurrent callers within one process
+let pendingConnection: Promise<void> | null = null;
 
 export async function connect(): Promise<void> {
   const mongoUrl = process.env.MONGO_URL;
@@ -10,13 +13,24 @@ export async function connect(): Promise<void> {
     throw new Error('MONGO_URL environment variable is required');
   }
 
+  // Serverless instances reuse their warm connection instead of reconnecting per request
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
+  pendingConnection ??= openConnection(mongoUrl).finally(() => {
+    pendingConnection = null;
+  });
+  await pendingConnection;
+}
+
+async function openConnection(mongoUrl: string): Promise<void> {
   try {
     await mongoose.connect(mongoUrl, {
       serverSelectionTimeoutMS: 5000, // How long to try selecting a server
       connectTimeoutMS: 10000, // How long to wait for initial connection
       socketTimeoutMS: 45000, // How long to wait for socket operations
       maxPoolSize: 10, // Maximum number of connections in the pool
-      minPoolSize: 5, // Minimum number of connections in the pool
     });
     console.log(`Connected to MongoDB at ${mongoUrl.replace(/\/\/.*@/, '//***@')}`);
   } catch (error) {
