@@ -11,24 +11,23 @@ const mockUserSave = vi.fn();
 // Mock dependencies
 vi.mock('@meal-rec/database', () => ({
   connect: vi.fn().mockResolvedValue(undefined),
-  User: Object.assign(
-    vi.fn().mockImplementation((data: unknown) => ({
-      ...data,
-      _id: 'user123',
-      save: mockUserSave
-    })),
-    {
-      findOne: vi.fn()
-    }
-  )
+  User: Object.assign(vi.fn(), {
+    findOne: vi.fn()
+  })
 }));
 
 import { connect, User } from '@meal-rec/database';
+import bcrypt from 'bcryptjs';
 
 describe('/api/auth/signup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     User.findOne = vi.fn();
+    vi.mocked(User).mockImplementation((data?: unknown) => ({
+      ...(data as object),
+      _id: 'user123',
+      save: mockUserSave
+    }));
   });
 
   afterEach(() => {
@@ -43,7 +42,7 @@ describe('/api/auth/signup', () => {
       method: 'POST',
       body: JSON.stringify({
         username: 'testuser',
-        hashedPin: '$2b$10$hashedpinvalue'
+        pin: '1234'
       })
     });
 
@@ -57,11 +56,47 @@ describe('/api/auth/signup', () => {
     expect(mockUserSave).toHaveBeenCalled();
   });
 
+  it('should store a bcrypt hash of the PIN, never the raw PIN', async () => {
+    vi.mocked(User.findOne).mockResolvedValue(null);
+    mockUserSave.mockResolvedValue(undefined);
+
+    const request = new NextRequest('http://localhost/api/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify({ username: 'testuser', pin: '1234' })
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(201);
+    const { hashedPin } = vi.mocked(User).mock.calls[0][0] as { hashedPin: string };
+    expect(hashedPin).not.toBe('1234');
+    expect(await bcrypt.compare('1234', hashedPin)).toBe(true);
+  });
+
+  it.each(['12', '12345', 'abcd', '$2b$10$hashedpinvalue', 1234])(
+    'should reject PIN %s that is not exactly 4 digits',
+    async (pin) => {
+      vi.mocked(User.findOne).mockResolvedValue(null);
+
+      const request = new NextRequest('http://localhost/api/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify({ username: 'testuser', pin })
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('PIN must be exactly 4 digits');
+      expect(mockUserSave).not.toHaveBeenCalled();
+    }
+  );
+
   it('should reject missing username', async () => {
     const request = new NextRequest('http://localhost/api/auth/signup', {
       method: 'POST',
       body: JSON.stringify({
-        hashedPin: '$2b$10$hashedpinvalue'
+        pin: '1234'
       })
     });
 
@@ -72,7 +107,7 @@ describe('/api/auth/signup', () => {
     expect(data.error).toBe('Username and PIN are required');
   });
 
-  it('should reject missing hashedPin', async () => {
+  it('should reject missing pin', async () => {
     const request = new NextRequest('http://localhost/api/auth/signup', {
       method: 'POST',
       body: JSON.stringify({
@@ -92,7 +127,7 @@ describe('/api/auth/signup', () => {
       method: 'POST',
       body: JSON.stringify({
         username: 'ab',
-        hashedPin: '$2b$10$hashedpinvalue'
+        pin: '1234'
       })
     });
 
@@ -114,7 +149,7 @@ describe('/api/auth/signup', () => {
       method: 'POST',
       body: JSON.stringify({
         username: 'testuser',
-        hashedPin: '$2b$10$hashedpinvalue'
+        pin: '1234'
       })
     });
 
@@ -133,7 +168,7 @@ describe('/api/auth/signup', () => {
       method: 'POST',
       body: JSON.stringify({
         username: 'testuser',
-        hashedPin: '$2b$10$hashedpinvalue'
+        pin: '1234'
       })
     });
 

@@ -1,12 +1,13 @@
-// ABOUTME: API endpoint for user registration handling username and hashed PIN
-// ABOUTME: Creates new user accounts and validates input data before database storage
+// ABOUTME: API endpoint for user registration handling username and 4-digit PIN
+// ABOUTME: Validates input, hashes the PIN with bcrypt server-side, and creates the user account
 
 import { NextRequest, NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
 import { connect, User } from '@meal-rec/database';
 
 interface SignUpRequest {
   username: string;
-  hashedPin: string;
+  pin: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -14,10 +15,10 @@ export async function POST(request: NextRequest) {
     await connect();
 
     const body: SignUpRequest = await request.json();
-    const { username, hashedPin } = body;
+    const { username, pin } = body;
 
     // Validate input
-    if (!username || !hashedPin) {
+    if (!username || !pin) {
       return NextResponse.json(
         { error: 'Username and PIN are required' },
         { status: 400 }
@@ -27,6 +28,13 @@ export async function POST(request: NextRequest) {
     if (username.length < 3) {
       return NextResponse.json(
         { error: 'Username must be at least 3 characters' },
+        { status: 400 }
+      );
+    }
+
+    if (typeof pin !== 'string' || !/^\d{4}$/.test(pin)) {
+      return NextResponse.json(
+        { error: 'PIN must be exactly 4 digits' },
         { status: 400 }
       );
     }
@@ -41,6 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new user
+    const hashedPin = await bcrypt.hash(pin, 10);
     const user = new User({
       username,
       hashedPin,

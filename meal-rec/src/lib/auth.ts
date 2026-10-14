@@ -5,6 +5,7 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { connect, User } from '@meal-rec/database';
+import { APP_CONSTANTS } from './constants';
 
 interface ExtendedUser {
   id: string;
@@ -31,13 +32,35 @@ export const authOptions: NextAuthOptions = {
           await connect();
           
           const user = await User.findOne({ username: credentials.username });
-          if (!user) {
+          if (!user || user.banned) {
+            return null;
+          }
+
+          if (user.lockedUntil && user.lockedUntil > new Date()) {
             return null;
           }
 
           const isValidPin = await bcrypt.compare(credentials.pin, user.hashedPin);
           if (!isValidPin) {
+            const updated = await User.findByIdAndUpdate(
+              user._id,
+              { $inc: { failedSignInAttempts: 1 } },
+              { new: true }
+            );
+            if (updated && updated.failedSignInAttempts >= APP_CONSTANTS.MAX_FAILED_SIGNIN_ATTEMPTS) {
+              await User.updateOne(
+                { _id: user._id },
+                {
+                  failedSignInAttempts: 0,
+                  lockedUntil: new Date(Date.now() + APP_CONSTANTS.SIGNIN_LOCKOUT_MINUTES * 60 * 1000)
+                }
+              );
+            }
             return null;
+          }
+
+          if (user.failedSignInAttempts > 0 || user.lockedUntil) {
+            await User.updateOne({ _id: user._id }, { failedSignInAttempts: 0, $unset: { lockedUntil: 1 } });
           }
 
           return {
