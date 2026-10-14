@@ -2,10 +2,12 @@
 // ABOUTME: Integrates quiz answers, user feedback, weather conditions, and candidate meals to select optimal meal
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import { connect, Meal, getRecentFeedback } from '@meal-rec/database';
 import { selectRecommendation } from '@meal-rec/core';
 import type { QuizAnswers, FeedbackEntry, WeatherCondition } from '@meal-rec/core';
 import { APP_CONSTANTS } from '@/lib/constants';
+import { authOptions } from '@/lib/auth';
 import type { Types } from 'mongoose';
 
 interface RecommendRequest {
@@ -26,7 +28,8 @@ export async function POST(request: NextRequest) {
     await connect();
 
     const body: RecommendRequest = await request.json();
-    const userId = request.headers.get('x-user-id');
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
 
     // 1. Gather quiz answers from request body or default values
     const quiz: QuizAnswers = body.quiz || {
