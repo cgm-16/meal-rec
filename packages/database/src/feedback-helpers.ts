@@ -1,6 +1,7 @@
 // ABOUTME: Query helpers and utilities for feedback data with sliding window functionality
 // ABOUTME: Provides recent feedback queries, statistics, and manual cleanup of old feedback data
 
+import { Types } from 'mongoose';
 import { Feedback, IFeedback } from './models/feedback';
 
 /**
@@ -47,8 +48,9 @@ export async function getFeedbackStats(userId: string, days: number = 14) {
   
   const stats = await Feedback.aggregate([
     {
+      // Aggregation pipelines are not cast by Mongoose, so convert the id explicitly
       $match: {
-        user: userId,
+        user: new Types.ObjectId(userId),
         timestamp: { $gte: cutoffDate }
       }
     },

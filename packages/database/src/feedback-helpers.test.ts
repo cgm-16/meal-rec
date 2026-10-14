@@ -166,13 +166,13 @@ describe('Feedback Helpers', () => {
       ];
       vi.mocked(Feedback.aggregate).mockResolvedValue(mockAggregateResult);
 
-      const userId = 'user123';
+      const userId = new Types.ObjectId().toString();
       const result = await getFeedbackStats(userId);
 
       expect(Feedback.aggregate).toHaveBeenCalledWith([
         {
           $match: {
-            user: userId,
+            user: new Types.ObjectId(userId),
             timestamp: { $gte: expect.any(Date) }
           }
         },
@@ -198,7 +198,7 @@ describe('Feedback Helpers', () => {
       ];
       vi.mocked(Feedback.aggregate).mockResolvedValue(mockAggregateResult);
 
-      const result = await getFeedbackStats('user123');
+      const result = await getFeedbackStats(new Types.ObjectId().toString());
 
       expect(result).toEqual({
         like: 3,
@@ -211,7 +211,7 @@ describe('Feedback Helpers', () => {
     it('should handle empty results', async () => {
       vi.mocked(Feedback.aggregate).mockResolvedValue([]);
 
-      const result = await getFeedbackStats('user123');
+      const result = await getFeedbackStats(new Types.ObjectId().toString());
 
       expect(result).toEqual({
         like: 0,
