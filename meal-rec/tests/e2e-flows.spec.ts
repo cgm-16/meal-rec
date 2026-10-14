@@ -70,6 +70,28 @@ test.describe('E2E User Flows', () => {
     await expect(page.locator('[data-testid="meal-card"]')).toBeVisible();
   });
 
+  test('Quiz Flow - Excluded ingredient never appears in recommendations', async ({ page }) => {
+    // "E2E Test Pasta" is the only seeded meal with the gluten allergen
+    await page.goto('/quiz');
+    await page.click('[data-testid="ingredient-gluten"]');
+    await page.click('[data-testid="next-step-1"]');
+    await page.click('[data-testid="next-step-2"]');
+    await page.click('[data-testid="submit-quiz"]');
+    await expect(page).toHaveURL('/');
+
+    // With 3 seeded meals a random pick would show the pasta within 10 draws ~98% of the time
+    const mealName = page.locator('[data-testid="meal-card"] h3');
+    for (let draw = 0; draw < 10; draw++) {
+      if (draw > 0) {
+        const nextMeal = page.waitForResponse(/\/api\/(meals\/random|recommend)/);
+        await page.click('text=Get Another Recommendation');
+        await nextMeal;
+      }
+      await expect(mealName).toBeVisible();
+      await expect(mealName).not.toHaveText('E2E Test Pasta');
+    }
+  });
+
   test('Authentication Flow - Sign up and sign in', async ({ page }) => {
     // Use real authentication flow without mocking auth endpoints
     // This test uses a unique username to avoid conflicts
