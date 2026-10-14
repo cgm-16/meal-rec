@@ -2,6 +2,8 @@
 // ABOUTME: Tests scoring algorithm, edge cases, and all business rules
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import { selectRecommendation, SeededRandom, type QuizAnswers, type FeedbackEntry, type Meal, type RecommendationInput, type ScoredMeal } from './recommender';
 
 describe('Recommendation Engine', () => {
@@ -538,4 +540,48 @@ describe('SeededRandom', () => {
     expect(mean).toBeLessThan(0.52);
     expect(new Set(values).size).toBeGreaterThan(9900);
   });
+});
+
+describe('ingredient exclusion against seed data', () => {
+  const seedMeals: Meal[] = JSON.parse(
+    readFileSync(resolve(__dirname, '../../../data/meals.json'), 'utf8')
+  ).map((meal: Omit<Meal, '_id'>, index: number) => ({ ...meal, _id: `seed${index}` }));
+  const mealsNamed = (...names: string[]) => seedMeals.filter(meal => names.includes(meal.name));
+
+  it.each([
+    ['nuts', ['Pad Thai', 'Massaman Curry', 'Satay', 'Tagine', 'Acai Bowl']],
+    ['eggs', ['Khao Soi']],
+    ['onions', ['Ceviche', 'Boeuf Bourguignon']]
+  ])('excluding %s removes meals that list it under another name', (avoided, names) => {
+    const candidates = mealsNamed(...names);
+    expect(candidates).toHaveLength(names.length);
+    expect(selectRecommendation({
+      quiz: { ingredientsToAvoid: [avoided], spiciness: 2, surpriseFactor: 0 },
+      recentFeedback: [],
+      weather: 'normal',
+      candidateMeals: candidates,
+      randomSeed: 1
+    })).toBeNull();
+  });
+
+  // Quiz options from meal-rec/src/app/quiz/page.tsx
+  it.each(['nuts', 'shellfish', 'dairy', 'eggs', 'soy', 'gluten', 'fish', 'sesame', 'mushrooms', 'onions'])(
+    'excluding %s removes every seed meal that mentions it',
+    (avoided) => {
+      const stem = avoided.replace(/s$/, '');
+      // Words that contain the stem but are a different ingredient
+      const lookalikes: Record<string, string[]> = { nuts: ['coconut'], eggs: ['eggplant'], fish: ['shellfish'] };
+      const mentions = (item: string) =>
+        item.includes(stem) && !(lookalikes[avoided] ?? []).some(lookalike => item.includes(lookalike));
+      const candidates = seedMeals.filter(meal => [...meal.primaryIngredients, ...meal.allergens].some(mentions));
+      expect(candidates.length).toBeGreaterThan(0);
+      expect(selectRecommendation({
+        quiz: { ingredientsToAvoid: [avoided], spiciness: 2, surpriseFactor: 0 },
+        recentFeedback: [],
+        weather: 'normal',
+        candidateMeals: candidates,
+        randomSeed: 1
+      })).toBeNull();
+    }
+  );
 });

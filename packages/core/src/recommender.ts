@@ -75,6 +75,14 @@ export class SeededRandom {
   }
 }
 
+// Other names the meal data uses for a quiz ingredient option. Exclusion protects
+// allergies, so these err toward over-excluding.
+const AVOIDED_INGREDIENT_ALIASES: Record<string, string[]> = {
+  nuts: ['peanuts', 'tree nuts', 'peanut sauce'],
+  eggs: ['egg noodles'],
+  onions: ['onion', 'pearl onions'],
+};
+
 // Number of best-scoring meals the final pick is sampled from
 const TOP_K_SAMPLE_SIZE = 5;
 
@@ -143,9 +151,11 @@ export function selectRecommendation(input: RecommendationInput): Meal | null {
     let score = scoreBreakdown.base;
 
     // Check for ingredient conflicts
-    const hasAvoidedIngredients = quiz.ingredientsToAvoid.some(avoided => 
-      meal.primaryIngredients.includes(avoided) || 
-      meal.allergens.includes(avoided)
+    const hasAvoidedIngredients = quiz.ingredientsToAvoid.some(avoided =>
+      [avoided, ...(AVOIDED_INGREDIENT_ALIASES[avoided] ?? [])].some(term =>
+        meal.primaryIngredients.includes(term) ||
+        meal.allergens.includes(term)
+      )
     );
     
     if (hasAvoidedIngredients) {
