@@ -3,8 +3,6 @@
 
 export const APP_CONSTANTS = {
   // Feedback system
-  FEEDBACK_TTL_HOURS: 2,
-  FEEDBACK_TTL_MS: 2 * 60 * 60 * 1000, // 2 hours in milliseconds
   RECENT_FEEDBACK_DAYS: 14,
   
   // Recommendations  

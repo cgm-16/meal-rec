@@ -1,5 +1,5 @@
 // ABOUTME: Test for POST /api/feedback endpoint
-// ABOUTME: Tests feedback storage, validation, TTL cleanup, and guest session handling
+// ABOUTME: Tests feedback storage, validation, and rejection of guest feedback
 
 /**
  * @vitest-environment node
@@ -64,15 +64,14 @@ describe('/api/feedback', () => {
     vi.mocked(getServerSession).mockResolvedValue(null);
   });
 
-  it('stores feedback for guest users', async () => {
+  it('rejects guest feedback with 401 instead of silently discarding it', async () => {
     const request = new NextRequest('http://localhost:3000/api/feedback', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'x-session-id': 'test-session'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        mealId: '123',
+        mealId: testMeal._id.toString(),
         type: 'like'
       })
     });
@@ -80,71 +79,9 @@ describe('/api/feedback', () => {
     const response = await POST(request);
     const data = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(data.ok).toBe(true);
-
-    // For guest users, feedback is stored in memory (can't be directly tested without exposing internals)
-  });
-
-  it('handles multiple feedback entries for same session', async () => {
-    const sessionId = 'multi-feedback-session';
-
-    // Submit first feedback
-    const request1 = new NextRequest('http://localhost:3000/api/feedback', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-session-id': sessionId
-      },
-      body: JSON.stringify({
-        mealId: '123',
-        type: 'like'
-      })
-    });
-
-    await POST(request1);
-
-    // Submit second feedback
-    const request2 = new NextRequest('http://localhost:3000/api/feedback', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-session-id': sessionId
-      },
-      body: JSON.stringify({
-        mealId: '456',
-        type: 'dislike'
-      })
-    });
-
-    await POST(request2);
-
-    // Guest feedback stored in memory - testing API response only
-    // const feedback = getGuestFeedback(sessionId);
-    // expect(feedback).toHaveLength(2);
-    // expect(feedback[0].type).toBe('like');
-    // expect(feedback[1].type).toBe('dislike');
-  });
-
-  it('uses default session when no x-session-id header', async () => {
-    const request = new NextRequest('http://localhost:3000/api/feedback', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        mealId: '789',
-        type: 'interested'
-      })
-    });
-
-    const response = await POST(request);
-    expect(response.status).toBe(200);
-
-    // Guest feedback stored in memory - testing API response only
-    // const feedback = getGuestFeedback('guest');
-    // expect(feedback).toHaveLength(1);
-    // expect(feedback[0].mealId).toBe('789');
+    expect(response.status).toBe(401);
+    expect(data.error).toBe('Sign in to save feedback');
+    expect(await Feedback.countDocuments()).toBe(0);
   });
 
   it('validates required mealId field', async () => {
@@ -203,17 +140,19 @@ describe('/api/feedback', () => {
   });
 
   it('accepts all valid feedback types', async () => {
+    vi.mocked(getServerSession).mockResolvedValue({
+      user: { id: testUser._id.toString() }
+    });
     const types = ['like', 'interested', 'dislike'];
     
     for (const type of types) {
       const request = new NextRequest('http://localhost:3000/api/feedback', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-session-id': `test-${type}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          mealId: '123',
+          mealId: testMeal._id.toString(),
           type
         })
       });
@@ -221,9 +160,8 @@ describe('/api/feedback', () => {
       const response = await POST(request);
       expect(response.status).toBe(200);
 
-      // Guest feedback stored in memory - testing API response only
-    // const feedback = getGuestFeedback(`test-${type}`);
-      // expect(feedback[0].type).toBe(type);
+      const feedback = await Feedback.findOne({ user: testUser._id, meal: testMeal._id });
+      expect(feedback!.type).toBe(type);
     }
   });
 
@@ -349,7 +287,7 @@ describe('/api/feedback', () => {
     });
 
     const guestResponse = await POST(guestRequest);
-    expect(guestResponse.status).toBe(200);
+    expect(guestResponse.status).toBe(401);
 
     // Authenticated user feedback - mock session
     vi.mocked(getServerSession).mockResolvedValue({
@@ -369,12 +307,6 @@ describe('/api/feedback', () => {
 
     const authResponse = await POST(authRequest);
     expect(authResponse.status).toBe(200);
-
-    // Verify guest feedback is in memory
-    // Guest feedback stored in memory - testing API response only
-    // const guestFeedback = getGuestFeedback('guest-session');
-    // expect(guestFeedback).toHaveLength(1);
-    // expect(guestFeedback[0].type).toBe('interested');
 
     // Verify auth feedback is in database
     const dbFeedback = await Feedback.findOne({

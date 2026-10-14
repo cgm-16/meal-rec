@@ -232,6 +232,27 @@ describe('Home Page', () => {
     expect(fetchCount).toBe(2);
   });
 
+  it('tells guests their feedback needs an account when the API returns 401', async () => {
+    server.use(
+      http.post('/api/feedback', () => {
+        return HttpResponse.json({ error: 'Sign in to save feedback' }, { status: 401 });
+      })
+    );
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Chicken Curry')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('👍 I like it'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Sign in to save your feedback and personalise recommendations.')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/auth/signin');
+  });
+
   it('fetches new meal even when feedback fails', async () => {
     let mealFetchCount = 0;
 
