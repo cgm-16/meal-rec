@@ -73,6 +73,20 @@ describe('/api/auth/signup', () => {
     expect(await bcrypt.compare('1234', hashedPin)).toBe(true);
   });
 
+  it('should only write fields defined in the User schema', async () => {
+    vi.mocked(User.findOne).mockResolvedValue(null);
+    mockUserSave.mockResolvedValue(undefined);
+
+    const request = new NextRequest('http://localhost/api/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify({ username: 'testuser', pin: '1234' })
+    });
+
+    await POST(request);
+
+    expect(User).toHaveBeenCalledWith({ username: 'testuser', hashedPin: expect.any(String) });
+  });
+
   it.each(['12', '12345', 'abcd', '$2b$10$hashedpinvalue', 1234])(
     'should reject PIN %s that is not exactly 4 digits',
     async (pin) => {
