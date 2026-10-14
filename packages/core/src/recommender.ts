@@ -1,5 +1,5 @@
 // ABOUTME: Pure TypeScript recommendation engine for meal selection
-// ABOUTME: Implements scoring algorithm based on quiz answers, feedback, and weather
+// ABOUTME: Scores meals on quiz answers, feedback, and weather, then samples from the top scorers
 
 export interface QuizAnswers {
   ingredientsToAvoid: string[];
@@ -55,7 +55,7 @@ export interface ScoredMeal extends Meal {
 export class SeededRandom {
   private state: number;
 
-  constructor(seed: number = Date.now()) {
+  constructor(seed: number = Math.random() * 4294967296) {
     this.state = seed >>> 0;
   }
 
@@ -71,6 +71,9 @@ export class SeededRandom {
     return min + this.next() * (max - min);
   }
 }
+
+// Number of best-scoring meals the final pick is sampled from
+const TOP_K_SAMPLE_SIZE = 5;
 
 export function selectRecommendation(input: RecommendationInput): Meal | null {
   const { quiz, recentFeedback, weather, candidateMeals, randomSeed } = input;
@@ -158,10 +161,19 @@ export function selectRecommendation(input: RecommendationInput): Meal | null {
     return null;
   }
 
-  // Select the highest scoring meal
+  // Sample from the top-scoring meals weighted by score, so the best match is
+  // favoured without being returned on every call
   validMeals.sort((a, b) => b.score - a.score);
-  
-  return validMeals[0];
+  const topMeals = validMeals.slice(0, TOP_K_SAMPLE_SIZE);
+  const totalScore = topMeals.reduce((sum, meal) => sum + meal.score, 0);
+  let pick = random.next() * totalScore;
+  for (const meal of topMeals) {
+    pick -= meal.score;
+    if (pick < 0) {
+      return meal;
+    }
+  }
+  return topMeals[topMeals.length - 1];
 }
 
 // Helper function to get liked flavor tags from recent feedback
