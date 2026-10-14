@@ -68,6 +68,28 @@ describe('authorize (database-backed)', () => {
     compare.mockRestore();
   });
 
+  it('rejects non-string credentials instead of passing them into the query', async () => {
+    const options = (authOptions.providers[0] as unknown as { options: CredentialsConfig }).options;
+    const injected = { username: { $ne: null }, pin: '1234' } as unknown as Record<string, string>;
+    expect(await options.authorize(injected, {} as never)).toBeNull();
+    const user = await User.findOne({ username: 'lockuser' });
+    expect(user!.failedSignInAttempts).toBe(0);
+  });
+
+  it('locks in the same write that records the final failed attempt', async () => {
+    const updateOne = vi.spyOn(User, 'updateOne').mockRejectedValue(new Error('write failed'));
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    for (let attempt = 0; attempt < APP_CONSTANTS.MAX_FAILED_SIGNIN_ATTEMPTS; attempt++) {
+      await authorize('0000');
+    }
+    updateOne.mockRestore();
+    consoleError.mockRestore();
+
+    const user = await User.findOne({ username: 'lockuser' });
+    expect(user!.lockedUntil!.getTime()).toBeGreaterThan(Date.now());
+    expect(user!.failedSignInAttempts).toBe(0);
+  });
+
   it('unlocks once the lockout period has passed', async () => {
     for (let attempt = 0; attempt < APP_CONSTANTS.MAX_FAILED_SIGNIN_ATTEMPTS; attempt++) {
       await authorize('0000');

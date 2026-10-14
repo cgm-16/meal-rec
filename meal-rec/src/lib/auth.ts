@@ -24,7 +24,9 @@ export const authOptions: NextAuthOptions = {
         pin: { label: 'PIN', type: 'password', maxLength: 4 }
       },
       async authorize(credentials) {
-        if (!credentials?.username || !credentials?.pin) {
+        // Reject non-strings so request JSON like { "$ne": null } never reaches a query filter
+        if (typeof credentials?.username !== 'string' || typeof credentials?.pin !== 'string' ||
+            !credentials.username || !credentials.pin) {
           return null;
         }
 
@@ -32,15 +34,34 @@ export const authOptions: NextAuthOptions = {
           await connect();
           
           // Reserve an attempt atomically before comparing, so concurrent requests
-          // cannot evaluate more than MAX_FAILED_SIGNIN_ATTEMPTS PINs between lockouts
+          // cannot evaluate more than MAX_FAILED_SIGNIN_ATTEMPTS PINs between lockouts.
+          // The attempt that reaches the limit sets the lock in the same write; a correct
+          // PIN on that attempt clears it below.
+          const reachedLimit = {
+            $gte: [{ $add: [{ $ifNull: ['$failedSignInAttempts', 0] }, 1] }, APP_CONSTANTS.MAX_FAILED_SIGNIN_ATTEMPTS]
+          };
           const user = await User.findOneAndUpdate(
             {
               username: credentials.username,
               banned: { $ne: true },
-              failedSignInAttempts: { $not: { $gte: APP_CONSTANTS.MAX_FAILED_SIGNIN_ATTEMPTS } },
               $or: [{ lockedUntil: null }, { lockedUntil: { $lte: new Date() } }]
             },
-            { $inc: { failedSignInAttempts: 1 } },
+            [
+              {
+                $set: {
+                  lockedUntil: {
+                    $cond: [
+                      reachedLimit,
+                      new Date(Date.now() + APP_CONSTANTS.SIGNIN_LOCKOUT_MINUTES * 60 * 1000),
+                      '$lockedUntil'
+                    ]
+                  },
+                  failedSignInAttempts: {
+                    $cond: [reachedLimit, 0, { $add: [{ $ifNull: ['$failedSignInAttempts', 0] }, 1] }]
+                  }
+                }
+              }
+            ],
             { new: true }
           );
           if (!user) {
@@ -49,15 +70,6 @@ export const authOptions: NextAuthOptions = {
 
           const isValidPin = await bcrypt.compare(credentials.pin, user.hashedPin);
           if (!isValidPin) {
-            if (user.failedSignInAttempts >= APP_CONSTANTS.MAX_FAILED_SIGNIN_ATTEMPTS) {
-              await User.updateOne(
-                { _id: user._id },
-                {
-                  failedSignInAttempts: 0,
-                  lockedUntil: new Date(Date.now() + APP_CONSTANTS.SIGNIN_LOCKOUT_MINUTES * 60 * 1000)
-                }
-              );
-            }
             return null;
           }
 
