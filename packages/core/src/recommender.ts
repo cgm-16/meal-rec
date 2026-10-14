@@ -51,16 +51,20 @@ export interface ScoredMeal extends Meal {
 }
 
 // Deterministic random number generator for testing
-class SeededRandom {
-  private seed: number;
+// mulberry32: all state arithmetic stays within 32-bit integers, so any seed size is safe
+export class SeededRandom {
+  private state: number;
 
   constructor(seed: number = Date.now()) {
-    this.seed = seed;
+    this.state = seed >>> 0;
   }
 
   next(): number {
-    this.seed = (this.seed * 9301 + 49297) % 233280;
-    return this.seed / 233280;
+    this.state = (this.state + 0x6d2b79f5) >>> 0;
+    let t = this.state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   }
 
   range(min: number, max: number): number {
