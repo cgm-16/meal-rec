@@ -1,31 +1,10 @@
 // ABOUTME: API route for POST /api/feedback to handle user meal preferences
-// ABOUTME: Stores feedback in memory for guests, persists to database for authenticated users
+// ABOUTME: Persists feedback for signed-in users; guests get 401 since nothing would read their feedback
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { connect, Feedback } from '@meal-rec/database';
 import { authOptions } from '@/lib/auth';
-
-// In-memory storage for guest feedback (TTL 2 hours as per prompt requirement)
-interface FeedbackEntry {
-  mealId: string;
-  type: 'like' | 'interested' | 'dislike';
-  timestamp: number;
-}
-
-const guestFeedback = new Map<string, { timestamp: number, feedback: FeedbackEntry[] }>();
-
-// Clean up expired feedback (older than 2 hours)
-const FEEDBACK_TTL = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
-
-function cleanupExpiredFeedback() {
-  const now = Date.now();
-  for (const [sessionId, data] of guestFeedback.entries()) {
-    if (now - data.timestamp > FEEDBACK_TTL) {
-      guestFeedback.delete(sessionId);
-    }
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,53 +30,35 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
 
-    if (userId) {
-      // Authenticated user: persist to database
-      await connect();
-      
-      // Check if feedback already exists for this user/meal combination
-      const existingFeedback = await Feedback.findOne({ 
-        user: userId, 
-        meal: mealId 
-      });
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Sign in to save feedback' },
+        { status: 401 }
+      );
+    }
 
-      if (existingFeedback) {
-        // Update existing feedback
-        existingFeedback.type = type;
-        existingFeedback.timestamp = new Date();
-        await existingFeedback.save();
-      } else {
-        // Create new feedback
-        const feedback = new Feedback({
-          user: userId,
-          meal: mealId,
-          type,
-          timestamp: new Date()
-        });
-        await feedback.save();
-      }
+    await connect();
+      
+    // Check if feedback already exists for this user/meal combination
+    const existingFeedback = await Feedback.findOne({ 
+      user: userId, 
+      meal: mealId 
+    });
+
+    if (existingFeedback) {
+      // Update existing feedback
+      existingFeedback.type = type;
+      existingFeedback.timestamp = new Date();
+      await existingFeedback.save();
     } else {
-      // Guest user: store in memory with TTL
-      cleanupExpiredFeedback();
-      
-      const sessionId = request.headers.get('x-session-id') || 'guest';
-      
-      const feedbackEntry = {
-        mealId,
+      // Create new feedback
+      const feedback = new Feedback({
+        user: userId,
+        meal: mealId,
         type,
-        timestamp: Date.now(),
-      };
-
-      if (!guestFeedback.has(sessionId)) {
-        guestFeedback.set(sessionId, {
-          timestamp: Date.now(),
-          feedback: []
-        });
-      }
-
-      const sessionData = guestFeedback.get(sessionId)!;
-      sessionData.feedback.push(feedbackEntry);
-      sessionData.timestamp = Date.now(); // Update session timestamp
+        timestamp: new Date()
+      });
+      await feedback.save();
     }
 
     return NextResponse.json({ ok: true });

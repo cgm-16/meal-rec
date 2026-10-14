@@ -11,6 +11,7 @@ export default function Home() {
   const [meal, setMeal] = useState<Meal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [needsSignInForFeedback, setNeedsSignInForFeedback] = useState(false);
 
   const fetchRecommendation = async () => {
     try {
@@ -41,13 +42,14 @@ export default function Home() {
 
   const handleFeedback = async (mealId: string, type: 'like' | 'interested' | 'dislike') => {
     try {
-      await fetch('/api/feedback', {
+      const response = await fetch('/api/feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ mealId, type }),
       });
+      setNeedsSignInForFeedback(response.status === 401);
 
       // Always fetch a new meal after feedback attempt, regardless of success
       await fetchRecommendation();
@@ -96,6 +98,15 @@ export default function Home() {
             />
           ) : null}
         </div>
+
+        {needsSignInForFeedback && (
+          <p className="text-center text-sm text-gray-600 mt-4">
+            Sign in to save your feedback and personalise recommendations.{' '}
+            <a href="/auth/signin" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Sign in
+            </a>
+          </p>
+        )}
 
         {!loading && !error && meal && (
           <div className="text-center mt-6">
