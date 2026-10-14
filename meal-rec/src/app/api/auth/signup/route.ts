@@ -50,14 +50,10 @@ export async function POST(request: NextRequest) {
 
     // Create new user
     const hashedPin = await bcrypt.hash(pin, 10);
+    // Quiz preferences stay client-side in localStorage; nothing reads User.preferences
     const user = new User({
       username,
-      hashedPin,
-      preferences: {
-        dietaryRestrictions: [],
-        preferredCuisines: [],
-        spiceLevel: 2
-      }
+      hashedPin
     });
 
     await user.save();
