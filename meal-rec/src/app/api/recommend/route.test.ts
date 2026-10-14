@@ -68,6 +68,9 @@ const mockFeedbackData = [
     user: 'user123',
     meal: {
       _id: '507f1f77bcf86cd799439011',
+      cuisine: 'Italian',
+      heaviness: 4,
+      spiciness: 1,
       flavorTags: ['creamy', 'savory']
     },
     type: 'like',
@@ -162,11 +165,29 @@ describe('/api/recommend', () => {
       recentFeedback: [{
         mealId: '507f1f77bcf86cd799439011',
         type: 'like',
-        timestamp: expect.any(Date)
+        timestamp: expect.any(Date),
+        meal: { cuisine: 'Italian', heaviness: 4, spiciness: 1 }
       }],
       weather: 'normal',
       candidateMeals: mockMeals
     });
+  });
+
+  it('should skip feedback whose meal no longer exists', async () => {
+    vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'user123' }, expires: '' });
+    vi.mocked(getRecentFeedback).mockResolvedValue([
+      ...mockFeedbackData,
+      { ...mockFeedbackData[0], _id: '507f1f77bcf86cd799439022', meal: null }
+    ] as never);
+    const request = new NextRequest('http://localhost/api/recommend', {
+      method: 'POST',
+      body: JSON.stringify({})
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(200);
+    expect(vi.mocked(selectRecommendation).mock.calls[0][0].recentFeedback).toHaveLength(1);
   });
 
   it('should ignore a spoofed x-user-id header when there is no session', async () => {
