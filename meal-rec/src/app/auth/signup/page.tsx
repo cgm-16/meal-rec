@@ -1,11 +1,10 @@
-// ABOUTME: Sign-up page that collects username and 4-digit PIN, hashes PIN with bcrypt
+// ABOUTME: Sign-up page that collects username and 4-digit PIN for server-side hashing
 // ABOUTME: Creates new user account and redirects to sign-in page on success
 
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import bcrypt from 'bcryptjs';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -36,9 +35,6 @@ export default function SignUpPage() {
     }
 
     try {
-      // Hash PIN on client side before sending
-      const hashedPin = await bcrypt.hash(formData.pin, 10);
-
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -46,7 +42,7 @@ export default function SignUpPage() {
         },
         body: JSON.stringify({
           username: formData.username,
-          hashedPin
+          pin: formData.pin
         }),
       });
 

@@ -8,6 +8,8 @@ export interface IUser extends Document {
   hashedPin: string;
   role: 'user';
   banned: boolean;
+  failedSignInAttempts: number;
+  lockedUntil?: Date;
   preferences?: {
     spiciness?: number;
     surpriseFactor?: number;
@@ -35,6 +37,11 @@ const UserSchema = new Schema<IUser>({
     type: Boolean,
     default: false
   },
+  failedSignInAttempts: {
+    type: Number,
+    default: 0
+  },
+  lockedUntil: Date,
   preferences: {
     spiciness: { 
       type: Number, 

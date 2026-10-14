@@ -23,7 +23,8 @@ import { authOptions } from './auth';
 
 describe('Auth Configuration', () => {
   const getCredentialsProvider = () => authOptions.providers[0] as CredentialsConfig;
-  const getAuthorize = () => getCredentialsProvider().authorize;
+  // CredentialsProvider keeps the user-supplied authorize on `options`; the top-level one is a stub
+  const getAuthorize = () => (getCredentialsProvider() as unknown as { options: CredentialsConfig }).options.authorize;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -60,6 +61,7 @@ describe('Auth Configuration', () => {
 
     it('should handle database errors gracefully', async () => {
       const authorize = getAuthorize();
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
       vi.mocked(connect).mockRejectedValue(new Error('Database error'));
 
       const result = await authorize({
@@ -68,6 +70,7 @@ describe('Auth Configuration', () => {
       });
 
       expect(result).toBeNull();
+      expect(consoleError).toHaveBeenCalledWith('Authentication error:', expect.any(Error));
     });
   });
 

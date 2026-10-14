@@ -14,13 +14,6 @@ vi.mock('next/navigation', () => ({
   })
 }));
 
-// Mock bcrypt - no need to mock, just let it work
-// vi.mock('bcryptjs', () => ({
-//   default: {
-//     hash: vi.fn().mockResolvedValue('$2b$10$hashedpin')
-//   }
-// }));
-
 // Mock fetch
 global.fetch = vi.fn();
 
@@ -92,13 +85,11 @@ describe('SignUpPage', () => {
       }));
     });
 
-    // Verify the body contains both username and hashedPin
+    // Verify the body carries the raw PIN for server-side hashing
     await waitFor(() => {
       const fetchCall = vi.mocked(fetch).mock.calls[0];
       const body = JSON.parse(fetchCall![1]!.body as string);
-      expect(body).toHaveProperty('username', 'testuser');
-      expect(body).toHaveProperty('hashedPin');
-      expect(body.hashedPin).toMatch(/^\$2b\$10\$/); // bcrypt hash format
+      expect(body).toEqual({ username: 'testuser', pin: '1234' });
     });
 
     await waitFor(() => {
