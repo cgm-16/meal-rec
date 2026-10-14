@@ -5,7 +5,7 @@
  * @vitest-environment node
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
@@ -41,6 +41,11 @@ describe('authorize (database-backed)', () => {
     expect(await authorize('1234')).toMatchObject({ name: 'lockuser' });
   });
 
+  it('signs in a user stored before lockout fields existed', async () => {
+    await User.collection.insertOne({ username: 'legacyuser', hashedPin: await bcrypt.hash('1234', 4) });
+    expect(await authorize('1234', 'legacyuser')).toMatchObject({ name: 'legacyuser' });
+  });
+
   it('rejects a banned user even with the correct PIN', async () => {
     await User.updateOne({ username: 'lockuser' }, { banned: true });
     expect(await authorize('1234')).toBeNull();
@@ -51,6 +56,16 @@ describe('authorize (database-backed)', () => {
       expect(await authorize('0000')).toBeNull();
     }
     expect(await authorize('1234')).toBeNull();
+  });
+
+  it('evaluates at most the allowed number of PINs from a concurrent burst', async () => {
+    const compare = vi.spyOn(bcrypt, 'compare');
+    await Promise.all(
+      Array.from({ length: APP_CONSTANTS.MAX_FAILED_SIGNIN_ATTEMPTS * 4 }, () => authorize('0000'))
+    );
+    expect(compare).toHaveBeenCalledTimes(APP_CONSTANTS.MAX_FAILED_SIGNIN_ATTEMPTS);
+    expect(await authorize('1234')).toBeNull();
+    compare.mockRestore();
   });
 
   it('unlocks once the lockout period has passed', async () => {

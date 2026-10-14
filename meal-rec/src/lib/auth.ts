@@ -31,23 +31,25 @@ export const authOptions: NextAuthOptions = {
         try {
           await connect();
           
-          const user = await User.findOne({ username: credentials.username });
-          if (!user || user.banned) {
-            return null;
-          }
-
-          if (user.lockedUntil && user.lockedUntil > new Date()) {
+          // Reserve an attempt atomically before comparing, so concurrent requests
+          // cannot evaluate more than MAX_FAILED_SIGNIN_ATTEMPTS PINs between lockouts
+          const user = await User.findOneAndUpdate(
+            {
+              username: credentials.username,
+              banned: { $ne: true },
+              failedSignInAttempts: { $not: { $gte: APP_CONSTANTS.MAX_FAILED_SIGNIN_ATTEMPTS } },
+              $or: [{ lockedUntil: null }, { lockedUntil: { $lte: new Date() } }]
+            },
+            { $inc: { failedSignInAttempts: 1 } },
+            { new: true }
+          );
+          if (!user) {
             return null;
           }
 
           const isValidPin = await bcrypt.compare(credentials.pin, user.hashedPin);
           if (!isValidPin) {
-            const updated = await User.findByIdAndUpdate(
-              user._id,
-              { $inc: { failedSignInAttempts: 1 } },
-              { new: true }
-            );
-            if (updated && updated.failedSignInAttempts >= APP_CONSTANTS.MAX_FAILED_SIGNIN_ATTEMPTS) {
+            if (user.failedSignInAttempts >= APP_CONSTANTS.MAX_FAILED_SIGNIN_ATTEMPTS) {
               await User.updateOne(
                 { _id: user._id },
                 {
@@ -59,9 +61,7 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          if (user.failedSignInAttempts > 0 || user.lockedUntil) {
-            await User.updateOne({ _id: user._id }, { failedSignInAttempts: 0, $unset: { lockedUntil: 1 } });
-          }
+          await User.updateOne({ _id: user._id }, { failedSignInAttempts: 0, $unset: { lockedUntil: 1 } });
 
           return {
             id: (user._id as string).toString(),
