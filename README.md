@@ -1,29 +1,31 @@
 # Meal Recommendation PWA
 
-> **🎉 PROJECT STATUS: Production Deployed & Live**
+> **PROJECT STATUS: Deployed at https://meal-rec.vercel.app/**
 > 
-> This is a comprehensive meal recommendation system built following a 20-prompt LLM code generation plan. The application is now successfully deployed and accessible at **https://meal-rec.vercel.app/**
+> A meal recommendation PWA built following a 20-prompt LLM code generation plan. Recommendations come from a hand-tuned heuristic scoring engine, not a trained model. See [`FUTURE_ENHANCEMENTS.md`](FUTURE_ENHANCEMENTS.md) for what is not built yet.
 
 ## 🚀 Features Implemented
 
-### ✅ Core Functionality (Complete)
-- **Random Meal Recommendations** - Smart filtering based on preferences
-- **Personalized Quiz System** - Multi-step preference collection
-- **Feedback Learning** - Like/interested/dislike with ML-based scoring
-- **Weather Integration** - Location-aware recommendations via Open-Meteo API
-- **User Authentication** - Username + 4-digit PIN system
-- **Database Management** - MongoDB with Mongoose, 5000+ meal entries
+### ✅ Core Functionality
+- **Meal Recommendations** - Home page requests `/api/recommend`, which scores a random sample of meals and picks from the best matches
+- **Personalized Quiz System** - 3-step quiz (ingredients to avoid, spiciness, surprise factor); answers are kept in `localStorage` and sent with each recommendation request
+- **Feedback Learning** - Like/interested/dislike adjusts heuristic scores for the rated meal and for meals with a similar cuisine, heaviness and spiciness (signed-in users only)
+- **User Authentication** - Username + 4-digit PIN, hashed server-side, with lockout after repeated failed sign-ins
+- **Database Management** - MongoDB with Mongoose; seed data in `data/meals.json` (91 meals)
+
+### ❌ Not Implemented
+- **Weather Integration** - `packages/core/src/weather.ts` exists, but nothing asks for location or calls it, so recommendations always use `normal` weather (see `FUTURE_ENHANCEMENTS.md`)
 
 ### ✅ Advanced Features (Complete)
 - **Analytics Dashboard** - Visual insights with Recharts
 - **PWA Support** - Offline functionality, service worker caching
 - **Performance Monitoring** - Sentry integration
-- **Recommendation Engine** - ML-based scoring with feedback loops
+- **Recommendation Engine** - Heuristic linear scoring (hand-set weights) with weighted sampling from the top 5 meals
 - **Load Testing** - Artillery-based performance testing
 
 ### ✅ Developer Experience (Complete)
 - **TypeScript Monorepo** - Organized workspace structure
-- **Comprehensive Testing** - 96% unit/integration test coverage
+- **Testing** - Vitest unit/integration tests and Playwright E2E tests (coverage is not measured for the app package)
 - **CI/CD Pipeline** - GitHub Actions with automated testing
 - **Code Quality** - ESLint, Prettier, pre-commit hooks
 - **Documentation** - Detailed architecture and API docs
@@ -38,39 +40,32 @@ meal-rec/
 │   ├── config/        # Shared configurations             ✅
 │   └── scripts/       # Load testing & utilities          ✅
 ├── meal-rec/          # Main Next.js application          ✅
-├── data/              # Seed data (5000+ meals)           ✅
+├── data/              # Seed data (91 meals)              ✅
 └── docs/              # Comprehensive documentation       ✅
 ```
 
 ## 📊 Current Status
 
-### Test Coverage
-- **packages/database**: ✅ 35/35 tests passing (100%)
-- **packages/core**: ✅ 36/36 tests passing (100%)
-- **meal-rec (main app)**: ✅ 140/146 tests passing (96%)
-- **Overall**: 211/217 tests passing (97% success rate)
+### Tests
+- `pnpm test` runs the Vitest suites for `packages/core`, `packages/database` and `meal-rec`; CI also runs the Playwright E2E flows
+- Coverage is not measured in CI. `packages/core` defines coverage thresholds, enforced only when running `pnpm --filter @meal-rec/core test:coverage`
 
 ### Build Status
 - ✅ Production build succeeds
 - ✅ Linting passes
-- ✅ TypeScript compilation clean
-- ✅ No security vulnerabilities
+- ⚠️ `tsc --noEmit` reports type errors in test files (app source type-checks during `next build`)
+- ⚠️ The scheduled dependency audit workflow (`dependency-check.yml`) is failing
 
 ### API Endpoints Status
 - ✅ `/api/meals` - Meal listing with pagination
 - ✅ `/api/meals/random` - Random meal selection  
-- ✅ `/api/recommend` - ML-powered recommendations
-- ✅ `/api/feedback` - User feedback processing
+- ✅ `/api/recommend` - Heuristic recommendations used by the home page
+- ✅ `/api/feedback` - Saves feedback for signed-in users (guests receive 401)
 - ✅ `/api/auth/*` - Authentication system
 - ✅ `/api/analytics` - Usage analytics
 
-## ⚠️ Known Issues (Minor)
+## Deployment Status
 
-### Unit Test Issues (6 remaining failures)
-- **Auth Configuration Tests** (4 failures) - Complex mocking issues with bcrypt/User model
-- **Form Validation Display** (2 failures) - PIN error message display in UI components
-
-### Deployment Status
 - ✅ **Live Production Deployment**: https://meal-rec.vercel.app/
 - ✅ **MongoDB Atlas Integration**: Connected to cloud database
 - ✅ **Vercel Platform**: Automated CI/CD from GitHub
@@ -133,7 +128,7 @@ Production deployment uses:
 ## 📋 Remaining Work
 
 ### Development & Maintenance
-1. **Fix Remaining Unit Tests** - Resolve 6 test mocking issues
+1. **Weather Integration** - Wire `getCurrentWeather` into the recommendation request
 2. **Performance Optimization** - Additional caching, CDN setup
 3. **Enhanced Monitoring** - More detailed analytics and alerting
 4. **Run E2E Tests on Production** - Verify live environment functionality
@@ -143,27 +138,27 @@ Production deployment uses:
 This project demonstrates:
 - **Complete Full-Stack Implementation** - From database to PWA
 - **Modern Development Practices** - TypeScript, testing, CI/CD
-- **ML/AI Integration** - Recommendation engine with learning
+- **Recommendation Engine** - Heuristic scoring that adapts to quiz answers and feedback
 - **Production-Ready Architecture** - Scalable, maintainable, documented
-- **Comprehensive Testing** - 97% test coverage across all layers
+- **Layered Testing** - Unit, integration and end-to-end tests
 
 ## 📚 Documentation
 
 - [`DEPLOYMENT.md`](DEPLOYMENT.md) - Complete production deployment guide with Vercel & MongoDB Atlas  
 - [`RELEASE_NOTES.md`](RELEASE_NOTES.md) - Complete feature overview and deployment guide
+- [`FUTURE_ENHANCEMENTS.md`](FUTURE_ENHANCEMENTS.md) - Features from the original specification that are not built yet
+- [`docs/architecture-retrospective.md`](docs/architecture-retrospective.md) - Evidence-backed review of the recommendation engine
 - [`docs/test-failures-analysis.md`](docs/test-failures-analysis.md) - Detailed test status analysis
 - [`docs/performance.md`](docs/performance.md) - Performance monitoring guide
-- [`prompt_plan.md`](prompt_plan.md) - Original 20-prompt implementation plan
 
 ## 🤝 Contributing
 
-The project follows established patterns and has comprehensive test coverage. See the documentation for architecture details and development guidelines.
+The project follows established patterns and has unit, integration and E2E tests. See the documentation for architecture details and development guidelines.
 
 ---
 
 **Built with**: Next.js 15, React 19, TypeScript, MongoDB Atlas, Tailwind CSS, Vitest, Playwright  
-**Status**: ✅ Production Deployed & Live at https://meal-rec.vercel.app/  
-**Last Updated**: September 2, 2025
+**Status**: Deployed at https://meal-rec.vercel.app/
 
-<!-- ABOUTME: Progressive Web Application for personalized meal recommendations using ML-based scoring -->
+<!-- ABOUTME: Progressive Web Application for personalized meal recommendations using heuristic scoring -->
 <!-- ABOUTME: TypeScript monorepo with Next.js frontend, MongoDB backend, and comprehensive test suite -->
