@@ -1,5 +1,5 @@
 // ABOUTME: Home page that shows one recommended meal and collects like/maybe/dislike feedback
-// ABOUTME: Requests recommendations from /api/recommend using quiz answers stored in localStorage
+// ABOUTME: Requests recommendations from /api/recommend with stored quiz answers; falls back to the last one offline
 
 'use client';
 
@@ -12,6 +12,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [needsSignInForFeedback, setNeedsSignInForFeedback] = useState(false);
+  const [showingOfflineMeal, setShowingOfflineMeal] = useState(false);
 
   const fetchRecommendation = async () => {
     try {
@@ -33,8 +34,18 @@ export default function Home() {
       }
       
       setMeal(data);
+      setShowingOfflineMeal(false);
+      localStorage.setItem('lastRecommendation', JSON.stringify(data));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      // fetch rejects with TypeError on network failure; recommendations are POSTs,
+      // which the service worker cannot cache, so fall back to the last one shown
+      const lastRecommendation = localStorage.getItem('lastRecommendation');
+      if (err instanceof TypeError && lastRecommendation) {
+        setMeal(JSON.parse(lastRecommendation));
+        setShowingOfflineMeal(true);
+      } else {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -98,6 +109,12 @@ export default function Home() {
             />
           ) : null}
         </div>
+
+        {showingOfflineMeal && !loading && (
+          <p className="text-center text-sm text-gray-600 mt-4">
+            You&apos;re offline. Showing your last recommendation.
+          </p>
+        )}
 
         {needsSignInForFeedback && (
           <p className="text-center text-sm text-gray-600 mt-4">
