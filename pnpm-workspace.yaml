@@ -21,3 +21,13 @@ overrides:
   postcss@<8.5.18: ^8.5.18
   tmp@<0.2.6: ^0.2.6
   basic-ftp@<6.2.1: ^6.2.1
+
+# Accepted audit exceptions (#58): high-severity advisories with no patched release,
+# reachable only through dev tooling that never handles untrusted input.
+auditConfig:
+  ignoreGhsas:
+    # extract-zip via @lhci/cli > lighthouse > puppeteer: unzips Chromium downloads for Lighthouse CI
+    - GHSA-jmr9-qjv8-65gv
+    - GHSA-7pqw-9j4j-h8q3
+    # braces via artillery > chokidar: matches local glob patterns in the load-test tool
+    - GHSA-vfj7-8cjw-p6xm

@@ -22,12 +22,13 @@ import bcrypt from 'bcryptjs';
 describe('/api/auth/signup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // A test that rejects connect() must not leak into the next one
+    vi.mocked(connect).mockResolvedValue(undefined);
     User.findOne = vi.fn();
-    vi.mocked(User).mockImplementation((data?: unknown) => ({
-      ...(data as object),
-      _id: 'user123',
-      save: mockUserSave
-    }));
+    // Called with `new`, so this must be a function rather than an arrow function
+    vi.mocked(User).mockImplementation(function (data?: unknown) {
+      return { ...(data as object), _id: 'user123', save: mockUserSave };
+    });
   });
 
   afterEach(() => {

@@ -81,6 +81,8 @@ const mockFeedbackData = [
 describe('/api/recommend', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // A test that rejects connect() must not leak into the next one
+    vi.mocked(connect).mockResolvedValue(undefined);
     vi.mocked(Meal.aggregate).mockResolvedValue(mockMeals);
     vi.mocked(getRecentFeedback).mockResolvedValue(mockFeedbackData as never);
     vi.mocked(selectRecommendation).mockReturnValue(mockMeals[0]);
