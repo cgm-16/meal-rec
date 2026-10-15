@@ -122,6 +122,7 @@ describe('SignUpPage', () => {
   });
 
   it('should handle network errors', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const user = userEvent.setup();
     vi.mocked(fetch).mockRejectedValue(new Error('Network error'));
 
@@ -140,6 +141,8 @@ describe('SignUpPage', () => {
     });
 
     expect(mockPush).not.toHaveBeenCalled();
+
+    expect(consoleError).toHaveBeenCalledWith('Sign-up error:', expect.any(Error));
   });
 
   it('should disable form during submission', async () => {
