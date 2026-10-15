@@ -27,7 +27,13 @@ export async function POST(request: NextRequest) {
   try {
     await connect();
 
-    const body: RecommendRequest = await request.json();
+    let body: RecommendRequest;
+    try {
+      body = await request.json();
+    } catch {
+      // A client error (including a request aborted mid-body), not a server fault
+      return NextResponse.json({ error: 'Request body must be valid JSON' }, { status: 400 });
+    }
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
 

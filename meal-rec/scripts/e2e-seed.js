@@ -57,7 +57,7 @@ const testMeals = [
     timeOfDay: ["dinner"],
     spiciness: 2,
     heaviness: 3,
-    imageUrl: "/test-meal.jpg",
+    imageUrl: "/icon.svg",
     description: "A test pasta dish for E2E testing",
     flavorTags: ["savory", "herby"]
   },
@@ -70,7 +70,7 @@ const testMeals = [
     timeOfDay: ["lunch"],
     spiciness: 0,
     heaviness: 1,
-    imageUrl: "/test-salad.jpg",
+    imageUrl: "/icon.svg",
     description: "A light test salad for E2E testing",
     flavorTags: ["fresh", "light"]
   },
@@ -83,7 +83,7 @@ const testMeals = [
     timeOfDay: ["dinner"],
     spiciness: 3,
     heaviness: 2,
-    imageUrl: "/test-curry.jpg",
+    imageUrl: "/icon.svg",
     description: "A flavorful test curry for E2E testing",
     flavorTags: ["spicy", "aromatic"]
   }

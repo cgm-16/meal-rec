@@ -297,7 +297,7 @@ describe('/api/recommend', () => {
     expect(consoleError).toHaveBeenCalledWith('Recommendation error:', expect.any(Error));
   });
 
-  it('should handle malformed JSON requests', async () => {
+  it('should reject malformed JSON with 400 without logging an error', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const request = new NextRequest('http://localhost/api/recommend', {
       method: 'POST',
@@ -307,10 +307,10 @@ describe('/api/recommend', () => {
     const response = await POST(request);
     const data = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(data).toEqual({ error: 'Internal server error' });
+    expect(response.status).toBe(400);
+    expect(data).toEqual({ error: 'Request body must be valid JSON' });
 
-    expect(consoleError).toHaveBeenCalledWith('Recommendation error:', expect.any(Error));
+    expect(consoleError).not.toHaveBeenCalled();
   });
 
   it('should handle recommendation engine errors', async () => {
