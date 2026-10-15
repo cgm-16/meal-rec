@@ -8,8 +8,7 @@
     "build": "tsc",
     "test": "vitest",
     "lint": "eslint src --ext .ts,.js",
-    "lint:fix": "eslint src --ext .ts,.js --fix",
-    "seed-admin": "ts-node src/seed-admin.ts"
+    "lint:fix": "eslint src --ext .ts,.js --fix"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

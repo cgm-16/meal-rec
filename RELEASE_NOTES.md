@@ -5,16 +5,18 @@
 
 ## Overview
 
-The Meal Recommendation PWA is a TypeScript monorepo application that provides personalized meal recommendations based on user preferences, weather conditions, and feedback patterns. Built with Next.js, MongoDB, and deployed as a Progressive Web App.
+The Meal Recommendation PWA is a TypeScript monorepo application that provides personalized meal recommendations based on quiz preferences and feedback patterns, using heuristic scoring. Built with Next.js, MongoDB, and deployed as a Progressive Web App.
 
 ## 🚀 Features
 
 ### Core Functionality
-- **Random Meal Recommendations**: Get meal suggestions with smart filtering
+- **Meal Recommendations**: Heuristic scoring of a random meal sample, sampled from the top 5 matches
 - **Personalized Quiz**: Multi-step preference collection (spiciness, dietary restrictions, surprise factor)
-- **Feedback System**: Like/interested/dislike ratings with learning algorithms
-- **Weather Integration**: Weather-aware recommendations using Open-Meteo API
-- **User Authentication**: Username + 4-digit PIN authentication system
+- **Feedback System**: Like/interested/dislike ratings (signed-in users) adjust scores for the rated meal and meals with similar attributes
+- **User Authentication**: Username + 4-digit PIN, hashed server-side, with lockout after repeated failures
+
+### Not Implemented
+- **Weather Integration**: `packages/core/src/weather.ts` exists but is not called; see `FUTURE_ENHANCEMENTS.md`
 
 ### Advanced Features
 - **Analytics Dashboard**: Visual insights into meal popularity and trends
@@ -22,9 +24,8 @@ The Meal Recommendation PWA is a TypeScript monorepo application that provides p
 - **Performance Monitoring**: Sentry integration for error tracking and performance
 
 ### Technical Features
-- **Recommendation Engine**: Machine learning-based scoring with feedback loops
-- **Real-time Caching**: In-memory caching for weather and meal data
-- **Data Cleanup**: Automated feedback pruning with CRON jobs
+- **Recommendation Engine**: Hand-tuned heuristic scoring with feedback adjustments
+- **Data Cleanup**: Recommendations only read the last 14 days of feedback; `deleteOldFeedback()` in `@meal-rec/database` prunes older entries manually
 - **Load Testing**: Artillery-based performance testing suite
 
 ## 🏗️ Architecture
@@ -47,7 +48,7 @@ meal-rec/
 - **Backend**: Next.js API Routes, Node.js
 - **Database**: MongoDB with Mongoose ODM
 - **Authentication**: NextAuth.js with credentials provider
-- **Testing**: Vitest, Playwright, Cypress, Testing Library
+- **Testing**: Vitest, Playwright, Testing Library
 - **Monitoring**: Sentry, Artillery load testing
 - **PWA**: Serwist service worker
 
@@ -239,7 +240,7 @@ pnpm update --interactive
 
 #### Best Practices
 - **Environment Variables**: Never commit secrets to repository
-- **PIN Security**: Enforce strong 4-digit PINs, consider rate limiting
+- **PIN Security**: Sign-in locks an account for 15 minutes after 5 consecutive failed PINs
 - **Database Security**: Use MongoDB authentication and network security
 - **Headers**: Implement security headers in production
 - **Code Quality**: Pre-commit hooks automatically enforce linting standards
