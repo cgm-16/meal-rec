@@ -297,6 +297,25 @@ describe('/api/recommend', () => {
     expect(consoleError).toHaveBeenCalledWith('Recommendation error:', expect.any(Error));
   });
 
+  it.each([
+    [{ ingredientsToAvoid: 'nuts', spiciness: 2, surpriseFactor: 5 }],
+    [{ ingredientsToAvoid: [1], spiciness: 2, surpriseFactor: 5 }],
+    [{ ingredientsToAvoid: [], spiciness: 'hot', surpriseFactor: 5 }],
+    [{ ingredientsToAvoid: [], spiciness: 2 }],
+    ['quiz']
+  ])('should reject malformed quiz %j with 400', async (quiz) => {
+    const request = new NextRequest('http://localhost/api/recommend', {
+      method: 'POST',
+      body: JSON.stringify({ quiz })
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: 'Invalid quiz answers' });
+    expect(selectRecommendation).not.toHaveBeenCalled();
+  });
+
   it('should reject malformed JSON with 400 without logging an error', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const request = new NextRequest('http://localhost/api/recommend', {
