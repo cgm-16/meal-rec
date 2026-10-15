@@ -5,8 +5,8 @@
 
 ## Regular Maintenance Schedule
 
-### Weekly (Automated via GitHub Actions)
-- **Monday 9 AM**: Dependency security & deprecation check runs automatically
+### Weekly (GitHub Actions, currently disabled)
+- **Monday 9 AM**: `dependency-check.yml` is scheduled for this, but GitHub disabled it for repository inactivity. Re-enable it under Actions; it runs `pnpm audit --audit-level moderate` over all dependencies, so it will fail until the dev-tooling advisories (artillery, Lighthouse CI) are cleared
 - Review any warnings in GitHub Actions output
 
 ### Monthly (Manual)
