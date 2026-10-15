@@ -82,7 +82,7 @@ describe('/api/recommend', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(Meal.aggregate).mockResolvedValue(mockMeals);
-    vi.mocked(getRecentFeedback).mockResolvedValue(mockFeedbackData);
+    vi.mocked(getRecentFeedback).mockResolvedValue(mockFeedbackData as never);
     vi.mocked(selectRecommendation).mockReturnValue(mockMeals[0]);
     vi.mocked(getServerSession).mockResolvedValue(null);
   });

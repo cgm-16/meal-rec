@@ -3,7 +3,6 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GET } from './route';
-import { NextRequest } from 'next/server';
 
 // Mock dependencies
 vi.mock('@meal-rec/database', () => ({
@@ -67,8 +66,7 @@ describe('/api/analytics GET', () => {
       .mockResolvedValueOnce(mockTopDislikedMeals)
       .mockResolvedValueOnce(mockTopFlavorTags);
 
-    const request = new NextRequest('http://localhost/api/analytics');
-    await GET(request);
+    await GET();
 
     expect(connect).toHaveBeenCalledOnce();
   });
@@ -79,8 +77,7 @@ describe('/api/analytics GET', () => {
       .mockResolvedValueOnce(mockTopDislikedMeals)
       .mockResolvedValueOnce(mockTopFlavorTags);
 
-    const request = new NextRequest('http://localhost/api/analytics');
-    const response = await GET(request);
+    const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -97,8 +94,7 @@ describe('/api/analytics GET', () => {
       .mockResolvedValueOnce(mockTopDislikedMeals)
       .mockResolvedValueOnce(mockTopFlavorTags);
 
-    const request = new NextRequest('http://localhost/api/analytics');
-    await GET(request);
+    await GET();
 
     // Check that the first aggregate call is for liked meals
     const firstCall = vi.mocked(Feedback.aggregate).mock.calls[0][0];
@@ -119,8 +115,7 @@ describe('/api/analytics GET', () => {
       .mockResolvedValueOnce(mockTopDislikedMeals)
       .mockResolvedValueOnce(mockTopFlavorTags);
 
-    const request = new NextRequest('http://localhost/api/analytics');
-    await GET(request);
+    await GET();
 
     // Check that the second aggregate call is for disliked meals
     const secondCall = vi.mocked(Feedback.aggregate).mock.calls[1][0];
@@ -141,8 +136,7 @@ describe('/api/analytics GET', () => {
       .mockResolvedValueOnce(mockTopDislikedMeals)
       .mockResolvedValueOnce(mockTopFlavorTags);
 
-    const request = new NextRequest('http://localhost/api/analytics');
-    await GET(request);
+    await GET();
 
     // Check that the third aggregate call is for flavor tags
     const thirdCall = vi.mocked(Feedback.aggregate).mock.calls[2][0];
@@ -157,8 +151,7 @@ describe('/api/analytics GET', () => {
       .mockResolvedValueOnce(mockTopDislikedMeals)
       .mockResolvedValueOnce(mockTopFlavorTags);
 
-    const request = new NextRequest('http://localhost/api/analytics');
-    await GET(request);
+    await GET();
 
     const firstCall = vi.mocked(Feedback.aggregate).mock.calls[0][0];
     const lookupStage = firstCall[4];
@@ -179,8 +172,7 @@ describe('/api/analytics GET', () => {
       .mockResolvedValueOnce(mockTopDislikedMeals)
       .mockResolvedValueOnce(mockTopFlavorTags);
 
-    const request = new NextRequest('http://localhost/api/analytics');
-    await GET(request);
+    await GET();
 
     const firstCall = vi.mocked(Feedback.aggregate).mock.calls[0][0];
     const projectionStage = firstCall[6];
@@ -201,8 +193,7 @@ describe('/api/analytics GET', () => {
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
 
-    const request = new NextRequest('http://localhost/api/analytics');
-    const response = await GET(request);
+    const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -216,8 +207,7 @@ describe('/api/analytics GET', () => {
   it('should handle database connection errors', async () => {
     vi.mocked(connect).mockRejectedValue(new Error('Database connection failed'));
 
-    const request = new NextRequest('http://localhost/api/analytics');
-    const response = await GET(request);
+    const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -229,8 +219,7 @@ describe('/api/analytics GET', () => {
     vi.mocked(Feedback.aggregate)
       .mockRejectedValueOnce(new Error('Aggregation failed'));
 
-    const request = new NextRequest('http://localhost/api/analytics');
-    const response = await GET(request);
+    const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -244,8 +233,7 @@ describe('/api/analytics GET', () => {
       .mockResolvedValueOnce(mockTopDislikedMeals)
       .mockResolvedValueOnce(mockTopFlavorTags);
 
-    const request = new NextRequest('http://localhost/api/analytics');
-    await GET(request);
+    await GET();
 
     // All three aggregate calls should have been made
     expect(Feedback.aggregate).toHaveBeenCalledTimes(3);

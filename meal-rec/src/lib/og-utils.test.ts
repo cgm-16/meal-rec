@@ -18,7 +18,7 @@ describe('OG Utils', () => {
       expect(metadata.title).toBe('Spicy Pad Thai | MealRec');
       expect(metadata.description).toBe('Delicious Thai noodles with shrimp - Thai cuisine');
       expect(metadata.openGraph?.title).toBe('Spicy Pad Thai | MealRec');
-      expect(metadata.openGraph?.type).toBe('article');
+      expect((metadata.openGraph as { type?: string } | undefined)?.type).toBe('article');
       expect(metadata.openGraph?.url).toBe('https://mealrec.app');
     });
 
@@ -39,7 +39,7 @@ describe('OG Utils', () => {
 
       const metadata = generateMealOGMetadata(meal);
 
-      expect(metadata.openGraph?.images?.[0]).toEqual({
+      expect((metadata.openGraph?.images as Array<{ url: string }> | undefined)?.[0]).toEqual({
         url: 'https://picsum.photos/400/300?random=7',
         width: 1200,
         height: 630,
@@ -52,7 +52,7 @@ describe('OG Utils', () => {
 
       const metadata = generateMealOGMetadata(meal);
 
-      expect(metadata.openGraph?.images?.[0]).toEqual({
+      expect((metadata.openGraph?.images as Array<{ url: string }> | undefined)?.[0]).toEqual({
         url: '/og-default-meal.jpg',
         width: 1200,
         height: 630,
@@ -89,7 +89,7 @@ describe('OG Utils', () => {
 
       expect(metadata.title).toBe('About Us | MealRec');
       expect(metadata.description).toBe('Learn more about MealRec');
-      expect(metadata.openGraph?.type).toBe('website');
+      expect((metadata.openGraph as { type?: string } | undefined)?.type).toBe('website');
       expect(metadata.openGraph?.url).toBe('https://mealrec.app');
     });
 
@@ -114,7 +114,7 @@ describe('OG Utils', () => {
       );
 
       expect(metadata.openGraph?.url).toBe(customUrl);
-      expect(metadata.openGraph?.images?.[0].url).toBe(customImage);
+      expect((metadata.openGraph?.images as Array<{ url: string }> | undefined)?.[0].url).toBe(customImage);
     });
 
     it('should have consistent Twitter and OpenGraph data', () => {
@@ -125,7 +125,7 @@ describe('OG Utils', () => {
 
       expect(metadata.twitter?.title).toBe(metadata.openGraph?.title);
       expect(metadata.twitter?.description).toBe(metadata.openGraph?.description);
-      expect(metadata.twitter?.images?.[0]).toBe(metadata.openGraph?.images?.[0].url);
+      expect((metadata.twitter?.images as string[] | undefined)?.[0]).toBe((metadata.openGraph?.images as Array<{ url: string }> | undefined)?.[0].url);
     });
   });
 });
