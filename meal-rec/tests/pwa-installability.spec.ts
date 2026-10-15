@@ -26,6 +26,18 @@ test.describe('PWA Installability', () => {
     expect(manifest.icons[1].sizes).toBe('512x512');
   });
 
+  test('should serve manifest icons as PNGs of the declared size', async ({ request }) => {
+    const manifest = await (await request.get('/manifest.json')).json();
+    for (const icon of manifest.icons as Array<{ src: string; sizes: string; type: string }>) {
+      const body = await (await request.get(icon.src)).body();
+      // PNG signature, then the IHDR chunk holds width and height as big-endian uint32s
+      expect(body.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
+      const [width, height] = icon.sizes.split('x').map(Number);
+      expect(body.readUInt32BE(16)).toBe(width);
+      expect(body.readUInt32BE(20)).toBe(height);
+    }
+  });
+
   test('should register service worker', async ({ page }) => {
     await page.goto('/');
     
