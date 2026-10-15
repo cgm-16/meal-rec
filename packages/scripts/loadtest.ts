@@ -46,7 +46,15 @@ const createLoadTestConfig = (baseUrl: string): LoadTestConfig => ({
       flow: [
         { get: { url: '/' } },
         { think: 2 },
-        { get: { url: '/api/meals/random' } },
+        {
+          post: {
+            url: '/api/recommend',
+            json: {},
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        },
         { think: 3 },
         {
           post: {
@@ -61,7 +69,15 @@ const createLoadTestConfig = (baseUrl: string): LoadTestConfig => ({
           }
         },
         { think: 1 },
-        { get: { url: '/api/meals/random' } }
+        {
+          post: {
+            url: '/api/recommend',
+            json: {},
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        }
       ]
     },
     {
@@ -74,9 +90,11 @@ const createLoadTestConfig = (baseUrl: string): LoadTestConfig => ({
           post: {
             url: '/api/recommend',
             json: {
-              spiciness: 3,
-              surpriseFactor: 5,
-              ingredientsToAvoid: ['shellfish']
+              quiz: {
+                spiciness: 3,
+                surpriseFactor: 5,
+                ingredientsToAvoid: ['shellfish']
+              }
             },
             headers: {
               'Content-Type': 'application/json'
