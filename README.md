@@ -54,7 +54,7 @@ meal-rec/
 - ✅ Production build succeeds
 - ✅ Linting passes
 - ⚠️ `tsc --noEmit` reports type errors in test files (app source type-checks during `next build`)
-- ⚠️ The scheduled dependency audit workflow (`dependency-check.yml`) is failing
+- ⚠️ The scheduled dependency audit workflow (`dependency-check.yml`) is disabled for inactivity; its last runs failed on dev-tooling advisories
 
 ### API Endpoints Status
 - ✅ `/api/meals` - Meal listing with pagination
