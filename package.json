@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm -r dev",
+    "start": "pnpm --filter meal-rec start",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
