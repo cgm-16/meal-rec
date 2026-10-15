@@ -2,7 +2,7 @@
 // ABOUTME: Handles caching strategies for API routes and static assets
 
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist, CacheFirst, NetworkFirst } from "serwist";
+import { Serwist } from "serwist";
 import { defaultCache } from "@serwist/next/worker";
 
 // This declares the value of `injectionPoint` to TypeScript.
@@ -22,31 +22,8 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: [
-    ...defaultCache,
-    {
-      matcher: /^\/api\/(meals|recommend)/,
-      handler: new CacheFirst({
-        cacheName: "api-cache",
-        plugins: [
-          {
-            cacheKeyWillBeUsed: async ({ request }) => request.url,
-          },
-        ],
-      }),
-    },
-    {
-      matcher: /^\/api\//,
-      handler: new NetworkFirst({
-        cacheName: "api-fallback",
-        plugins: [
-          {
-            cacheKeyWillBeUsed: async ({ request }) => request.url,
-          },
-        ],
-      }),
-    },
-  ],
+  // defaultCache NetworkFirst-caches same-origin GET /api/* for offline use
+  runtimeCaching: defaultCache,
 });
 
 serwist.addEventListeners();

@@ -125,7 +125,7 @@ Key metrics to monitor:
 ### API Performance
 
 1. **Caching**: 
-   - Implemented in PWA service worker for `/api/meals` and `/api/recommend`
+   - The PWA service worker (Serwist `defaultCache`) caches same-origin GET `/api/*` responses NetworkFirst for offline use; `POST /api/recommend` is not cached, so the home page keeps its last recommendation in `localStorage`
    - Consider Redis for server-side caching of expensive operations
 
 2. **Rate Limiting**: Consider implementing rate limiting for public APIs
