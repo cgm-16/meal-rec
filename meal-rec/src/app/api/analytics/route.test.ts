@@ -53,6 +53,8 @@ const mockTopFlavorTags = [
 describe('/api/analytics GET', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // A test that rejects connect() must not leak into the next one
+    vi.mocked(connect).mockResolvedValue(undefined);
     console.error = vi.fn();
   });
 

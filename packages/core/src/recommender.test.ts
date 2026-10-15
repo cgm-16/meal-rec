@@ -433,6 +433,22 @@ describe('Recommendation Engine', () => {
       expect(scoreOf(unrelated, 'like')).toBe(0);
     });
 
+    it('treats missing heaviness and spiciness as 0 when comparing meals', () => {
+      // Stored meals can lack these fields even though the type requires them
+      const sparse = { ...baseMeal, _id: 'sparse' } as Partial<Meal> as Meal;
+      delete (sparse as Partial<Meal>).heaviness;
+      delete (sparse as Partial<Meal>).spiciness;
+      const result = selectRecommendation({
+        quiz: { ingredientsToAvoid: [], spiciness: 2, surpriseFactor: 0 },
+        recentFeedback: [{ mealId: 'reviewed', type: 'dislike', timestamp: new Date(), meal: { cuisine: 'Thai' } as NonNullable<FeedbackEntry['meal']> }],
+        weather: 'normal',
+        candidateMeals: [sparse],
+        randomSeed: 1
+      }) as ScoredMeal;
+      // heaviness 0 vs 0 and spiciness 0 vs 0 are both within 1: 0.5 similarity, scaled by -0.2
+      expect(result.scoreBreakdown.attributeSimilarity).toBeCloseTo(-0.1);
+    });
+
     it('ignores interested feedback', () => {
       expect(scoreOf(twin, 'interested')).toBe(0);
     });
