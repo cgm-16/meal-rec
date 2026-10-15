@@ -11,19 +11,19 @@
     "lint:fix": "eslint src --ext .ts,.js --fix"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.2",
-    "dotenv": "^17.2.1",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
     "mongoose": "^8.24.5"
   },
   "devDependencies": {
-    "@eslint/js": "^9.29.0",
-    "@types/node": "^20",
-    "@typescript-eslint/eslint-plugin": "^8.35.1",
-    "@typescript-eslint/parser": "^8.35.1",
-    "eslint": "^9.29.0",
-    "mongodb-memory-server": "^10.1.4",
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^20.19.43",
+    "@typescript-eslint/eslint-plugin": "^8.71.2",
+    "@typescript-eslint/parser": "^8.71.2",
+    "eslint": "^9.39.5",
+    "mongodb-memory-server": "^10.4.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5",
-    "vitest": "^3.2.4"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
   }
 }
