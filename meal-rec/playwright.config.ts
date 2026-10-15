@@ -41,7 +41,9 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'node scripts/health-check.js && node scripts/e2e-seed.js && pnpm dev',
+    // A production build: `next dev` compiles routes on first visit and can reload or
+    // hydrate mid-interaction, which made webkit auth flows fail their first attempt
+    command: 'node scripts/health-check.js && node scripts/e2e-seed.js && pnpm build && pnpm start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: process.env.CI ? 240000 : 180000, // 4 minutes in CI, 3 minutes locally
@@ -49,7 +51,6 @@ export default defineConfig({
     
     // Add environment variables for the web server
     env: {
-      NODE_ENV: 'test',
       MONGO_URL: 'mongodb://localhost:27017/meal-rec-e2e-test',
       NEXTAUTH_SECRET: 'test-secret-for-playwright',
       NEXTAUTH_URL: 'http://localhost:3000',
