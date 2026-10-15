@@ -1,10 +1,7 @@
 // ABOUTME: Tests for root layout Open Graph and SEO meta tags
 // ABOUTME: Validates accessibility and proper meta tag rendering
 
-import { toHaveNoViolations } from 'jest-axe';
 import { vi } from 'vitest';
-
-expect.extend(toHaveNoViolations);
 
 // Mock CSS imports to avoid PostCSS issues in tests
 vi.mock('./globals.css', () => ({}));
@@ -45,7 +42,7 @@ describe('Metadata Configuration', () => {
     
     expect(metadata.openGraph).toBeDefined();
     expect(metadata.openGraph?.title).toBe('Meal Recommendation PWA');
-    expect(metadata.openGraph?.type).toBe('website');
+    expect((metadata.openGraph as { type?: string } | undefined)?.type).toBe('website');
     expect(metadata.openGraph?.url).toBe('https://mealrec.app');
     expect(metadata.openGraph?.description).toBe('A Progressive Web App for personalized meal recommendations');
     
@@ -66,7 +63,7 @@ describe('Metadata Configuration', () => {
     const { metadata } = await import('./layout');
     
     expect(metadata.twitter).toBeDefined();
-    expect(metadata.twitter?.card).toBe('summary_large_image');
+    expect((metadata.twitter as { card?: string } | undefined)?.card).toBe('summary_large_image');
     expect(metadata.twitter?.title).toBe('Meal Recommendation PWA');
     expect(metadata.twitter?.description).toBe('A Progressive Web App for personalized meal recommendations');
     expect(metadata.twitter?.images).toEqual(['/og-default-meal.jpg']);

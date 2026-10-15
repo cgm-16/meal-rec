@@ -39,19 +39,19 @@ describe('Auth Configuration', () => {
 
     it('should return null for missing credentials', async () => {
       const authorize = getAuthorize();
-      const result = await authorize(null);
+      const result = await authorize(undefined, {} as never);
       expect(result).toBeNull();
     });
 
     it('should return null for missing username', async () => {
       const authorize = getAuthorize();
-      const result = await authorize({ pin: '1234' });
+      const result = await authorize({ pin: '1234' }, {} as never);
       expect(result).toBeNull();
     });
 
     it('should return null for missing pin', async () => {
       const authorize = getAuthorize();
-      const result = await authorize({ username: 'testuser' });
+      const result = await authorize({ username: 'testuser' }, {} as never);
       expect(result).toBeNull();
     });
 
@@ -67,7 +67,7 @@ describe('Auth Configuration', () => {
       const result = await authorize({
         username: 'testuser',
         pin: '1234'
-      });
+      }, {} as never);
 
       expect(result).toBeNull();
       expect(consoleError).toHaveBeenCalledWith('Authentication error:', expect.any(Error));
@@ -79,7 +79,7 @@ describe('Auth Configuration', () => {
       const token = {};
       const user = { id: 'user123', role: 'user' };
 
-      const result = await authOptions.callbacks!.jwt!({ token, user } as Parameters<NonNullable<typeof authOptions.callbacks.jwt>>[0]);
+      const result = await authOptions.callbacks!.jwt!({ token, user } as never);
 
       expect(result).toEqual({ 
         userId: 'user123',
@@ -90,7 +90,7 @@ describe('Auth Configuration', () => {
     it('should preserve existing token when no user', async () => {
       const token = { userId: 'existing123', other: 'data' };
 
-      const result = await authOptions.callbacks!.jwt!({ token } as Parameters<NonNullable<typeof authOptions.callbacks.jwt>>[0]);
+      const result = await authOptions.callbacks!.jwt!({ token } as never);
 
       expect(result).toEqual({ userId: 'existing123', other: 'data' });
     });
@@ -99,7 +99,7 @@ describe('Auth Configuration', () => {
       const session = { user: {} };
       const token = { userId: 'user123' };
 
-      const result = await authOptions.callbacks!.session!({ session, token } as Parameters<NonNullable<typeof authOptions.callbacks.session>>[0]);
+      const result = await authOptions.callbacks!.session!({ session, token } as never);
 
       expect(result).toEqual({
         user: { id: 'user123' }
@@ -110,7 +110,7 @@ describe('Auth Configuration', () => {
       const session = { user: { name: 'test' } };
       const token = {};
 
-      const result = await authOptions.callbacks!.session!({ session, token } as Parameters<NonNullable<typeof authOptions.callbacks.session>>[0]);
+      const result = await authOptions.callbacks!.session!({ session, token } as never);
 
       expect(result).toEqual({
         user: { name: 'test' }

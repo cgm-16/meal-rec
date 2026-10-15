@@ -53,8 +53,8 @@ describe('SignInPage', () => {
 
   it('should submit form with valid credentials and redirect on success', async () => {
     const user = userEvent.setup();
-    vi.mocked(signIn).mockResolvedValue({ error: null });
-    vi.mocked(getSession).mockResolvedValue({ user: { id: 'user123', name: 'testuser' } });
+    vi.mocked(signIn).mockResolvedValue({ error: null, status: 200, ok: true, url: null });
+    vi.mocked(getSession).mockResolvedValue({ user: { id: 'user123', name: 'testuser' }, expires: '' });
 
     render(<SignInPage />);
 
@@ -82,7 +82,7 @@ describe('SignInPage', () => {
 
   it('should display error message for invalid credentials', async () => {
     const user = userEvent.setup();
-    vi.mocked(signIn).mockResolvedValue({ error: 'CredentialsSignin' });
+    vi.mocked(signIn).mockResolvedValue({ error: 'CredentialsSignin', status: 401, ok: false, url: null });
 
     render(<SignInPage />);
 
@@ -103,7 +103,7 @@ describe('SignInPage', () => {
 
   it('should handle session creation failure', async () => {
     const user = userEvent.setup();
-    vi.mocked(signIn).mockResolvedValue({ error: null });
+    vi.mocked(signIn).mockResolvedValue({ error: null, status: 200, ok: true, url: null });
     vi.mocked(getSession).mockResolvedValue(null);
 
     render(<SignInPage />);
