@@ -253,6 +253,33 @@ describe('Home Page', () => {
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/auth/signin');
   });
 
+  it('shows the last recommendation with an offline notice when the network fails', async () => {
+    render(<Home />);
+    await waitFor(() => {
+      expect(screen.getByText('Test Chicken Curry')).toBeInTheDocument();
+    });
+
+    server.use(http.post('/api/recommend', () => HttpResponse.error()));
+    fireEvent.click(screen.getByText('Get Another Recommendation'));
+
+    await waitFor(() => {
+      expect(screen.getByText("You're offline. Showing your last recommendation.")).toBeInTheDocument();
+    });
+    expect(screen.getByText('Test Chicken Curry')).toBeInTheDocument();
+    localStorage.removeItem('lastRecommendation');
+  });
+
+  it('shows the error state on a network failure when nothing was recommended before', async () => {
+    localStorage.removeItem('lastRecommendation');
+    server.use(http.post('/api/recommend', () => HttpResponse.error()));
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Try Again')).toBeInTheDocument();
+    });
+  });
+
   it('fetches new meal even when feedback fails', async () => {
     let mealFetchCount = 0;
 
