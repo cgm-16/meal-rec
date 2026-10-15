@@ -23,6 +23,15 @@ interface PopulatedFeedbackRecord {
 }
 
 
+function isQuizAnswers(value: unknown): value is QuizAnswers {
+  const quiz = value as QuizAnswers;
+  return typeof value === 'object' && value !== null &&
+    Array.isArray(quiz.ingredientsToAvoid) &&
+    quiz.ingredientsToAvoid.every(ingredient => typeof ingredient === 'string') &&
+    typeof quiz.spiciness === 'number' &&
+    typeof quiz.surpriseFactor === 'number';
+}
+
 export async function POST(request: NextRequest) {
   try {
     await connect();
@@ -34,6 +43,10 @@ export async function POST(request: NextRequest) {
       // A client error (including a request aborted mid-body), not a server fault
       return NextResponse.json({ error: 'Request body must be valid JSON' }, { status: 400 });
     }
+    if (body.quiz !== undefined && !isQuizAnswers(body.quiz)) {
+      return NextResponse.json({ error: 'Invalid quiz answers' }, { status: 400 });
+    }
+
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
 

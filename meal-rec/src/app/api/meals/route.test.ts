@@ -93,6 +93,15 @@ describe('/api/meals', () => {
     expect(data.pagination.total).toBe(0);
   });
 
+  it.each(['page=abc', 'limit=abc', 'page=1.5', 'limit=10x'])(
+    'should return 400 for non-integer pagination %s',
+    async (query) => {
+      const response = await GET(new NextRequest(`http://localhost:3000/api/meals?${query}`));
+      expect(response.status).toBe(400);
+      expect((await response.json()).error).toBe('Invalid pagination parameters');
+    }
+  );
+
   it('should return 400 for invalid pagination parameters', async () => {
     const request = new NextRequest('http://localhost:3000/api/meals?page=0&limit=101');
     const response = await GET(request);

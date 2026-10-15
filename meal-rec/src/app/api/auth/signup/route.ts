@@ -25,6 +25,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Non-strings such as { "$ne": null } must never reach a query filter
+    if (typeof username !== 'string') {
+      return NextResponse.json(
+        { error: 'Username must be a string' },
+        { status: 400 }
+      );
+    }
+
     if (username.length < 3) {
       return NextResponse.json(
         { error: 'Username must be at least 3 characters' },

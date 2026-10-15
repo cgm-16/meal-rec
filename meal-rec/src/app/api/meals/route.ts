@@ -9,11 +9,11 @@ export async function GET(request: NextRequest) {
     await connect();
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '10', 10);
+    const page = Number(searchParams.get('page') || '1');
+    const limit = Number(searchParams.get('limit') || '10');
 
     // Validate pagination parameters
-    if (page < 1 || limit < 1 || limit > 100) {
+    if (!Number.isInteger(page) || !Number.isInteger(limit) || page < 1 || limit < 1 || limit > 100) {
       return NextResponse.json(
         { error: 'Invalid pagination parameters' },
         { status: 400 }

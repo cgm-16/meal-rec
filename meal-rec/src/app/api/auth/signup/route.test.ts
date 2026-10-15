@@ -106,6 +106,20 @@ describe('/api/auth/signup', () => {
     }
   );
 
+  it('should reject a non-string username without querying', async () => {
+    const request = new NextRequest('http://localhost/api/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify({ username: { $ne: null }, pin: '1234' })
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe('Username must be a string');
+    expect(User.findOne).not.toHaveBeenCalled();
+  });
+
   it('should reject missing username', async () => {
     const request = new NextRequest('http://localhost/api/auth/signup', {
       method: 'POST',
