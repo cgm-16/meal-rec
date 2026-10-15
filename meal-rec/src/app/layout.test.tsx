@@ -43,7 +43,7 @@ describe('Metadata Configuration', () => {
     expect(metadata.openGraph).toBeDefined();
     expect(metadata.openGraph?.title).toBe('Meal Recommendation PWA');
     expect((metadata.openGraph as { type?: string } | undefined)?.type).toBe('website');
-    expect(metadata.openGraph?.url).toBe('https://mealrec.app');
+    expect(metadata.openGraph?.url).toBe('https://meal-rec.vercel.app');
     expect(metadata.openGraph?.description).toBe('A Progressive Web App for personalized meal recommendations');
     
     // Check Open Graph images

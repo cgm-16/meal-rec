@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientSessionProvider from "./ClientSessionProvider";
 import Navigation from "@/components/Navigation";
+import { SITE_URL } from "@/lib/constants";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://mealrec.app"),
+  metadataBase: new URL(SITE_URL),
   title: "Meal Recommendation PWA",
   description: "A Progressive Web App for personalized meal recommendations",
   manifest: "/manifest.json",
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
     title: "Meal Recommendation PWA",
     description: "A Progressive Web App for personalized meal recommendations",
     type: "website",
-    url: "https://mealrec.app",
+    url: SITE_URL,
     images: [
       {
         url: "/og-default-meal.jpg",

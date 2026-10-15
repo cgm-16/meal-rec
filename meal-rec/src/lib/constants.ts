@@ -27,6 +27,9 @@ export const APP_CONSTANTS = {
   MAX_PAGE_SIZE: 100,
 } as const;
 
+// Production origin; metadata and Open Graph URLs are absolute against it
+export const SITE_URL = 'https://meal-rec.vercel.app';
+
 export const HTTP_STATUS = {
   OK: 200,
   CREATED: 201,
