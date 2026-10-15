@@ -246,6 +246,7 @@ describe('/api/feedback', () => {
   });
 
   it('handles database errors gracefully for authenticated users', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     // Mock authenticated session with invalid user ID to trigger database error
     vi.mocked(getServerSession).mockResolvedValue({
       user: { id: 'invalid-user-id-format' }
@@ -268,6 +269,9 @@ describe('/api/feedback', () => {
 
     expect(response.status).toBe(500);
     expect(data.error).toBe('Internal server error');
+
+    expect(consoleError).toHaveBeenCalledWith('Error processing feedback:', expect.any(Error));
+    consoleError.mockRestore();
   });
 
   it('handles both guest and authenticated users in same test run', async () => {
@@ -317,6 +321,7 @@ describe('/api/feedback', () => {
   });
 
   it('handles malformed JSON gracefully', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const request = new NextRequest('http://localhost:3000/api/feedback', {
       method: 'POST',
       headers: {
@@ -330,5 +335,8 @@ describe('/api/feedback', () => {
 
     expect(response.status).toBe(500);
     expect(data.error).toBe('Internal server error');
+
+    expect(consoleError).toHaveBeenCalledWith('Error processing feedback:', expect.any(Error));
+    consoleError.mockRestore();
   });
 });

@@ -21,11 +21,13 @@ describe('Database Connection', () => {
   beforeEach(() => {
     process.env = { ...originalEnv };
     vi.clearAllMocks();
+    vi.spyOn(console, 'log').mockImplementation(() => {});
     mongoose.connection.readyState = 0;
   });
 
   afterEach(() => {
     process.env = originalEnv;
+    vi.restoreAllMocks();
   });
 
   it('should throw error when MONGO_URL is not set', async () => {
@@ -46,6 +48,14 @@ describe('Database Connection', () => {
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
     });
+  });
+
+  it('should log the connection without exposing credentials', async () => {
+    process.env.MONGO_URL = 'mongodb://user:secret@localhost:27017/test';
+
+    await connect();
+
+    expect(console.log).toHaveBeenCalledWith('Connected to MongoDB at mongodb://***@localhost:27017/test');
   });
 
   it('should not reconnect when a connection is already open', async () => {

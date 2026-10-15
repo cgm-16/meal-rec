@@ -176,6 +176,7 @@ describe('/api/auth/signup', () => {
   });
 
   it('should handle database connection errors', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.mocked(connect).mockRejectedValue(new Error('Database connection failed'));
 
     const request = new NextRequest('http://localhost/api/auth/signup', {
@@ -191,9 +192,12 @@ describe('/api/auth/signup', () => {
 
     expect(response.status).toBe(500);
     expect(data.error).toBe('Internal server error');
+
+    expect(consoleError).toHaveBeenCalledWith('Sign-up error:', expect.any(Error));
   });
 
   it('should handle malformed JSON', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const request = new NextRequest('http://localhost/api/auth/signup', {
       method: 'POST',
       body: '{ invalid json'
@@ -204,5 +208,7 @@ describe('/api/auth/signup', () => {
 
     expect(response.status).toBe(500);
     expect(data.error).toBe('Internal server error');
+
+    expect(consoleError).toHaveBeenCalledWith('Sign-up error:', expect.any(Error));
   });
 });

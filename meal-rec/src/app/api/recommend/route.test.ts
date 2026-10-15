@@ -280,6 +280,7 @@ describe('/api/recommend', () => {
   });
 
   it('should handle database connection errors', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.mocked(connect).mockRejectedValue(new Error('Database connection failed'));
 
     const request = new NextRequest('http://localhost/api/recommend', {
@@ -292,9 +293,12 @@ describe('/api/recommend', () => {
 
     expect(response.status).toBe(500);
     expect(data).toEqual({ error: 'Internal server error' });
+
+    expect(consoleError).toHaveBeenCalledWith('Recommendation error:', expect.any(Error));
   });
 
   it('should handle malformed JSON requests', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const request = new NextRequest('http://localhost/api/recommend', {
       method: 'POST',
       body: '{ invalid json'
@@ -305,9 +309,12 @@ describe('/api/recommend', () => {
 
     expect(response.status).toBe(500);
     expect(data).toEqual({ error: 'Internal server error' });
+
+    expect(consoleError).toHaveBeenCalledWith('Recommendation error:', expect.any(Error));
   });
 
   it('should handle recommendation engine errors', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.mocked(selectRecommendation).mockImplementation(() => {
       throw new Error('Recommendation engine failed');
     });
@@ -322,5 +329,7 @@ describe('/api/recommend', () => {
 
     expect(response.status).toBe(500);
     expect(data).toEqual({ error: 'Internal server error' });
+
+    expect(consoleError).toHaveBeenCalledWith('Recommendation error:', expect.any(Error));
   });
 });
