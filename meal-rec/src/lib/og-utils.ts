@@ -2,6 +2,7 @@
 // ABOUTME: Provides functions to create meal-specific Open Graph metadata
 
 import type { Metadata } from 'next';
+import { SITE_URL } from './constants';
 
 export interface MealOGData {
   name: string;
@@ -26,7 +27,7 @@ export function generateMealOGMetadata(meal: MealOGData, currentUrl?: string): M
       title,
       description,
       type: 'article',
-      url: currentUrl || 'https://mealrec.app',
+      url: currentUrl || SITE_URL,
       images: [
         {
           url: imageUrl,
@@ -61,7 +62,7 @@ export function generatePageOGMetadata(
       title: fullTitle,
       description,
       type: 'website',
-      url: currentUrl || 'https://mealrec.app',
+      url: currentUrl || SITE_URL,
       images: [
         {
           url: ogImageUrl,

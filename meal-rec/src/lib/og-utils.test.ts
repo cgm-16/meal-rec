@@ -19,12 +19,12 @@ describe('OG Utils', () => {
       expect(metadata.description).toBe('Delicious Thai noodles with shrimp - Thai cuisine');
       expect(metadata.openGraph?.title).toBe('Spicy Pad Thai | MealRec');
       expect((metadata.openGraph as { type?: string } | undefined)?.type).toBe('article');
-      expect(metadata.openGraph?.url).toBe('https://mealrec.app');
+      expect(metadata.openGraph?.url).toBe('https://meal-rec.vercel.app');
     });
 
     it('should use custom URL when provided', () => {
       const meal = { name: 'Test Meal' };
-      const customUrl = 'https://mealrec.app/meals/test-meal';
+      const customUrl = 'https://meal-rec.vercel.app/meals/test-meal';
 
       const metadata = generateMealOGMetadata(meal, customUrl);
 
@@ -90,7 +90,7 @@ describe('OG Utils', () => {
       expect(metadata.title).toBe('About Us | MealRec');
       expect(metadata.description).toBe('Learn more about MealRec');
       expect((metadata.openGraph as { type?: string } | undefined)?.type).toBe('website');
-      expect(metadata.openGraph?.url).toBe('https://mealrec.app');
+      expect(metadata.openGraph?.url).toBe('https://meal-rec.vercel.app');
     });
 
     it('should not double-append MealRec to title', () => {
@@ -103,7 +103,7 @@ describe('OG Utils', () => {
     });
 
     it('should use custom URL and image when provided', () => {
-      const customUrl = 'https://mealrec.app/about';
+      const customUrl = 'https://meal-rec.vercel.app/about';
       const customImage = 'https://picsum.photos/400/300?random=11';
 
       const metadata = generatePageOGMetadata(
