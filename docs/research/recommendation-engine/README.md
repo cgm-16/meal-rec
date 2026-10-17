@@ -2,6 +2,8 @@
 
 **Research pool · 10 drafts · 2026-10-17 · source baseline `4574611`**
 
+**Prediction and external data:** the [follow-up methodology study](prediction-methodology.md) examines learned choice models, weather, purchase histories, obtainable datasets, and predictive validation. Start there for the question of whether the engine can predict what someone wants. The ten drafts below remain a broader pool of recommendation experiments.
+
 Ori asked for ten meaningfully different directions, researched by Sol agents at max reasoning. Three `gpt-6.1-sol` agents investigated separate parts of this pool, and the parent checked the current code, ran controlled probes, and reconciled the comparison. “This game” is interpreted as the meal-discovery and reaction loop in this repository.
 
 The pool explores five different questions: what represents a meal, how taste is learned, how the next card is chosen, what makes a meal usable now, and whose satisfaction matters. These are proposals to compare. The research does not select a final architecture or implement any of them.

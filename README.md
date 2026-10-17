@@ -147,7 +147,7 @@ This project demonstrates:
 - [`DEPLOYMENT.md`](DEPLOYMENT.md) - Complete production deployment guide with Vercel & MongoDB Atlas  
 - [`RELEASE_NOTES.md`](RELEASE_NOTES.md) - Complete feature overview and deployment guide
 - [`FUTURE_ENHANCEMENTS.md`](FUTURE_ENHANCEMENTS.md) - Features from the original specification that are not built yet
-- [`docs/research/recommendation-engine/README.md`](docs/research/recommendation-engine/README.md) - Ten distinct research directions, source evidence, experiments, and comparison map
+- [`docs/research/recommendation-engine/README.md`](docs/research/recommendation-engine/README.md) - Recommendation research: ten directions, predictive methods, data sources, and experiments
 - [`docs/architecture-retrospective.md`](docs/architecture-retrospective.md) - Evidence-backed review of the recommendation engine
 - [`docs/test-failures-analysis.md`](docs/test-failures-analysis.md) - Detailed test status analysis
 - [`docs/performance.md`](docs/performance.md) - Performance monitoring guide
