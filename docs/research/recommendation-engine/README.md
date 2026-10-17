@@ -2,6 +2,8 @@
 
 **Research pool · 10 drafts · 2026-10-17 · source baseline `4574611`**
 
+**Benchmark candidates:** the [three-model shortlist](benchmark-shortlist.md) specifies regularized logistic, CatBoost, and factorization-machine variants, supporting studies, obtainable datasets, shared evaluation, and a separate order-history track. The [dataset access audit](benchmark-data-evidence.md) records checked file paths and split caveats.
+
 **Prediction and external data:** the [follow-up methodology study](prediction-methodology.md) examines learned choice models, weather, purchase histories, obtainable datasets, and predictive validation. Start there for the question of whether the engine can predict what someone wants. The ten drafts below remain a broader pool of recommendation experiments.
 
 Ori asked for ten meaningfully different directions, researched by Sol agents at max reasoning. Three `gpt-6.1-sol` agents investigated separate parts of this pool, and the parent checked the current code, ran controlled probes, and reconciled the comparison. “This game” is interpreted as the meal-discovery and reaction loop in this repository.
