@@ -14,6 +14,7 @@ Interview in progress. These are agreed constraints; the detailed design and imp
 | Hunger context | One optional question at the start of each visit: Not hungry / Somewhat hungry / Very hungry. Applies to that visit’s cards; skipped answers remain unknown. |
 | Meal selection | Random eligible meals respecting dietary exclusions; all three models are evaluated on the same shown cards using information available before each answer. |
 | Pilot evaluation | Develop in week one; freeze fitted parameters, preprocessing, and response-derived histories; evaluate week two without learning from its answers. |
+| Delivery | Extend MealRec to collect the pilot; train and compare all three models with an offline Python runner. A live model-scoring service is outside this implementation. |
 
 ## Recruitment fallback
 
@@ -31,16 +32,16 @@ Plan for about five meal assessments per day over two weeks, near actual mealtim
 - Common meal presentation, repeated-exposure rules, and detailed sampling mechanics.
 - Specific weather inputs, context retrieval/failure handling, and the common context/history comparisons.
 - Public-data source selection, detailed development cutoffs, primary metrics, and the rule for declaring a useful gain.
-- Compute budget, model-serving boundary, and pilot delivery.
+- Compute budget and detailed collector/export/runner behavior.
 - Review of the complete design, written specification, and executable implementation plan before model implementation.
 
-The next interview question concerns delivery: pilot collection with an offline three-model runner, versus adding live shadow scoring. Neither implementation approach has been selected yet.
+Ori selected pilot collection with an offline three-model runner over adding live shadow scoring. The next design review covers the comparison and success criteria, followed by collector/data flow and verification; routine implementation choices should be proposed together rather than asked one parameter at a time.
 
 ## Source and runtime evidence for the proposed design
 
 A follow-up check did not establish an explicit Food.com research/noncommercial grant from the original release sources. UCI Restaurant & Consumer explicitly declares CC BY 4.0 and can provide a small initial public proxy; using it is a proposed source adjustment pending design review. Its restaurant food ratings cannot establish immediate meal appeal or context benefit.
 
-An existing managed Python 3.12 interpreter and published compatible wheels support a plausible scikit-learn, CatBoost, and River FMClassifier CPU route. Installation, joint dependency resolution, and training have not been tested. These facts support an offline-runner proposal; they do not establish a working model service.
+An existing managed Python 3.12 interpreter and published compatible wheels support a plausible scikit-learn, CatBoost, and River FMClassifier CPU route. Installation, joint dependency resolution, and training have not been tested. These facts support the selected offline boundary; dependency resolution and actual execution remain implementation checks.
 
 ## Related records
 
@@ -49,4 +50,5 @@ An existing managed Python 3.12 interpreter and published compatible wheels supp
 - [Single-meal response protocol](../adr/0002-collect-meal-appeal-individually.md)
 - [Common random exposures](../adr/0003-use-common-random-meal-exposures.md)
 - [Frozen pilot evaluation](../adr/0004-freeze-pilot-models-before-evaluation.md)
+- [Offline benchmark delivery](../adr/0005-collect-pilot-and-benchmark-offline.md)
 - [Research shortlist and benchmark candidates](../research/recommendation-engine/benchmark-shortlist.md)
