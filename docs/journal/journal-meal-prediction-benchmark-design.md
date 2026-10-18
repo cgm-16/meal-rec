@@ -13,6 +13,7 @@ Interview in progress. These are agreed constraints; the detailed design and imp
 | Weather location | Participant selects a city once and can change it; retrieve city-level weather for pilot visits. |
 | Hunger context | One optional question at the start of each visit: Not hungry / Somewhat hungry / Very hungry. Applies to that visit’s cards; skipped answers remain unknown. |
 | Meal selection | Random eligible meals respecting dietary exclusions; all three models are evaluated on the same shown cards using information available before each answer. |
+| Pilot evaluation | Develop in week one; freeze fitted parameters, preprocessing, and response-derived histories; evaluate week two without learning from its answers. |
 
 ## Recruitment fallback
 
@@ -29,11 +30,17 @@ Plan for about five meal assessments per day over two weeks, near actual mealtim
 - Group size and recruitment arrangements.
 - Common meal presentation, repeated-exposure rules, and detailed sampling mechanics.
 - Specific weather inputs, context retrieval/failure handling, and the common context/history comparisons.
-- Public dataset terms, training and holdouts, primary metrics, and the rule for declaring a useful gain.
+- Public-data source selection, detailed development cutoffs, primary metrics, and the rule for declaring a useful gain.
 - Compute budget, model-serving boundary, and pilot delivery.
 - Review of the complete design, written specification, and executable implementation plan before model implementation.
 
-The next interview question concerns the evaluation timeline: a frozen future holdout versus a continually updating comparison. Training and evaluation cutoffs have not been selected yet.
+The next interview question concerns delivery: pilot collection with an offline three-model runner, versus adding live shadow scoring. Neither implementation approach has been selected yet.
+
+## Source and runtime evidence for the proposed design
+
+A follow-up check did not establish an explicit Food.com research/noncommercial grant from the original release sources. UCI Restaurant & Consumer explicitly declares CC BY 4.0 and can provide a small initial public proxy; using it is a proposed source adjustment pending design review. Its restaurant food ratings cannot establish immediate meal appeal or context benefit.
+
+An existing managed Python 3.12 interpreter and published compatible wheels support a plausible scikit-learn, CatBoost, and River FMClassifier CPU route. Installation, joint dependency resolution, and training have not been tested. These facts support an offline-runner proposal; they do not establish a working model service.
 
 ## Related records
 
@@ -41,4 +48,5 @@ The next interview question concerns the evaluation timeline: a frozen future ho
 - [Immediate-appeal benchmark target](../adr/0001-benchmark-immediate-meal-appeal.md)
 - [Single-meal response protocol](../adr/0002-collect-meal-appeal-individually.md)
 - [Common random exposures](../adr/0003-use-common-random-meal-exposures.md)
+- [Frozen pilot evaluation](../adr/0004-freeze-pilot-models-before-evaluation.md)
 - [Research shortlist and benchmark candidates](../research/recommendation-engine/benchmark-shortlist.md)

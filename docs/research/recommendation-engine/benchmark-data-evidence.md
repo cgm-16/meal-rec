@@ -68,3 +68,11 @@ Only **32,768 bytes per ZIP** were read. One interaction's modification-time pre
 Food.com now has the strongest verified recipe-content-plus-rating access among this subtask's sources. Use one common Food.com task for the three primary variants, then contextual Food for a deliberately separate context ablation; MealRec+ raw course ratings are an optional independent replication. Use the order datasets examined in the companion shortlist for claims about ordering behavior. None of these three can identify MealRec users, establish actual food consumption, or test local-weather value.
 
 Public downloadability is established for the files above; intended reuse permission remains unresolved for all three releases. Do not substitute a software license, Kaggle availability or a paper's copyright notice for dataset terms. Before implementation, resolve those terms, freeze exact versions/checksums, and finalize label cleaning and splits. No empirical model performance or universal sample-size claim is made here.
+
+## Permission follow-up and licensed fallback
+
+A further check of the original Kaggle metadata, UCSD listing, and author repository did not establish an explicit Food.com research/noncommercial reuse grant or license URL. Downloadability and citation instructions remain separate from that unresolved permission; this finding does not establish that every use is prohibited.
+
+The [official UCI Restaurant & Consumer release](https://archive.ics.uci.edu/dataset/232/restaurant+consumer+data) explicitly declares CC BY 4.0. Its 39,674-byte ZIP has SHA-256 `dc61ec3779db8d3bd2cde8d65abf87dc07e9b22ae94f9b9ad6375d57f627e333`; all 1,161 user–restaurant rows are unique. A proposed `food_rating == 2` task has 516 high and 645 lower ratings; exclude companion overall/service ratings from predictors.
+
+Aggregate multivalued metadata before joining and retain all observations: restaurant cuisine is missing for 35 restaurants covering 288 rated rows. The restaurant-profile CSV required CP1252 decoding in the audit. This provides a small explicitly licensed static proxy for all three models; it has no rating-event time, hunger, or weather and cannot validate immediate dish appetite. Source selection and task choice remain proposed design adjustments.
