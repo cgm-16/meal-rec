@@ -15,6 +15,11 @@ Interview in progress. These are agreed constraints; the detailed design and imp
 | Meal selection | Random eligible meals respecting dietary exclusions; all three models are evaluated on the same shown cards using information available before each answer. |
 | Pilot evaluation | Develop in week one; freeze fitted parameters, preprocessing, and response-derived histories; evaluate week two without learning from its answers. |
 | Delivery | Extend MealRec to collect the pilot; train and compare all three models with an offline Python runner. A live model-scoring service is outside this implementation. |
+| Initial public task | UCI Restaurant & Consumer: the highest food-rating category versus the other two categories. This is a static restaurant-rating proxy, separate from the pilot’s immediate-appeal target. |
+| Primary measure | Participant-balanced log loss; additionally report Brier score, calibration, runtime, and uncertainty. |
+| Reference comparisons | Training-only overall and personal Yes rates, plus a calibrated current MealRec heuristic where its inputs can be mapped faithfully. Select the reference on development data. |
+| Information comparisons | Predefined feature sets progressively add preference history, hunger, and weather across the three candidates. |
+| Useful-gain rule | Provisionally require at least 5% lower pilot log loss than the development-selected reference, with paired uncertainty supporting improvement. Model-to-model results may remain inconclusive. |
 
 ## Recruitment fallback
 
@@ -31,15 +36,19 @@ Plan for about five meal assessments per day over two weeks, near actual mealtim
 - Group size and recruitment arrangements.
 - Common meal presentation, repeated-exposure rules, and detailed sampling mechanics.
 - Specific weather inputs, context retrieval/failure handling, and the common context/history comparisons.
-- Public-data source selection, detailed development cutoffs, primary metrics, and the rule for declaring a useful gain.
+- Detailed development cutoffs, feature definitions, uncertainty estimation, and fixed reference-selection mechanics.
 - Compute budget and detailed collector/export/runner behavior.
 - Review of the complete design, written specification, and executable implementation plan before model implementation.
 
-Ori selected pilot collection with an offline three-model runner over adding live shadow scoring. The next design review covers the comparison and success criteria, followed by collector/data flow and verification; routine implementation choices should be proposed together rather than asked one parameter at a time.
+Ori selected pilot collection with an offline three-model runner over adding live shadow scoring. Ori approved the comparison and success criteria. The next design review covers collector/data flow, followed by verification and delivery; routine implementation choices should be proposed together rather than asked one parameter at a time.
+
+## Comparison interpretation
+
+The 5% useful-gain threshold is an agreed provisional engineering criterion, not a dataset-derived effect estimate or a deployment guarantee. All three models use the same retained observations and information within each comparison; the initial UCI proxy and direct MealRec pilot remain separate tasks. Do not choose feature sets, reference controls, or model settings using second-week pilot answers. A small pilot may not distinguish candidates, and an Ori-only run supports within-person conclusions.
 
 ## Source and runtime evidence for the proposed design
 
-A follow-up check did not establish an explicit Food.com research/noncommercial grant from the original release sources. UCI Restaurant & Consumer explicitly declares CC BY 4.0 and can provide a small initial public proxy; using it is a proposed source adjustment pending design review. Its restaurant food ratings cannot establish immediate meal appeal or context benefit.
+A follow-up check did not establish an explicit Food.com research/noncommercial grant from the original release sources. UCI Restaurant & Consumer explicitly declares CC BY 4.0 and is the approved initial public proxy. Its restaurant food ratings cannot establish immediate meal appeal or context benefit.
 
 An existing managed Python 3.12 interpreter and published compatible wheels support a plausible scikit-learn, CatBoost, and River FMClassifier CPU route. Installation, joint dependency resolution, and training have not been tested. These facts support the selected offline boundary; dependency resolution and actual execution remain implementation checks.
 
