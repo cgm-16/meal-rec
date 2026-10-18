@@ -114,3 +114,14 @@ out
 # Temporary folders
 tmp/
 temp/
+
+# Offline meal-prediction benchmark environments and generated/private inputs
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.py[cod]
+benchmarks/meal_prediction/data/
+benchmarks/meal_prediction/raw-exports/
+benchmarks/meal_prediction/runs/
+benchmarks/meal_prediction/models/
