@@ -11,3 +11,7 @@ _Avoid_: Preference (without specifying whether it is general or immediate)
 **Appeal response**:
 A person's explicit Yes, No, or Not sure answer about one meal's immediate appeal at the moment it is presented. Yes and No express definite answers; Not sure expresses uncertainty.
 _Avoid_: Rating (without specifying whether it concerns immediate appeal or general preference)
+
+**Weather city**:
+The city a participant selects to represent their current location for the pilot's weather context. It can change between visits.
+_Avoid_: Home city (when the participant is elsewhere)

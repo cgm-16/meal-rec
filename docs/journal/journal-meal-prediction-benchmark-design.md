@@ -10,6 +10,7 @@ Interview in progress. These are agreed constraints; the detailed design and imp
 | Pilot response | One meal at a time; Yes, No, or Not sure. Definite Yes/No responses are the primary labels; uncertainty is retained separately. |
 | Participants | Prefer Ori plus a small volunteer group; allow a fallback to Ori alone. Recruitment and participant count are not confirmed. |
 | Participant commitment | About 5 meal cards per day for two weeks, near actual mealtimes, in either participant mode. |
+| Weather location | Participant selects a city once and can change it; retrieve city-level weather for pilot visits. |
 
 ## Recruitment fallback
 
@@ -25,12 +26,12 @@ Plan for about five meal assessments per day over two weeks, near actual mealtim
 
 - Group size and recruitment arrangements.
 - Common meal presentation, eligible candidates, and exposure policy.
-- Context collection, weather inputs, and history/weather comparisons.
+- Additional participant context, specific weather inputs, retrieval/failure handling, and history/weather comparisons.
 - Public dataset terms, training and holdouts, primary metrics, and the rule for declaring a useful gain.
 - Compute budget, model-serving boundary, and pilot delivery.
 - Review of the complete design, written specification, and executable implementation plan before model implementation.
 
-The next interview question concerns location input for local weather. City selection and browser location are alternatives under discussion; neither is an agreed collection mechanism yet.
+The next interview question concerns an optional hunger question at the start of each visit. Its inclusion and response scale remain proposals until Ori chooses.
 
 ## Related records
 
