@@ -1,6 +1,6 @@
 # MealRec three-model prediction benchmark
 
-Date: 2026-10-18. Status: written specification approved by Ori; implementation plan awaiting review.
+Date: 2026-10-18. Status: specification and implementation plan approved by Ori; Subagent-driven execution authorized.
 
 ## Outcome and scope
 

@@ -1,6 +1,6 @@
 # MealRec benchmark design journal
 
-The complete written specification is approved by Ori. The implementation plan is written and awaits review/execution-method selection; implementation remains unfinished.
+The specification and implementation plan are approved by Ori. Subagent-driven execution was selected on 2026-10-19; setup is in progress and implementation remains unfinished.
 
 | Decision | Agreed scope |
 | --- | --- |
@@ -36,13 +36,13 @@ Plan for about five meal assessments per day over two weeks, near actual mealtim
 
 ## Current review and remaining work
 
-Ori approved the [complete specification](../superpowers/specs/2026-10-18-meal-prediction-benchmark-design.md) after its c9c4521 commit. The [implementation plan](../superpowers/plans/2026-10-18-meal-prediction-benchmark.md) maps the specification to fourteen testable tasks: common contract/public data/features/three candidates/evaluation, then eligibility/reference control, weather, collection, export, frozen replay, and real-system delivery. Plan review and execution-method selection are next; no implementation has started.
+Ori approved the [complete specification](../superpowers/specs/2026-10-18-meal-prediction-benchmark-design.md) after its c9c4521 commit. The [implementation plan](../superpowers/plans/2026-10-18-meal-prediction-benchmark.md) maps the specification to fourteen testable tasks: common contract/public data/features/three candidates/evaluation, then eligibility/reference control, weather, collection, export, frozen replay, and real-system delivery. Ori approved the plan and selected Subagent-driven execution. A fresh implementer and a task-scoped spec/quality review will cover each task, followed by whole-branch review.
 
 Launch inputs are group size/enrollment, shared study dates, usable database/deployment infrastructure, and weather provider access mode. These do not block building the configurable collector or all three public-data model implementations. No participants have been contacted.
 
-The plan recommends Native execution because the collector/export/feature interfaces are coupled; Subagent-driven execution remains an option. No execution method has been selected. The collector will use immutable study configuration and one versioned participant aggregate per study for atomic daily quotas/responses, flattening the shared export without requiring replica-set transactions. Configured city options keep collection usable when hosted provider access is disabled. These are implementation decisions within the approved data contract, presented for plan review.
+Ori selected Subagent-driven execution. The existing isolated worktree is reused on feat/meal-prediction-benchmark; the main checkout remains untouched. A plan-specific ignored ledger records preflight checks, task reports, review ranges and fixes. The collector will use immutable study configuration and one versioned participant aggregate per study for atomic daily quotas/responses, flattening the shared export without requiring replica-set transactions. Configured city options keep collection usable when hosted provider access is disabled. These implementation decisions are part of the approved plan.
 
-Implementation, real-system verification, public-data results, delivery, and the eventual genuine pilot comparison remain unfinished. No tests, product dependency installation, model fitting, recruitment or collection have been performed in the planning stage.
+Implementation, real-system verification, public-data results, delivery, and the eventual genuine pilot comparison remain unfinished. During planning no product code or experiments were run. Execution setup now provides Node 22 and locked JS dependencies; baseline checks and task implementation follow. No model fitting, recruitment or collection has occurred.
 
 ## Approved collector and data flow
 
