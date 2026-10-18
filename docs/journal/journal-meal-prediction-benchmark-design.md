@@ -12,7 +12,7 @@ Interview in progress. These are agreed constraints; the detailed design and imp
 | Participant commitment | About 5 meal cards per day for two weeks, near actual mealtimes, in either participant mode. |
 | Weather location | Participant selects a city once and can change it; retrieve city-level weather for pilot visits. |
 | Hunger context | One optional question at the start of each visit: Not hungry / Somewhat hungry / Very hungry. Applies to that visit’s cards; skipped answers remain unknown. |
-| Meal selection | Random eligible meals respecting dietary exclusions; all three models are evaluated on the same shown cards using information available before each answer. |
+| Meal selection | Five distinct eligible meals per participant-day, drawn uniformly at random and respecting dietary exclusions. Meals may repeat on later days. All three models are evaluated on the same shown cards using information available before each answer. |
 | Pilot evaluation | Develop in week one; freeze fitted parameters, preprocessing, and response-derived histories; evaluate week two without learning from its answers. |
 | Delivery | Extend MealRec to collect the pilot; train and compare all three models with an offline Python runner. A live model-scoring service is outside this implementation. |
 | Initial public task | UCI Restaurant & Consumer: the highest food-rating category versus the other two categories. This is a static restaurant-rating proxy, separate from the pilot’s immediate-appeal target. |
@@ -34,13 +34,20 @@ Plan for about five meal assessments per day over two weeks, near actual mealtim
 ## Open decisions
 
 - Group size and recruitment arrangements.
-- Common meal presentation, repeated-exposure rules, and detailed sampling mechanics.
-- Specific weather inputs, context retrieval/failure handling, and the common context/history comparisons.
-- Detailed development cutoffs, feature definitions, uncertainty estimation, and fixed reference-selection mechanics.
-- Compute budget and detailed collector/export/runner behavior.
+- Specific weather inputs, feature definitions, and operational details of context retrieval; missing hunger or failed weather retrieval is explicitly unknown.
+- Detailed development cutoffs, uncertainty estimation, and fixed reference-selection mechanics.
+- Compute budget, model-fitting/verification defaults, and reproducible runner outputs.
 - Review of the complete design, written specification, and executable implementation plan before model implementation.
 
-Ori selected pilot collection with an offline three-model runner over adding live shadow scoring. Ori approved the comparison and success criteria. The next design review covers collector/data flow, followed by verification and delivery; routine implementation choices should be proposed together rather than asked one parameter at a time.
+Ori selected pilot collection with an offline three-model runner over adding live shadow scoring. Ori approved the comparison/success criteria and collector/data flow. The final conversational design review covers fitting, verification, and delivery; routine implementation choices should be proposed together rather than asked one parameter at a time.
+
+## Approved collector and data flow
+
+Reuse MealRec sign-in for an opt-in pilot page. Participants set dietary exclusions and a weather city, then optionally report hunger at each visit. Show each meal’s name, image, and ingredients with the agreed ready-and-available-now prompt; use five distinct randomly drawn eligible meals per participant-day, allowing repeats on later days.
+
+Record each displayed meal exposure with its meal metadata, display time, city, hunger, and weather available at that visit. Keep unknown hunger and failed weather retrieval explicitly unknown. Store each Yes/No/Not sure response against its exposure in a separate append-only pilot record; unanswered exposures remain unanswered, duplicate submissions are handled safely, and a failed save supports retry.
+
+A versioned export with pseudonymous participant IDs feeds the common Python runner. All three models receive the same records and cutoffs. Existing MealRec feedback remains a separate source, and the collector supports both volunteer-group and Ori-only modes using the same protocol.
 
 ## Comparison interpretation
 
@@ -60,4 +67,5 @@ An existing managed Python 3.12 interpreter and published compatible wheels supp
 - [Common random exposures](../adr/0003-use-common-random-meal-exposures.md)
 - [Frozen pilot evaluation](../adr/0004-freeze-pilot-models-before-evaluation.md)
 - [Offline benchmark delivery](../adr/0005-collect-pilot-and-benchmark-offline.md)
+- [Pilot exposure and response history](../adr/0006-preserve-pilot-exposures-and-responses.md)
 - [Research shortlist and benchmark candidates](../research/recommendation-engine/benchmark-shortlist.md)

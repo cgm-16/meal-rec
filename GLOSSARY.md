@@ -27,3 +27,7 @@ _Avoid_: Appeal response (when referring to a presentation without an answer)
 **Eligible meal**:
 A meal allowed by a participant's declared dietary exclusions for the pilot.
 _Avoid_: Recommended meal (eligibility does not establish appeal)
+
+**Pilot visit**:
+One session in which a participant assesses meals, with a shared hunger report and weather context. A participant can make several visits on the same day.
+_Avoid_: Day (a day may contain several visits)
