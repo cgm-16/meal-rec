@@ -15,3 +15,7 @@ _Avoid_: Rating (without specifying whether it concerns immediate appeal or gene
 **Weather city**:
 The city a participant selects to represent their current location for the pilot's weather context. It can change between visits.
 _Avoid_: Home city (when the participant is elsewhere)
+
+**Hunger state**:
+A participant's self-reported hunger at the start of a pilot visit: Not hungry, Somewhat hungry, or Very hungry. A skipped answer leaves hunger unknown.
+_Avoid_: Appetite (when it is unclear whether hunger or meal appeal is meant)
