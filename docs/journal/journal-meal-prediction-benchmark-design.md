@@ -9,6 +9,7 @@ Interview in progress. These are agreed constraints; the detailed design and imp
 | Evidence | Public-data benchmarks plus an opt-in MealRec pilot with fresh appeal responses. |
 | Pilot response | One meal at a time; Yes, No, or Not sure. Definite Yes/No responses are the primary labels; uncertainty is retained separately. |
 | Participants | Prefer Ori plus a small volunteer group; allow a fallback to Ori alone. Recruitment and participant count are not confirmed. |
+| Participant commitment | About 5 meal cards per day for two weeks, near actual mealtimes, in either participant mode. |
 
 ## Recruitment fallback
 
@@ -16,16 +17,20 @@ Use the same three-model comparison and response protocol in either participant 
 
 The fallback does not select a simpler model or remove one of the three candidates. No participants have been contacted or enrolled by the agent.
 
+## Participant commitment
+
+Plan for about five meal assessments per day over two weeks, near actual mealtimes. This gives roughly 70 response opportunities per participant before missed visits or Not sure answers; it does not establish the number of definitive labels or statistical power. The target remains immediate appeal at the time of each response.
+
 ## Open decisions
 
-- Participant commitment, group size, and the pilot schedule.
+- Group size and recruitment arrangements.
 - Common meal presentation, eligible candidates, and exposure policy.
 - Context collection, weather inputs, and history/weather comparisons.
 - Public dataset terms, training and holdouts, primary metrics, and the rule for declaring a useful gain.
 - Compute budget, model-serving boundary, and pilot delivery.
 - Review of the complete design, written specification, and executable implementation plan before model implementation.
 
-The next interview question concerns participant commitment. Suggested schedules are proposals until Ori chooses one; no statistical power is claimed from a proposed schedule.
+The next interview question concerns location input for local weather. City selection and browser location are alternatives under discussion; neither is an agreed collection mechanism yet.
 
 ## Related records
 
