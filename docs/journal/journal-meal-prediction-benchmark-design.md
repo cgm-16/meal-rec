@@ -1,6 +1,6 @@
 # MealRec benchmark design journal
 
-Interview in progress. These are agreed constraints; the detailed design and implementation plan remain open.
+All conversational design sections are approved. The complete written specification awaits Ori’s review; the implementation plan and implementation remain unfinished.
 
 | Decision | Agreed scope |
 | --- | --- |
@@ -20,6 +20,9 @@ Interview in progress. These are agreed constraints; the detailed design and imp
 | Reference comparisons | Training-only overall and personal Yes rates, plus a calibrated current MealRec heuristic where its inputs can be mapped faithfully. Select the reference on development data. |
 | Information comparisons | Predefined feature sets progressively add preference history, hunger, and weather across the three candidates. |
 | Useful-gain rule | Provisionally require at least 5% lower pilot log loss than the development-selected reference, with paired uncertainty supporting improvement. Model-to-model results may remain inconclusive. |
+| Implementations | scikit-learn personalized logistic regression, CatBoost Logloss, and River logistic FM; local CPU, equal tuning budgets, and three fixed stochastic seeds. |
+| Development details | Shared days 1–5 for training and days 6–7 for development; refit on week one, freeze learned state/histories, and score days 8–14. Training histories use only earlier responses. |
+| Verification/delivery | Export validation, missingness and cold-start/frozen-state checks; real UCI model E2E and real browser/database/export checks; locked dependencies, repeatable commands, artifacts/predictions, and accuracy/calibration/uncertainty/runtime report. |
 
 ## Recruitment fallback
 
@@ -31,15 +34,13 @@ The fallback does not select a simpler model or remove one of the three candidat
 
 Plan for about five meal assessments per day over two weeks, near actual mealtimes. This gives roughly 70 response opportunities per participant before missed visits or Not sure answers; it does not establish the number of definitive labels or statistical power. The target remains immediate appeal at the time of each response.
 
-## Open decisions
+## Current review and remaining work
 
-- Group size and recruitment arrangements.
-- Specific weather inputs, feature definitions, and operational details of context retrieval; missing hunger or failed weather retrieval is explicitly unknown.
-- Detailed development cutoffs, uncertainty estimation, and fixed reference-selection mechanics.
-- Compute budget, model-fitting/verification defaults, and reproducible runner outputs.
-- Review of the complete design, written specification, and executable implementation plan before model implementation.
+Ori approved the comparison/success criteria, collector/data flow, and fitting/reliability/verification/delivery sections. The [complete specification](../superpowers/specs/2026-10-18-meal-prediction-benchmark-design.md) consolidates them and makes routine defaults explicit, including feature sets, tuning grids, temporal handling, uncertainty, and export validation. Review of that written artifact is the next stage; no implementation has started.
 
-Ori selected pilot collection with an offline three-model runner over adding live shadow scoring. Ori approved the comparison/success criteria and collector/data flow. The final conversational design review covers fitting, verification, and delivery; routine implementation choices should be proposed together rather than asked one parameter at a time.
+Launch inputs are group size/enrollment, shared study dates, usable database/deployment infrastructure, and weather provider access mode. These do not block building the configurable collector or all three public-data model implementations. No participants have been contacted.
+
+After written-spec approval, create and review the executable implementation plan and select its execution method. Implementation, real-system verification, public-data results, and the eventual genuine pilot comparison remain unfinished.
 
 ## Approved collector and data flow
 
@@ -53,11 +54,13 @@ A versioned export with pseudonymous participant IDs feeds the common Python run
 
 The 5% useful-gain threshold is an agreed provisional engineering criterion, not a dataset-derived effect estimate or a deployment guarantee. All three models use the same retained observations and information within each comparison; the initial UCI proxy and direct MealRec pilot remain separate tasks. Do not choose feature sets, reference controls, or model settings using second-week pilot answers. A small pilot may not distinguish candidates, and an Ori-only run supports within-person conclusions.
 
-## Source and runtime evidence for the proposed design
+## Source and runtime evidence
 
 A follow-up check did not establish an explicit Food.com research/noncommercial grant from the original release sources. UCI Restaurant & Consumer explicitly declares CC BY 4.0 and is the approved initial public proxy. Its restaurant food ratings cannot establish immediate meal appeal or context benefit.
 
-An existing managed Python 3.12 interpreter and published compatible wheels support a plausible scikit-learn, CatBoost, and River FMClassifier CPU route. Installation, joint dependency resolution, and training have not been tested. These facts support the selected offline boundary; dependency resolution and actual execution remain implementation checks.
+An existing managed Python 3.12 interpreter and published compatible wheels support the selected scikit-learn, CatBoost, and River FMClassifier CPU route. Installation, joint dependency resolution, and training have not been tested. Dependency resolution and actual execution remain implementation checks.
+
+Bounded follow-ups verified that existing username/PIN UI authentication can support real-system collector checks without an auth bypass. The current coarse weather helper replaces failures with normal and loses provenance, so the pilot needs its separate nullable weather-snapshot contract. Open-Meteo data licensing and hosted access terms are distinct; the specification leaves authorized access mode/credentials as launch configuration and records unavailable weather honestly when access is absent. Neither follow-up ran tests or provider endpoint smoke checks.
 
 ## Related records
 
