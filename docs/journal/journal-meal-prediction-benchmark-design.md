@@ -12,6 +12,7 @@ Interview in progress. These are agreed constraints; the detailed design and imp
 | Participant commitment | About 5 meal cards per day for two weeks, near actual mealtimes, in either participant mode. |
 | Weather location | Participant selects a city once and can change it; retrieve city-level weather for pilot visits. |
 | Hunger context | One optional question at the start of each visit: Not hungry / Somewhat hungry / Very hungry. Applies to that visit’s cards; skipped answers remain unknown. |
+| Meal selection | Random eligible meals respecting dietary exclusions; all three models are evaluated on the same shown cards using information available before each answer. |
 
 ## Recruitment fallback
 
@@ -26,17 +27,18 @@ Plan for about five meal assessments per day over two weeks, near actual mealtim
 ## Open decisions
 
 - Group size and recruitment arrangements.
-- Common meal presentation, eligible candidates, and exposure policy.
+- Common meal presentation, repeated-exposure rules, and detailed sampling mechanics.
 - Specific weather inputs, context retrieval/failure handling, and the common context/history comparisons.
 - Public dataset terms, training and holdouts, primary metrics, and the rule for declaring a useful gain.
 - Compute budget, model-serving boundary, and pilot delivery.
 - Review of the complete design, written specification, and executable implementation plan before model implementation.
 
-The next interview question concerns meal selection during the pilot: a shared random eligible sample versus meals chosen by the models. No exposure policy has been selected yet.
+The next interview question concerns the evaluation timeline: a frozen future holdout versus a continually updating comparison. Training and evaluation cutoffs have not been selected yet.
 
 ## Related records
 
 - [Domain glossary](../../GLOSSARY.md)
 - [Immediate-appeal benchmark target](../adr/0001-benchmark-immediate-meal-appeal.md)
 - [Single-meal response protocol](../adr/0002-collect-meal-appeal-individually.md)
+- [Common random exposures](../adr/0003-use-common-random-meal-exposures.md)
 - [Research shortlist and benchmark candidates](../research/recommendation-engine/benchmark-shortlist.md)

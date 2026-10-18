@@ -19,3 +19,11 @@ _Avoid_: Home city (when the participant is elsewhere)
 **Hunger state**:
 A participant's self-reported hunger at the start of a pilot visit: Not hungry, Somewhat hungry, or Very hungry. A skipped answer leaves hunger unknown.
 _Avoid_: Appetite (when it is unclear whether hunger or meal appeal is meant)
+
+**Meal exposure**:
+A meal presented to a pilot participant at a particular time and in a particular context. Presenting the same meal again creates another exposure, whether or not the participant answers.
+_Avoid_: Appeal response (when referring to a presentation without an answer)
+
+**Eligible meal**:
+A meal allowed by a participant's declared dietary exclusions for the pilot.
+_Avoid_: Recommended meal (eligibility does not establish appeal)
