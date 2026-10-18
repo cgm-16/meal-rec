@@ -1,6 +1,6 @@
 # MealRec three-model prediction benchmark
 
-Date: 2026-10-18. Status: conversational design approved; written specification awaiting Ori’s review.
+Date: 2026-10-18. Status: written specification approved by Ori; implementation plan awaiting review.
 
 ## Outcome and scope
 

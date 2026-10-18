@@ -1,6 +1,6 @@
 # MealRec benchmark design journal
 
-All conversational design sections are approved. The complete written specification awaits Ori’s review; the implementation plan and implementation remain unfinished.
+The complete written specification is approved by Ori. The implementation plan is written and awaits review/execution-method selection; implementation remains unfinished.
 
 | Decision | Agreed scope |
 | --- | --- |
@@ -36,11 +36,13 @@ Plan for about five meal assessments per day over two weeks, near actual mealtim
 
 ## Current review and remaining work
 
-Ori approved the comparison/success criteria, collector/data flow, and fitting/reliability/verification/delivery sections. The [complete specification](../superpowers/specs/2026-10-18-meal-prediction-benchmark-design.md) consolidates them and makes routine defaults explicit, including feature sets, tuning grids, temporal handling, uncertainty, and export validation. Review of that written artifact is the next stage; no implementation has started.
+Ori approved the [complete specification](../superpowers/specs/2026-10-18-meal-prediction-benchmark-design.md) after its c9c4521 commit. The [implementation plan](../superpowers/plans/2026-10-18-meal-prediction-benchmark.md) maps the specification to fourteen testable tasks: common contract/public data/features/three candidates/evaluation, then eligibility/reference control, weather, collection, export, frozen replay, and real-system delivery. Plan review and execution-method selection are next; no implementation has started.
 
 Launch inputs are group size/enrollment, shared study dates, usable database/deployment infrastructure, and weather provider access mode. These do not block building the configurable collector or all three public-data model implementations. No participants have been contacted.
 
-After written-spec approval, create and review the executable implementation plan and select its execution method. Implementation, real-system verification, public-data results, and the eventual genuine pilot comparison remain unfinished.
+The plan recommends Native execution because the collector/export/feature interfaces are coupled; Subagent-driven execution remains an option. No execution method has been selected. The collector will use immutable study configuration and one versioned participant aggregate per study for atomic daily quotas/responses, flattening the shared export without requiring replica-set transactions. Configured city options keep collection usable when hosted provider access is disabled. These are implementation decisions within the approved data contract, presented for plan review.
+
+Implementation, real-system verification, public-data results, delivery, and the eventual genuine pilot comparison remain unfinished. No tests, product dependency installation, model fitting, recruitment or collection have been performed in the planning stage.
 
 ## Approved collector and data flow
 
