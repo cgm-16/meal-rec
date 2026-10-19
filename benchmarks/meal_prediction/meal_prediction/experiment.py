@@ -17,7 +17,7 @@ from time import perf_counter
 
 import numpy as np
 
-from meal_prediction.controls import fit_rate_control
+from meal_prediction.controls import fit_heuristic_control, fit_rate_control
 from meal_prediction.datasets import fetch_uci, load_uci
 from meal_prediction.features import FeatureState, fit_features, transform_features
 from meal_prediction.metrics import Prediction, evaluate, paired_intervals, pilot_gain
@@ -27,7 +27,7 @@ from meal_prediction.report import Report, json_bytes, jsonable, write_report
 from meal_prediction.splits import split_uci
 
 
-CONTROL_ORDER = ("global", "personal")
+CONTROL_ORDER = ("global", "personal", "heuristic")
 SEEDS = (42, 43, 44)
 LOGGER = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parents[1]
@@ -82,7 +82,7 @@ def _validate_fit(data, split):
     if data.source == "pilot":
         if data.manifest.get("phase") != "development":
             raise ValueError("pilot fit: requires a development-phase export")
-        raise NotImplementedError("Pilot fitting awaits the required calibrated heuristic (Task8) and guarded workflow (Task13)")
+        raise NotImplementedError("Pilot fitting awaits the guarded export/freeze workflow (Task13)")
     if data.source != "uci":
         raise ValueError("source: expected uci or pilot")
     all_ids = split.train_ids + split.development_ids + split.test_ids
@@ -96,7 +96,15 @@ def _validate_fit(data, split):
         raise ValueError("targets: IDs must match their mapping keys")
 
 
-def select_settings(grid_results, *, primary_preset, control_losses):
+def _control_order(source):
+    if source not in ("pilot", "uci"):
+        raise ValueError("source: expected pilot or uci")
+    return CONTROL_ORDER if source == "pilot" else CONTROL_ORDER[:2]
+
+
+def select_settings(grid_results, *, primary_preset, control_losses, source="uci"):
+    if set(control_losses) != set(_control_order(source)):
+        raise ValueError("control_losses: require every source control and no unavailable controls")
     selected = {}
     for row in grid_results:
         if row["status"] != "ok":
@@ -107,11 +115,11 @@ def select_settings(grid_results, *, primary_preset, control_losses):
             selected[key] = dict(row)
     candidates = [(selected[f"{primary_preset}/{name}"]["development_loss"], order, name)
                   for order, (name, _, _) in enumerate(FAMILIES) if f"{primary_preset}/{name}" in selected]
-    controls = [(control_losses[name], order, name) for order, name in enumerate(CONTROL_ORDER)
+    controls = [(control_losses[name], order, name) for order, name in enumerate(_control_order(source))
                 if control_losses.get(name) is not None and np.isfinite(control_losses[name])]
     return {"primary_preset": primary_preset, "candidate": min(candidates)[2] if candidates else None,
             "reference": min(controls)[2] if controls else None, "settings": selected, "control_development_losses": control_losses,
-            "tie_order": {"families": [row[0] for row in FAMILIES], "controls": list(CONTROL_ORDER), "grid": "ascending index"}}
+            "tie_order": {"families": [row[0] for row in FAMILIES], "controls": list(_control_order(source)), "grid": "ascending index"}}
 
 
 def _control_batch(events):
@@ -120,7 +128,8 @@ def _control_batch(events):
 
 
 def _fit_control(kind, events, targets):
-    # The pilot adds its required calibrated heuristic here, in the same fixed control order.
+    if kind == "heuristic":
+        return fit_heuristic_control(events, targets)
     return fit_rate_control(kind, events, targets)
 
 
@@ -141,13 +150,14 @@ def fit_experiment(development_data: Dataset, split: Split, out_dir: Path, *, sm
     out_dir = _empty_output(out_dir)
     started = perf_counter()
     presets, seeds = (("F1",), (42,)) if smoke else (("F0", "F1"), SEEDS)
+    controls = _control_order(development_data.source)
     fit_ids = split.train_ids + split.development_ids
     train_events, dev_events = events_for(development_data, split.train_ids), events_for(development_data, split.development_ids)
     train_targets = {key: development_data.targets[key] for key in split.train_ids}
     fit_targets = {key: development_data.targets[key] for key in fit_ids}
     y, dev_y = labels_for(development_data, split.train_ids), labels_for(development_data, split.development_ids)
     control_losses, grid_results, feature_hashes, fitting_hashes, artifacts, refits, feature_seconds = {}, [], {}, {}, {}, [], {}
-    for kind in CONTROL_ORDER:
+    for kind in controls:
         model = _fit_control(kind, train_events, train_targets)
         values = model.predict_proba(_control_batch(dev_events))
         control_losses[kind] = evaluate(split.development_ids, tuple(row.participant_id for row in dev_events), dev_y, values).participant_log_loss
@@ -179,7 +189,7 @@ def fit_experiment(development_data: Dataset, split: Split, out_dir: Path, *, sm
                 row.update(seconds=perf_counter() - tick, peak_process_bytes=_peak_bytes())
                 grid_results.append(row)
                 LOGGER.info("%s/%s setting %d: %s loss=%s", preset, family, index, row["status"], row["development_loss"])
-    selection = select_settings(grid_results, primary_preset="F1", control_losses=control_losses)
+    selection = select_settings(grid_results, primary_preset="F1", control_losses=control_losses, source=development_data.source)
     # Timing is provenance, never part of development selection or fitted state.
     selection["settings"] = {key: {field: value for field, value in row.items() if field not in ("seconds", "peak_process_bytes")}
                              for key, row in selection["settings"].items()}
@@ -209,11 +219,11 @@ def fit_experiment(development_data: Dataset, split: Split, out_dir: Path, *, sm
                 result.update(seconds=perf_counter() - tick, peak_process_bytes=_peak_bytes())
                 refits.append(result)
                 LOGGER.info("Refit %s: %s", key, result["status"])
-    for kind in CONTROL_ORDER:
+    for kind in controls:
         tick = perf_counter()
         artifacts[kind] = _save_model(out_dir, kind, _fit_control(kind, fit_events, fit_targets), preset=None, family=kind, seed=None, params={})
         refits.append({"key": kind, "status": "ok", "seconds": perf_counter() - tick, "peak_process_bytes": _peak_bytes()})
-    required = len(presets) * len(FAMILIES) * len(seeds) + len(CONTROL_ORDER)
+    required = len(presets) * len(FAMILIES) * len(seeds) + len(controls)
     status = "complete" if len(artifacts) == required else "not_estimable" if len(np.unique(y)) < 2 else "incomplete"
     manifest = {"schema_version": 1, "source": development_data.source, "status": status,
         "run_kind": "smoke_verification_only" if smoke else "full_benchmark", "selection": selection,

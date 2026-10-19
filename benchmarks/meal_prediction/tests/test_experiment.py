@@ -187,3 +187,30 @@ def test_not_estimable_freeze_still_reports_available_baselines(tmp_path):
     assert report.status == "not_estimable" and set(report.metrics) == {"global", "personal"}
     assert report.selected_comparison["candidate"] is None
     assert all(metric.status == "single_class" for metric in report.metrics.values())
+
+
+def test_pilot_internal_control_order_requires_real_calibrated_heuristic(tmp_path):
+    from datetime import datetime, timedelta, timezone
+    import numpy as np
+    from meal_prediction.models.base import load_fitted
+
+    instant = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    events = tuple(Exposure(str(i), f"p{i}", "meal", instant+timedelta(hours=i),
+        {"spiciness": i % 5, "heaviness": 2, "primaryIngredients": [], "allergens": [], "weather": []}, {}) for i in range(6))
+    targets = {row.event_id: Target(row.event_id, i % 2, row.displayed_at+timedelta(seconds=1)) for i, row in enumerate(events)}
+    assert experiment._control_order("pilot") == ("global", "personal", "heuristic")
+    assert experiment._control_order("uci") == ("global", "personal")
+    with pytest.raises(ValueError, match="control"):
+        experiment.select_settings([], primary_preset="F3", control_losses={"global": .5, "personal": .5}, source="pilot")
+    with pytest.raises(ValueError, match="control"):
+        experiment.select_settings([], primary_preset="F1", control_losses={"global": .5, "personal": .5, "heuristic": .4}, source="uci")
+    models = {kind: experiment._fit_control(kind, events, targets) for kind in experiment._control_order("pilot")}
+    scored = (replace(events[0], event_id="score", participant_id="new", displayed_at=instant+timedelta(days=8)),)
+    values = {kind: fitted.predict_proba(experiment._control_batch(scored))[0] for kind, fitted in models.items()}
+    assert set(values) == {"global", "personal", "heuristic"} and np.isfinite(tuple(values.values())).all()
+    selected = experiment.select_settings([], primary_preset="F3", control_losses={"global": .5, "personal": .5, "heuristic": .4}, source="pilot")
+    assert selected["reference"] == "heuristic" and selected["tie_order"]["controls"] == ["global", "personal", "heuristic"]
+    selected = experiment.select_settings([], primary_preset="F3", control_losses={"global": .5, "personal": .5, "heuristic": .5}, source="pilot")
+    assert selected["reference"] == "global"
+    saved = experiment._save_model(tmp_path, "heuristic", models["heuristic"], preset=None, family="heuristic", seed=None, params={})
+    np.testing.assert_array_equal(load_fitted(tmp_path / saved["path"]).predict_proba(experiment._control_batch(scored)), [values["heuristic"]])
