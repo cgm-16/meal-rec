@@ -34,10 +34,12 @@ function coordinate(value: unknown, bound: number): number | null {
 }
 
 function canonicalZone(value: unknown): string | null {
-  // shortcut: location zones and UTC/GMT only; use a shared registry if bare IANA aliases are required.
+  // shortcut: fixed IANA namespaces plus UTC/GMT; extend this guard if IANA adds a namespace.
   if (!text(value) || (!value.includes('/') && !/^(UTC|GMT)$/i.test(value))) return null;
   try {
-    return new Intl.DateTimeFormat('en', { timeZone: value }).resolvedOptions().timeZone;
+    const timezone = new Intl.DateTimeFormat('en', { timeZone: value }).resolvedOptions().timeZone;
+    const supportedNamespace = /^(Africa|America|Antarctica|Arctic|Asia|Atlantic|Australia|Etc|Europe|Indian|Pacific)\//.test(timezone);
+    return supportedNamespace || timezone === 'UTC' || timezone === 'GMT' ? timezone : null;
   } catch {
     return null;
   }

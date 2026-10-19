@@ -199,7 +199,7 @@ describe('pilot weather (unit fixtures, no live requests)', () => {
     });
   });
 
-  it.each(['Not/AZone', '+09:00', 'PST', 'CET', 'Japan', 'asia/seoul', 'Asia/Kolkata', 'US/Pacific'])('rejects invalid selected IANA zone %s without fetching', async timezone => {
+  it.each(['Not/AZone', '+09:00', 'PST', 'CET', 'Japan', 'asia/seoul', 'Asia/Kolkata', 'US/Pacific', 'SystemV/EST5EDT'])('rejects invalid selected IANA zone %s without fetching', async timezone => {
     await expect(captureWeather({ ...seoul, timezone }, startedAt)).rejects.toThrow('invalid_city');
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -214,6 +214,29 @@ describe('pilot weather (unit fixtures, no live requests)', () => {
     expect(await captureWeather(seoul, startedAt)).toMatchObject({
       status: 'partial', timezone: null, gridLatitude: null, gridLongitude: 126.98,
       failureReason: 'missing_fields', temperatureC: 0,
+    });
+  });
+
+  it('does not export an ICU-only provider timezone that Python rejects', async () => {
+    respond({ ...currentResponse(), timezone: 'SystemV/EST5EDT' });
+    expect(await captureWeather(seoul, startedAt)).toMatchObject({
+      status: 'partial', timezone: null, failureReason: 'missing_fields',
+      temperatureC: 0, precipitationMm: 0, weatherCode: 0,
+    });
+  });
+
+  it.each([
+    'Africa/Cairo', 'America/New_York', 'Antarctica/Casey', 'Arctic/Longyearbyen',
+    'Asia/Seoul', 'Atlantic/Azores', 'Australia/Sydney', 'Etc/GMT+4',
+    'Europe/Paris', 'Indian/Maldives', 'Pacific/Auckland',
+  ])('retains supported canonical geographic and Etc timezone %s', async timezone => {
+    const city = { ...seoul, timezone };
+    vi.stubEnv('PILOT_WEATHER_ACCESS_MODE', 'disabled');
+    expect(await searchCities('', [city])).toEqual([city]);
+    vi.stubEnv('PILOT_WEATHER_ACCESS_MODE', 'noncommercial');
+    respond({ ...currentResponse(), timezone });
+    expect(await captureWeather(city, startedAt)).toMatchObject({
+      status: 'ok', timezone, failureReason: null,
     });
   });
 
@@ -334,6 +357,7 @@ describe('pilot cities (unit fixtures, no live requests)', () => {
       { ...seoul, cityId: 'pst', timezone: 'PST' },
       { ...seoul, cityId: 'cet', timezone: 'CET' },
       { ...seoul, cityId: 'japan', timezone: 'Japan' },
+      { ...seoul, cityId: 'systemv', timezone: 'SystemV/EST5EDT' },
     ];
     const before = structuredClone(configured);
     const choices = await searchCities('', configured);
@@ -353,6 +377,7 @@ describe('pilot cities (unit fixtures, no live requests)', () => {
       { ...city, id: 1, timezone: 'Asia/Kolkata' },
       { ...city, id: 2, timezone: 'asia/seoul' },
       { ...city, id: 3, timezone: 'PST' },
+      { ...city, id: 4, timezone: 'SystemV/EST5EDT' },
     ] });
     expect(await searchCities('Springfield', [])).toEqual([
       { ...springfields[0], cityId: 'geonames:1', timezone: 'Asia/Calcutta' },
