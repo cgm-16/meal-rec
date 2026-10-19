@@ -301,7 +301,7 @@ function allocate(p: PilotParticipantRecord, study: StudyRecord, day: PilotDay, 
 export async function nextCard(userId: string, studyId: string, visitId: string, operationId: string, pool: EligiblePool, now: Date): Promise<CardAllocation | null> {
   requireValue(text(visitId) && text(operationId));
   const eligible = eligiblePool(pool);
-  return transition(userId, studyId, now, (p, study) => {
+  const card = await transition<CardAllocation | null | undefined>(userId, studyId, now, (p, study) => {
     withinStudy(study, now);
     const visit = activeVisit(p, visitId, now);
     const current = currentSettings(p);
@@ -309,7 +309,18 @@ export async function nextCard(userId: string, studyId: string, visitId: string,
     const issued = p.issuances.find(i => i.operationId === operationId);
     if (issued) {
       requireValue(issued.visitId === visitId, 'conflict');
-      return issued.allocationId === null ? null : allocationView(p.allocations.find(a => a.allocationId === issued.allocationId)!);
+      if (issued.allocationId === null) return null;
+      const allocation = p.allocations.find(a => a.allocationId === issued.allocationId)!;
+      if (!p.exposures.some(e => e.allocationId === allocation.allocationId)) {
+        const slot = slotFor(p, allocation.allocationId);
+        if (!slot || slot.status !== 'unshown') return undefined;
+        if (!eligible.meals.some(m => m.id === allocation.itemId)) {
+          const day = p.days.find(d => d.localDate === allocation.localDate)!;
+          allocate(p, study, day, eligible, [slot], now);
+          return undefined;
+        }
+      }
+      return allocationView(allocation);
     }
     const date = localDate(now, p.enrollmentTimezone);
     let day = p.days.find(d => d.localDate === date);
@@ -329,6 +340,9 @@ export async function nextCard(userId: string, studyId: string, visitId: string,
     p.issuances.push({ operationId, visitId, allocationId: slot?.allocationId ?? null });
     return slot ? allocationView(p.allocations.find(a => a.allocationId === slot.allocationId)!) : null;
   });
+  // Commit invalidation before reporting a reload; thrown transitions roll back operation changes.
+  requireValue(card !== undefined, 'conflict');
+  return card;
 }
 
 export async function acknowledgeDisplay(userId: string, studyId: string, allocationId: string, visitId: string, settingsVersion: number, clientTime: string, now: Date): Promise<ExposureRecord> {

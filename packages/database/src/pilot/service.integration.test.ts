@@ -467,4 +467,89 @@ describe('pilot lifecycle (real MongoDB)', () => {
     }, now), 'invalid');
   });
 
+  it('invalidates an ineligible issuance retry, preserves its history and never redraws retired receipts', async () => {
+    const visit = await begin();
+    const original = await nextCard('actor', study.studyId, visit.visitId, 'retry-draw', pool(), now);
+    const before = await aggregate();
+    const eligible = pool(1, meals.filter(m => m.id !== original!.itemId));
+    await expectCode(nextCard('actor', study.studyId, visit.visitId, 'retry-draw', eligible, now), 'conflict');
+    const replaced = await aggregate();
+    expect(replaced.allocations).toHaveLength(6);
+    expect(replaced.allocations.slice(0, 5)).toEqual(before.allocations);
+    expect(replaced.issuances).toEqual(before.issuances);
+    expect(replaced.exposures).toHaveLength(0);
+    await expectCode(acknowledgeDisplay('actor', study.studyId, original!.allocationId, visit.visitId, 1, now.toISOString(), now), 'not_found');
+    await expectCode(nextCard('actor', study.studyId, visit.visitId, 'retry-draw', eligible, now), 'conflict');
+    await expectCode(nextCard('actor', study.studyId, visit.visitId, 'retry-draw', pool(), now), 'conflict');
+    expect((await aggregate()).allocations).toEqual(replaced.allocations);
+    const next = await nextCard('actor', study.studyId, visit.visitId, 'reload-draw', eligible, now);
+    expect(next!.allocationId).not.toBe(original!.allocationId);
+    expect(next!.itemId).not.toBe(original!.itemId);
+    expect(await nextCard('actor', study.studyId, visit.visitId, 'reload-draw', eligible, now)).toEqual(next);
+    const exposure = await acknowledgeDisplay('actor', study.studyId, next!.allocationId, visit.visitId, 1, now.toISOString(), now);
+    expect(exposure.allocationId).toBe(next!.allocationId);
+    expect((await aggregate()).allocations).toHaveLength(6);
+  });
+
+  it('closes an ineligible retried slot with no replacement and records shortage without retry consumption', async () => {
+    const visit = await begin();
+    const original = await nextCard('actor', study.studyId, visit.visitId, 'retry-empty', pool(), now);
+    const before = await aggregate();
+    await expectCode(nextCard('actor', study.studyId, visit.visitId, 'retry-empty', pool(1, []), now), 'conflict');
+    const closed = await aggregate();
+    expect(closed.allocations).toEqual(before.allocations);
+    expect(closed.issuances).toEqual(before.issuances);
+    expect(closed.days[0].shortage).toBe(1);
+    expect(closed.days[0].slots.find(slot => slot.allocationId === original!.allocationId)!.status).toBe('closed');
+    await expectCode(acknowledgeDisplay('actor', study.studyId, original!.allocationId, visit.visitId, 1, now.toISOString(), now), 'not_found');
+    await expectCode(nextCard('actor', study.studyId, visit.visitId, 'retry-empty', pool(1, []), now), 'conflict');
+    await expectCode(nextCard('actor', study.studyId, visit.visitId, 'retry-empty', pool(), now), 'conflict');
+    expect((await aggregate()).days[0].shortage).toBe(1);
+    expect(await nextCard('actor', study.studyId, visit.visitId, 'reload-empty', pool(1, []), now)).toBeNull();
+    const exhausted = await aggregate();
+    expect(exhausted.days[0].shortage).toBe(5);
+    expect(exhausted.allocations).toHaveLength(5);
+    expect(exhausted.exposures).toHaveLength(0);
+    expect(exhausted.responses).toHaveLength(0);
+  });
+
+  it('preserves an acknowledged issuance and its successful answer when later retry pools exclude its meal', async () => {
+    const { visit, card, exposure } = await displayed('actor', 'successful-draw');
+    const result = await submitAction('actor', study.studyId, exposure.eventId, 'yes', now.toISOString(), now);
+    const before = await aggregate();
+    const eligible = pool(1, meals.filter(m => m.id !== card.itemId));
+    expect(await nextCard('actor', study.studyId, visit.visitId, 'successful-draw', eligible, now)).toEqual(card);
+    expect(await acknowledgeDisplay('actor', study.studyId, card.allocationId, visit.visitId, 1, now.toISOString(), now)).toEqual(exposure);
+    expect(await submitAction('actor', study.studyId, exposure.eventId, 'yes', now.toISOString(), now)).toEqual(result);
+    const after = await aggregate();
+    expect(after.allocations).toEqual(before.allocations);
+    expect(after.issuances).toEqual(before.issuances);
+    expect(after.exposures).toEqual(before.exposures);
+    expect(after.responses).toEqual(before.responses);
+  });
+
+  it('serializes same-version retry invalidation against acknowledgement without resurrecting the old card', async () => {
+    const visit = await begin();
+    const original = await nextCard('actor', study.studyId, visit.visitId, 'race-draw', pool(), now);
+    const eligible = pool(1, meals.filter(m => m.id !== original!.itemId));
+    const [retried, acknowledged] = await Promise.allSettled([
+      nextCard('actor', study.studyId, visit.visitId, 'race-draw', eligible, now),
+      acknowledgeDisplay('actor', study.studyId, original!.allocationId, visit.visitId, 1, now.toISOString(), now),
+    ]);
+    const record = await aggregate();
+    if (acknowledged.status === 'fulfilled') {
+      expect(retried.status).toBe('fulfilled');
+      expect(record.exposures).toEqual([acknowledged.value]);
+      expect(record.allocations).toHaveLength(5);
+      expect(acknowledged.value.allocationId).toBe(original!.allocationId);
+    } else {
+      expect(acknowledged.reason).toMatchObject({ code: 'not_found' });
+      expect(retried.status).toBe('rejected');
+      if (retried.status === 'rejected') expect(retried.reason).toMatchObject({ code: 'conflict' });
+      expect(record.exposures).toHaveLength(0);
+      expect(record.allocations).toHaveLength(6);
+      await expectCode(acknowledgeDisplay('actor', study.studyId, original!.allocationId, visit.visitId, 1, now.toISOString(), now), 'not_found');
+    }
+  });
+
 });
