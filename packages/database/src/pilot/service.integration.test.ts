@@ -406,7 +406,9 @@ describe('pilot lifecycle (real MongoDB)', () => {
     '2026-10-25T12:00:00+01:00',
     '2026-02-30T12:00:00Z',
     '2026-10-24T24:00:00Z',
-  ])('rejects non-UTC or rolled-over timestamp %s across lifecycle inputs', async invalidTime => {
+    '2026-10-25T11:59:59.1234567Z',
+    '2026-10-25T11:59:59.123456001+00:00',
+  ])('rejects invalid UTC, calendar or unsupported precision timestamp %s across lifecycle inputs', async invalidTime => {
     const visit = await begin();
     const card = await nextCard('actor', study.studyId, visit.visitId, 'card', pool(), now);
     await expectCode(acknowledgeDisplay('actor', study.studyId, card!.allocationId, visit.visitId, 1, invalidTime, now), 'invalid');
@@ -421,8 +423,7 @@ describe('pilot lifecycle (real MongoDB)', () => {
     expect((await aggregate()).responses).toHaveLength(0);
   });
 
-  it('preserves explicit zero-offset timestamps and fractional precision without changing server time', async () => {
-    const raw = '2026-10-25T11:59:59.123456789+00:00';
+  it.each(['2026-10-25T11:59:59.123456+00:00', '2026-10-25T11:59:59.123456000+00:00'])('preserves representable raw zero-offset timestamp %s without changing server time', async raw => {
     await enrollParticipant('actor', study.studyId, settings(), now);
     const visit = await createVisit('actor', study.studyId, 'precise', {
       ...context(), contextCapturedAt: raw, weather: { ...context().weather!, requestedAt: raw },
@@ -463,7 +464,7 @@ describe('pilot lifecycle (real MongoDB)', () => {
   it('rejects sub-millisecond future context without rounding or advancing server now', async () => {
     await begin();
     await expectCode(createVisit('actor', study.studyId, 'future-fraction', {
-      ...context(), contextCapturedAt: '2026-10-25T12:00:00.000000001Z',
+      ...context(), contextCapturedAt: '2026-10-25T12:00:00.000001Z',
     }, now), 'invalid');
   });
 
@@ -550,6 +551,15 @@ describe('pilot lifecycle (real MongoDB)', () => {
       expect(record.allocations).toHaveLength(6);
       await expectCode(acknowledgeDisplay('actor', study.studyId, original!.allocationId, visit.visitId, 1, now.toISOString(), now), 'not_found');
     }
+  });
+
+
+  it('rejects unsupported study precision rather than freezing rounded cutoffs', async () => {
+    await expect(PilotStudy.create({ ...study, studyId: 'unsupported-study',
+      startsAt: '2026-10-24T00:00:00.123456001Z', trainingEndsAt: '2026-10-29T00:00:00.123456001Z',
+      developmentEndsAt: '2026-10-31T00:00:00.123456001Z', endsAt: '2026-11-07T00:00:00.123456001Z',
+    })).rejects.toThrow();
+    expect(await PilotStudy.countDocuments({ studyId: 'unsupported-study' })).toBe(0);
   });
 
 });

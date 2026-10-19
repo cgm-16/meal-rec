@@ -215,3 +215,49 @@ def test_final_snapshot_requires_and_preserves_freeze_link(tmp_path, snapshot):
     dataset = records.load_snapshot(save_snapshot(tmp_path, snapshot))
     assert dataset.manifest["freezeLink"]["freezeManifestSha256"] == "1" * 64
     assert dataset.manifest["freezeLink"]["frozenAt"].tzinfo is not None
+
+
+@pytest.mark.parametrize("path, raw", [
+    (("manifest", "startsAt"), "2026-01-01T00:00:00.000000001Z"),
+    (("manifest", "trainingEndsAt"), "2026-01-06T00:00:00.000000001Z"),
+    (("visits", 0, "contextCapturedAt"), "2026-01-02T12:00:00.123456001+00:00"),
+    (("visits", 0, "weather", "requestedAt"), "2026-01-02T12:00:00.1234567Z"),
+    (("exposures", 0, "clientDisplayedAt"), "2026-01-02T12:01:00.123456001Z"),
+    (("responses", 0, "actionAt"), "2026-01-02T12:01:01.123456001Z"),
+    (("responses", 0, "receivedAt"), "2026-01-02T12:01:02.123456001Z"),
+])
+def test_unrepresentable_precision_is_rejected_before_truncation(tmp_path, snapshot, path, raw):
+    target = snapshot
+    for part in path[:-1]:
+        target = target[part]
+    target[path[-1]] = raw
+    with pytest.raises(ValueError, match="six fractional digits"):
+        records.load_snapshot(save_snapshot(tmp_path, snapshot))
+
+
+def test_one_nanosecond_before_cutoff_fails_precision_instead_of_becoming_test_week(tmp_path, snapshot):
+    for key, raw in {
+        "startsAt": "2026-01-01T00:00:00.123456789Z",
+        "trainingEndsAt": "2026-01-06T00:00:00.123456789Z",
+        "developmentEndsAt": "2026-01-08T00:00:00.123456789Z",
+        "endsAt": "2026-01-15T00:00:00.123456789Z",
+    }.items():
+        snapshot["manifest"][key] = raw
+    snapshot["exposures"][0]["displayedAt"] = "2026-01-08T00:00:00.123456788Z"
+    with pytest.raises(ValueError, match="manifest.startsAt:.*six fractional digits"):
+        records.load_snapshot(save_snapshot(tmp_path, snapshot))
+
+
+@pytest.mark.parametrize("fraction", ["123456", "123456000"])
+def test_representable_fraction_values_load_without_rewriting_raw_snapshot(tmp_path, snapshot, fraction):
+    raw = f"2026-01-02T12:00:00.{fraction}+00:00"
+    snapshot["visits"][0]["contextCapturedAt"] = raw
+    snapshot["exposures"][0]["clientDisplayedAt"] = raw
+    path = save_snapshot(tmp_path, snapshot)
+    before = path.read_bytes()
+    dataset = records.load_snapshot(path)
+    expected = datetime(2026, 1, 2, 12, 0, 0, 123456, tzinfo=timezone.utc)
+    assert dataset.events[0].context["contextCapturedAt"] == expected
+    assert dataset.events[0].context["clientDisplayedAt"] == expected
+    assert path.read_bytes() == before
+    assert raw in path.read_text()

@@ -6,6 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "pilot:study": "node dist/pilot/cli.js study",
+    "pilot:export": "node dist/pilot/cli.js export",
     "test": "vitest",
     "lint": "eslint src --ext .ts,.js",
     "lint:fix": "eslint src --ext .ts,.js --fix"

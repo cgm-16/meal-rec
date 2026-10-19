@@ -123,6 +123,8 @@ def _finite(value: Any, field: str):
 
 def _instant(value: Any, field: str) -> datetime:
     _text(value, field)
+    if any(len(fraction.rstrip("0")) > 6 for fraction in re.findall(r"[.,](\d+)", value)):
+        _fail(field, "timestamp exceeds six fractional digits of precision")
     try:
         result = datetime.fromisoformat(value)
     except ValueError:

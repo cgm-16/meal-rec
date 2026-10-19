@@ -43,7 +43,8 @@ function timestampFraction(value: string): string {
 export function isPilotTimestamp(value: unknown): value is string {
   if (typeof value !== 'string') return false;
   const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|\+00:00)$/.exec(value);
-  if (!parts || Number(parts[1]) === 0) return false;
+  // Python evaluates microseconds; extra fractional digits must carry no value.
+  if (!parts || Number(parts[1]) === 0 || timestampFraction(value).length > 6) return false;
   const date = new Date(value);
   const components = [date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];
   return components.every((component, index) => component === Number(parts[index + 1]));
