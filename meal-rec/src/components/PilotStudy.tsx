@@ -145,7 +145,15 @@ export default function PilotStudy() {
         if (requestedFor !== actorRef.current) return;
         const changed = result.enrollment.settings[result.enrollment.settings.length - 1].version !== version;
         setData(previous => previous && { ...previous, enrollment: result.enrollment, ...(changed ? { visit: null, card: null } : {}) });
-        if (changed) { visitOperation.current = null; cardOperation.current = null; acknowledgement.current = null; setPendingAnswer(false); setExhausted(false); }
+        if (changed) {
+          visitOperation.current = null;
+          cardOperation.current = null;
+          acknowledgement.current = null;
+          setPendingAnswer(false);
+          setExhausted(false);
+          setLoadedFor('');
+          next = { kind: 'load', actor: requestedFor };
+        }
         setEditing(false);
         setCities([]);
       } else if (operation.kind === 'visit') {

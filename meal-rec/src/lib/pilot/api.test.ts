@@ -91,6 +91,17 @@ function assigned(shown = false) {
   if (shown) store.participant!.exposures = [exposure];
 }
 
+function acknowledgedFifthCard() {
+  assigned(true);
+  const p = store.participant!;
+  const earlier = Array.from({ length: 4 }, (_, index) => ({ ...allocation, allocationId: `answered-allocation-${index}`, itemId: `answered-meal-${index}`, meal: { ...meal, id: `answered-meal-${index}` } }));
+  p.allocations = [...earlier, p.allocations[0]];
+  p.exposures = p.allocations.map((a, index) => ({ ...exposure, eventId: `display-${index}`, allocationId: a.allocationId, itemId: a.itemId, meal: a.meal }));
+  p.responses = p.exposures.slice(0, 4).map((e, index) => ({ responseId: `response-${index}`, eventId: e.eventId, participantId: p.participantId, answer: 'yes', actionAt: now, receivedAt: now }));
+  p.days[0].shortage = 0;
+  p.days[0].slots = p.allocations.map((a, index) => ({ slotId: `slot-${index}`, allocationId: a.allocationId, visitId: visit.visitId, validatedSettingsVersion: 1, status: index < 4 ? 'answered' : 'shown' }));
+}
+
 describe('pilot API', () => {
   it.each([
     ['state', stateRoutes, 'GET, HEAD, OPTIONS'],
@@ -200,6 +211,45 @@ describe('pilot API', () => {
     if (state === 'retired') store.participant!.days[0].slots[0].allocationId = 'replacement';
     if (state === 'settings') store.participant!.settings.push({ ...store.participant!.settings[0], version: 2 });
     expect((await call('state')).body.card).toBeNull();
+  });
+  it.each(['city', 'exclusions'])('counts the superseded shown fifth card as unanswered after a %s change', async change => {
+    acknowledgedFifthCard();
+    const p = store.participant!;
+    p.settings.push({ ...p.settings[0], version: 2, ...(change === 'city' ? { city: otherCity } : { dietaryExclusions: ['nuts'] }) });
+    const before = structuredClone(p);
+    const result = await call('state');
+    expect(result.body).toMatchObject({ visit: null, card: null, progress: { answered: 4, unanswered: 1, shortage: 0, remaining: 0, total: 5 } });
+    expect(p).toEqual(before);
+    expect(p.exposures).toHaveLength(5);
+    expect(p.responses).toHaveLength(4);
+  });
+  it('counts an actual answer from another tab instead of the superseded shown projection', async () => {
+    acknowledgedFifthCard();
+    const p = store.participant!;
+    p.settings.push({ ...p.settings[0], version: 2, dietaryExclusions: ['nuts'] });
+    p.days[0].slots[4].status = 'answered';
+    p.responses.push({ responseId: 'fifth-response', eventId: p.exposures[4].eventId, participantId: p.participantId, answer: 'no', actionAt: now, receivedAt: now });
+    expect((await call('state')).body.progress).toMatchObject({ answered: 5, unanswered: 0, shortage: 0, remaining: 0 });
+  });
+  it('keeps a compatible issued-unshown slot available after a settings change', async () => {
+    assigned();
+    const p = store.participant!;
+    p.settings.push({ ...p.settings[0], version: 2, dietaryExclusions: ['nuts'] });
+    const before = structuredClone(p);
+    expect((await call('state')).body).toMatchObject({ visit: null, card: null, progress: { answered: 0, unanswered: 0, remaining: 1 } });
+    expect(p).toEqual(before);
+  });
+  it('uses the shown visit version rather than an older retained allocation version', async () => {
+    assigned(true);
+    const p = store.participant!;
+    p.settings.push({ ...p.settings[0], version: 2, dietaryExclusions: ['nuts'] });
+    p.visits[0].settingsVersion = 2;
+    p.exposures[0].settingsVersion = 2;
+    p.days[0].slots[0].validatedSettingsVersion = 2;
+    const result = await call('state');
+    expect(result.body.card.exposure.settingsVersion).toBe(2);
+    expect(result.body.card.allocation.settingsVersion).toBe(1);
+    expect(result.body.progress.unanswered).toBe(0);
   });
   it('counts explicit skips as unanswered rather than answered', async () => {
     assigned(true);

@@ -204,9 +204,12 @@ describe('PilotStudy', () => {
     expect(payload('/cards', 1).operationId).not.toBe(payload('/cards').operationId);
   });
   it('saves current-version settings before requiring a fresh visit', async () => {
-    fetchMock.mockImplementation(url => String(url) === '/api/pilot/enrollment'
-      ? json({ enrollment: { ...enrollment, settings: [...enrollment.settings, { ...enrollment.settings[0], version: 2, dietaryExclusions: ['nuts', 'dairy'] }] } })
-      : json(ready()));
+    const updated = { ...enrollment, settings: [...enrollment.settings, { ...enrollment.settings[0], version: 2, dietaryExclusions: ['nuts', 'dairy'] }] };
+    let saved = false;
+    fetchMock.mockImplementation(url => {
+      if (String(url) === '/api/pilot/enrollment') { saved = true; return json({ enrollment: updated }); }
+      return json(saved ? { ...ready(), enrollment: updated, visit: null, card: null } : ready());
+    });
     render(<PilotStudy />);
     fireEvent.click(await screen.findByRole('button', { name: 'Change settings' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Dietary exclusions (comma separated)' }), { target: { value: 'nuts, dairy' } });
@@ -217,6 +220,63 @@ describe('PilotStudy', () => {
     expect(await screen.findByRole('button', { name: 'Start visit' })).toBeInTheDocument();
     expect(screen.queryByText('Saved rice')).not.toBeInTheDocument();
     expect(requests('/visits')).toHaveLength(0);
+  });
+  it('accounts for the shown fifth card immediately after a confirmed settings change', async () => {
+    const initial = { ...ready(), progress: { ...ready().progress, answered: 4, remaining: 0 } };
+    const updated = { ...enrollment, settings: [...enrollment.settings, { ...enrollment.settings[0], version: 2, dietaryExclusions: ['nuts'] }] };
+    let saved = false;
+    fetchMock.mockImplementation(url => {
+      if (String(url) === '/api/pilot/enrollment') { saved = true; return json({ enrollment: updated }); }
+      return json(saved ? { ...initial, enrollment: updated, card: null, visit: null, progress: { ...initial.progress, unanswered: 1 } } : initial);
+    });
+    render(<PilotStudy />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Change settings' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Dietary exclusions (comma separated)' }), { target: { value: 'nuts' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save settings' }));
+    expect(await screen.findByText(/1 left unanswered/)).toBeInTheDocument();
+    expect(screen.getByText(/4 of 5 cards answered/)).toBeInTheDocument();
+    expect(screen.queryByText('Saved rice')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Start visit' })).not.toBeInTheDocument();
+    expect(requests('/enrollment')).toHaveLength(1);
+  });
+  it('retries only the state refresh after settings were saved and hides stale progress meanwhile', async () => {
+    const initial = { ...ready(), progress: { ...ready().progress, answered: 4, remaining: 0 } };
+    const updated = { ...enrollment, settings: [...enrollment.settings, { ...enrollment.settings[0], version: 2, dietaryExclusions: ['nuts'] }] };
+    let reads = 0;
+    let finishRefresh!: (value: Response) => void;
+    fetchMock.mockImplementation(url => {
+      if (String(url) === '/api/pilot/enrollment') return json({ enrollment: updated });
+      if (++reads === 1) return json(initial);
+      if (reads === 2) return new Promise(resolve => { finishRefresh = resolve; });
+      return json({ ...initial, enrollment: updated, card: null, visit: null, progress: { ...initial.progress, answered: 5 } });
+    });
+    render(<PilotStudy />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Change settings' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Dietary exclusions (comma separated)' }), { target: { value: 'nuts' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save settings' }));
+    await waitFor(() => expect(requests('')).toHaveLength(2));
+    expect(screen.getByText('Loading pilot…')).toBeInTheDocument();
+    expect(screen.queryByText(/4 of 5 cards answered/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Saved rice')).not.toBeInTheDocument();
+    await act(async () => { finishRefresh(new Response(JSON.stringify({ error: { code: 'internal', message: 'Refresh failed.' } }), { status: 500 })); });
+    const retry = await screen.findByRole('button', { name: 'Retry load pilot' });
+    expect(screen.queryByRole('button', { name: 'Retry save settings' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/4 of 5 cards answered/)).not.toBeInTheDocument();
+    fireEvent.click(retry);
+    expect(await screen.findByText(/5 of 5 cards answered/)).toBeInTheDocument();
+    expect(screen.getByText(/0 left unanswered/)).toBeInTheDocument();
+    expect(requests('/enrollment')).toHaveLength(1);
+    expect(requests('')).toHaveLength(3);
+  });
+  it('keeps the current assessment when settings save returns an unchanged version', async () => {
+    render(<PilotStudy />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Change settings' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save settings' }));
+    expect(await screen.findByRole('button', { name: 'Yes' })).toBeEnabled();
+    expect(screen.getByText('Saved rice')).toBeInTheDocument();
+    expect(screen.getByText(/0 left unanswered/)).toBeInTheDocument();
+    expect(requests('')).toHaveLength(1);
+    expect(requests('/enrollment')).toHaveLength(1);
   });
   it.each([['disabled', 'not configured'], ['not_started', 'not started'], ['ended', 'ended']])('explains %s without assessment controls', async (status, text) => {
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ ...ready(), status, visit: null, card: null })));

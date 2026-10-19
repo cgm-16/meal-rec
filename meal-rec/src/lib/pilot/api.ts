@@ -108,8 +108,14 @@ function progress(p: PilotParticipantRecord | null, now: Date): PilotProgress {
   if (!p) return { ...emptyProgress };
   const date = localDate(now, p.enrollmentTimezone);
   const day = p.days.find(d => d.localDate === date);
-  const slots = day?.slots.map(slot => ({ ...slot, status: (slot.status === 'shown' || slot.status === 'unshown')
-    && p.visits.some(v => v.visitId === slot.visitId && Date.parse(v.expiresAt) <= now.getTime()) ? 'expired' : slot.status }));
+  const currentVersion = p.settings[p.settings.length - 1].version;
+  const slots = day?.slots.map(slot => {
+    const visit = p.visits.find(v => v.visitId === slot.visitId);
+    const expired = (slot.status === 'shown' || slot.status === 'unshown') && visit && Date.parse(visit.expiresAt) <= now.getTime();
+    // Settings changes hide shown cards before a fresh visit closes their slots.
+    const superseded = slot.status === 'shown' && visit && visit.settingsVersion !== currentVersion;
+    return { ...slot, status: expired ? 'expired' : superseded ? 'closed' : slot.status };
+  });
   return {
     localDate: date, total: 5, shortage: day?.shortage ?? 0,
     answered: slots?.filter(s => s.status === 'answered').length ?? 0,
