@@ -8,26 +8,32 @@ function nonempty(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+export function normalizePilotTimezone(value: unknown): string | null {
+  if (!nonempty(value) || (!value.includes('/') && !/^(UTC|GMT)$/i.test(value))) return null;
+  try {
+    const timezone = new Intl.DateTimeFormat('en', { timeZone: value }).resolvedOptions().timeZone;
+    // shortcut: fixed IANA namespaces plus UTC/GMT; extend if IANA adds a namespace.
+    if (!/^(Africa|America|Antarctica|Arctic|Asia|Atlantic|Australia|Etc|Europe|Indian|Pacific)\//.test(timezone)
+      && timezone !== 'UTC' && timezone !== 'GMT') return null;
+    return timezone;
+  } catch {
+    return null;
+  }
+}
+
 export function normalizePilotCity(value: unknown): CitySelection | null {
   if (value === null || typeof value !== 'object') return null;
   const city = value as Record<string, unknown>;
   if (!nonempty(city.cityId) || !nonempty(city.label) || !nonempty(city.country)
     || !(city.adminArea === null || nonempty(city.adminArea))
     || typeof city.latitude !== 'number' || !Number.isFinite(city.latitude) || Math.abs(city.latitude) > 90
-    || typeof city.longitude !== 'number' || !Number.isFinite(city.longitude) || Math.abs(city.longitude) > 180
-    || !nonempty(city.timezone) || (!city.timezone.includes('/') && !/^(UTC|GMT)$/i.test(city.timezone))) return null;
-  try {
-    const timezone = new Intl.DateTimeFormat('en', { timeZone: city.timezone }).resolvedOptions().timeZone;
-    // shortcut: fixed IANA namespaces plus UTC/GMT; extend if IANA adds a namespace.
-    if (!/^(Africa|America|Antarctica|Arctic|Asia|Atlantic|Australia|Etc|Europe|Indian|Pacific)\//.test(timezone)
-      && timezone !== 'UTC' && timezone !== 'GMT') return null;
-    return {
-      cityId: city.cityId, label: city.label, country: city.country, adminArea: city.adminArea,
-      latitude: city.latitude, longitude: city.longitude, timezone,
-    };
-  } catch {
-    return null;
-  }
+    || typeof city.longitude !== 'number' || !Number.isFinite(city.longitude) || Math.abs(city.longitude) > 180) return null;
+  const timezone = normalizePilotTimezone(city.timezone);
+  if (timezone === null) return null;
+  return {
+    cityId: city.cityId, label: city.label, country: city.country, adminArea: city.adminArea,
+    latitude: city.latitude, longitude: city.longitude, timezone,
+  };
 }
 
 export function isPilotCity(value: unknown): value is CitySelection {

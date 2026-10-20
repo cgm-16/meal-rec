@@ -6,11 +6,14 @@ import { mkdir, rename, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { PilotParticipant } from '../models/pilot-participant';
 import type { PilotParticipantRecord } from '../models/pilot-participant';
-import { comparePilotTimestamps, isPilotCity, isPilotTimestamp, normalizePilotCity, PilotStudy } from '../models/pilot-study';
+import { comparePilotTimestamps, isPilotCity, isPilotTimestamp, normalizePilotCity, normalizePilotTimezone, PilotStudy } from '../models/pilot-study';
 import type { CardAllocation, CitySelection, EnrollmentSettings, ExportManifest, ExposureRecord, FreezeLink, MealSnapshot, ParticipantView, PilotSnapshot, ResponseRecord, StudyConfig, StudyRecord, VisitRecord, WeatherSnapshot } from './types';
 
 function requireValue(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(`Pilot export: ${message}`);
+}
+function requireOwner(value: { participantId: string }, participantId: string): void {
+  requireValue(value.participantId === participantId, 'nested record does not match its containing participant aggregate');
 }
 function text(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
@@ -31,8 +34,8 @@ function strings(value: unknown): string[] {
 }
 function zone(value: unknown): string {
   requireValue(text(value), 'expected an IANA timezone');
-  try { new Intl.DateTimeFormat('en', { timeZone: value }); }
-  catch { throw new Error('Pilot export: expected an IANA timezone'); }
+  const normalized = normalizePilotTimezone(value);
+  requireValue(normalized !== null && (value === normalized || value === 'GMT'), 'expected a canonical IANA timezone');
   return value;
 }
 function city(value: CitySelection): CitySelection {
@@ -286,23 +289,30 @@ export async function exportPilot(studyId: string, phase: 'development' | 'final
       enrollmentTimezone: zone(participant.enrollmentTimezone), settings });
     for (const key of ['visits', 'allocations', 'exposures', 'responses'] as const) requireValue(Array.isArray(participant[key]), `invalid ${key} array`);
     for (const row of participant.visits.filter(row => include(row.startedAt) && include(row.contextCapturedAt))) {
+      requireOwner(row, participant.participantId);
       const saved = visit(row);
       requireValue(phase === 'final' || saved.weather === null || (include(saved.weather.requestedAt)
         && (saved.weather.retrievedAt === null || include(saved.weather.retrievedAt))), 'development visit contains week-two weather retrieval');
       snapshot.visits.push(saved);
     }
     for (const row of participant.allocations.filter(row => include(row.allocatedAt))) {
+      requireOwner(row, participant.participantId);
       const saved = allocation(row);
       snapshot.allocations.push(saved);
       const savedMeal = meal(row.meal);
       requireValue(savedMeal.id === saved.itemId, 'saved allocation meal mismatch');
       allocationMeals.push({ allocationId: saved.allocationId, participantId: saved.participantId, meal: savedMeal });
     }
-    const exposures = participant.exposures.filter(row => include(row.displayedAt)).map(exposure);
+    const exposures = participant.exposures.filter(row => include(row.displayedAt)).map(row => {
+      requireOwner(row, participant.participantId);
+      return exposure(row);
+    });
     snapshot.exposures.push(...exposures);
     for (const row of participant.responses) {
-      if (include(row.receivedAt)) snapshot.responses.push(response(row));
-      else if (exposures.some(saved => saved.eventId === row.eventId)) {
+      if (include(row.receivedAt)) {
+        requireOwner(row, participant.participantId);
+        snapshot.responses.push(response(row));
+      } else if (exposures.some(saved => saved.eventId === row.eventId)) {
         // The withheld answer and its clocks/ID never enter a development artifact.
         const display = exposures.find(saved => saved.eventId === row.eventId)!;
         if (interval(display.displayedAt, study) !== interval(timestamp(row.receivedAt), study)) {

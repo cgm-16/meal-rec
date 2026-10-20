@@ -314,4 +314,61 @@ describe('pilot export (real MongoDB; constructed verification only)', () => {
     expect((await snapshot(destination)).visits[0].weather!.validAt).toBe('2026-01-09T00:00:00.123456+00:00');
   });
 
+  it.each([
+    ['enrollmentTimezone', '+09:00'], ['visits.0.weather.timezone', '+09:00'],
+    ['enrollmentTimezone', 'PST'], ['visits.0.weather.timezone', 'PST'],
+    ['enrollmentTimezone', 'SystemV/EST5EDT'], ['visits.0.weather.timezone', 'SystemV/EST5EDT'],
+    ['enrollmentTimezone', 'asia/seoul'], ['visits.0.weather.timezone', 'asia/seoul'],
+    ['enrollmentTimezone', 'Mars/Olympus'], ['visits.0.weather.timezone', 'Mars/Olympus'],
+  ])('rejects noncanonical included timezone at %s: %s before publishing', async (field, timezone) => {
+    const participant = await seed();
+    await PilotParticipant.collection.updateOne({ participantId: participant.participantId }, { $set: { [field]: timezone } });
+    const destination = join(directory, 'invalid-zone');
+    await expect(exportPilot(config.studyId, 'development', destination, exportedAt)).rejects.toThrow(/IANA timezone/);
+    await expect(readdir(destination)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  it.each(['UTC', 'GMT', 'Asia/Seoul'])('preserves canonical exported timezone %s exactly', async timezone => {
+    const participant = await seed();
+    await PilotParticipant.collection.updateOne({ participantId: participant.participantId }, { $set: {
+      enrollmentTimezone: timezone, 'visits.0.weather.timezone': timezone,
+    } });
+    const destination = join(directory, 'canonical-zone');
+    await exportPilot(config.studyId, 'development', destination, exportedAt);
+    const output = await snapshot(destination);
+    expect(output.participants[0].enrollmentTimezone).toBe(timezone);
+    expect(output.visits[0].weather!.timezone).toBe(timezone);
+    expect(output.visits[0].contextCapturedAt).toBe('2026-01-02T12:00:00.123456000+00:00');
+  });
+
+  it.each(['visits', 'allocations', 'exposures', 'responses'] as const)(
+    'rejects globally coherent %s stored under another participant aggregate', async field => {
+      const participant = await seed();
+      const otherVisit = { ...participant.visits[0], visitId: 'v-other', participantId: 'p-other' };
+      const otherAllocation = { ...participant.allocations[0], allocationId: 'a-other', participantId: 'p-other' };
+      const otherUnshown = { ...participant.allocations[3], allocationId: 'a-other-unshown', participantId: 'p-other' };
+      const otherExposure = { ...participant.exposures[0], eventId: 'e-other', participantId: 'p-other',
+        visitId: otherVisit.visitId, allocationId: otherAllocation.allocationId };
+      await PilotParticipant.create({ ...participant, userId: 'PRIVATE-OTHER', participantId: 'p-other',
+        days: [], visits: [otherVisit], allocations: [otherAllocation, otherUnshown],
+        exposures: [otherExposure], responses: [], issuances: [],
+      });
+      const validDestination = join(directory, 'valid-two-participants');
+      await exportPilot(config.studyId, 'development', validDestination, exportedAt);
+      expect((await snapshot(validDestination)).participants.map(row => row.participantId)).toEqual(['p-other', 'p-test']);
+      if (field === 'visits') participant.visits.push({ ...otherVisit, visitId: 'v-misattributed' });
+      if (field === 'allocations') participant.allocations[5].participantId = 'p-other';
+      if (field === 'exposures') participant.exposures[3] = { ...participant.exposures[3], participantId: 'p-other',
+        visitId: otherVisit.visitId, allocationId: otherUnshown.allocationId,
+        itemId: otherUnshown.itemId, meal: otherUnshown.meal };
+      if (field === 'responses') participant.responses[0] = { ...participant.responses[0], participantId: 'p-other', eventId: otherExposure.eventId };
+      await PilotParticipant.collection.updateOne({ participantId: participant.participantId }, { $set: { [field]: participant[field] } });
+      for (const phase of ['development', 'final'] as const) {
+        const destination = join(directory, `invalid-owner-${phase}`);
+        const link = phase === 'final' ? { freezeManifestSha256: 'b'.repeat(64), frozenAt: '2026-01-07T23:00:00Z', developmentSnapshotSha256: 'c'.repeat(64) } : undefined;
+        await expect(exportPilot(config.studyId, phase, destination, exportedAt, link)).rejects.toThrow(/containing participant aggregate/);
+        await expect(readdir(destination)).rejects.toMatchObject({ code: 'ENOENT' });
+      }
+    });
+
 });
