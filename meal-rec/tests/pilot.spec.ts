@@ -17,14 +17,15 @@ if (!mongoUrl || new URL(mongoUrl).pathname !== '/meal-rec-e2e-test') throw new 
 const studyId = 'constructed-e2e-pilot';
 type BrowserError = { offline: boolean; text: string };
 
-function captureErrors(page: Page, errors: BrowserError[], isOffline: () => boolean) {
+function captureBrowserEvents(page: Page, errors: BrowserError[], uploads: string[], isOffline: () => boolean) {
+  page.on('request', request => { if (/\/envelope\/?$/.test(new URL(request.url()).pathname)) uploads.push(request.url()); });
   page.on('console', message => { if (message.type() === 'error') errors.push({ offline: isOffline(), text: message.text() }); });
   page.on('pageerror', error => errors.push({ offline: isOffline(), text: error.message }));
 }
 
 function assertErrors(errors: BrowserError[]) {
   expect(errors.filter(error => !error.offline)).toEqual([]);
-  expect(errors.filter(error => error.offline).every(error => /offline|network|internet|fetch|load resource/i.test(error.text))).toBe(true);
+  expect(errors.filter(error => error.offline && !/offline|network|internet|fetch|load resource/i.test(error.text))).toEqual([]);
 }
 
 test.describe.configure({ mode: 'serial' });
@@ -94,9 +95,10 @@ test('normal UI preserves collection IDs and exact MongoDB/export values, labels
   const secondContext = await browser.newContext({ baseURL: 'http://localhost:3000', viewport: { width: 1280, height: 720 } });
   let offline = false;
   const errors: BrowserError[] = [];
+  const uploads: string[] = [];
   const attempts: unknown[] = [];
   page.on('request', request => { if (request.url().endsWith('/api/pilot/responses') && request.method() === 'POST') attempts.push(request.postDataJSON()); });
-  captureErrors(page, errors, () => offline);
+  captureBrowserEvents(page, errors, uploads, () => offline);
   try {
     const guest = await page.request.post('/api/pilot/visits', { data: { operationId: randomUUID(), hunger: null } });
     expect(guest.status()).toBe(401);
@@ -155,7 +157,7 @@ test('normal UI preserves collection IDs and exact MongoDB/export values, labels
     expect(owner.visits[0]).toMatchObject({ ...first.visit! });
 
     const other = await secondContext.newPage();
-    captureErrors(other, errors, () => false);
+    captureBrowserEvents(other, errors, uploads, () => false);
     const otherUsername = await signUpAndIn(other);
     await enroll(other);
     const third = await shown(other);
@@ -199,11 +201,12 @@ test('normal UI preserves collection IDs and exact MongoDB/export values, labels
     expect(targets[second.card!.exposure!.eventId]).toBe(0);
     for (const value of [third, fourth, fifth]) expect(targets).not.toHaveProperty(value.card!.exposure!.eventId);
     await writeFile(join(artifact, 'VERIFICATION.txt'), `CONSTRUCTED verification; not genuine pilot evidence.\n${exportOutput}\n${validation}\n${checksums}`);
-    await testInfo.attach('constructed-export-proof', { body: JSON.stringify({ artifact, exportOutput, validation, checksums }, null, 2), contentType: 'application/json' });
+    await testInfo.attach('constructed-export-proof', { body: JSON.stringify({ artifact, exportOutput, validation, checksums, runtime: { node: process.version, browser: browser.version(), viewport: page.viewportSize(), database: mongoUrl } }, null, 2), contentType: 'application/json' });
     await page.screenshot({ path: join(artifact, 'completed-collector.png'), fullPage: true });
     await testInfo.attach('completed-collector', { path: join(artifact, 'completed-collector.png'), contentType: 'image/png' });
     await testInfo.attach('expected-offline-errors', { body: JSON.stringify(errors, null, 2), contentType: 'application/json' });
     assertErrors(errors);
+    expect(uploads, 'Explicit empty monitoring DSN must prevent all envelope uploads').toEqual([]);
   } finally {
     await context.setOffline(false);
     await secondContext.close();
@@ -214,7 +217,8 @@ test('normal UI preserves collection IDs and exact MongoDB/export values, labels
 test('pilot responses and navigation never come from a service-worker cache while offline', async ({ page, context }, testInfo) => {
   let isOffline = false;
   const errors: BrowserError[] = [];
-  captureErrors(page, errors, () => isOffline);
+  const uploads: string[] = [];
+  captureBrowserEvents(page, errors, uploads, () => isOffline);
   await signUpAndIn(page);
   await enroll(page);
   await shown(page);
@@ -238,8 +242,19 @@ test('pilot responses and navigation never come from a service-worker cache whil
     await testInfo.attach('offline-cache-proof', { body: JSON.stringify({ offline, cached }, null, 2), contentType: 'application/json' });
     expect(offline).toEqual(paths.map(path => ({ path, status: null })));
     expect(cached).toEqual([]);
-    assertErrors(errors);
     await testInfo.attach('expected-offline-errors', { body: JSON.stringify(errors, null, 2), contentType: 'application/json' });
+    const expectedOfflineErrors = new Set([
+      'Failed to load resource: net::ERR_FAILED',
+      ...paths.flatMap(path => {
+        const url = new URL(path, page.url());
+        const noResponse = `no-response: no-response :: [{"url":"${url.href}","error":{}}]`;
+        return [noResponse, `/${url.host}${url.pathname}${url.search}.`,
+          `Failed to load resource: FetchEvent.respondWith received an error: ${noResponse}`];
+      }),
+    ]);
+    expect(errors.filter(error => !error.offline)).toEqual([]);
+    expect(errors.filter(error => !expectedOfflineErrors.has(error.text))).toEqual([]);
+    expect(uploads, 'Explicit empty monitoring DSN must prevent all envelope uploads').toEqual([]);
   } finally {
     await context.setOffline(false);
   }

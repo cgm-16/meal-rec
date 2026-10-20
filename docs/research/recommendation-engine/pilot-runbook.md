@@ -26,7 +26,7 @@ Use an explicitly selected study database; never run the destructive E2E seed ag
 MONGO_URL=YOUR_EXPLICIT_STUDY_DATABASE pnpm --filter @meal-rec/database pilot:study --config /absolute/private/study.json
 ```
 
-Study configuration is immutable. Set the app's `MONGO_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL` and **matching** `PILOT_STUDY_ID` before building/starting the app with the existing deployment workflow. An unset study ID disables the pilot; a configured missing study is an error. Deployment/database access, actual study dates and enrollment are launch inputs; these commands neither provision infrastructure nor enroll people. Keep credentials and private exports out of Git.
+Study configuration is immutable. Set the app's `MONGO_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL` and **matching** `PILOT_STUDY_ID` before building/starting the app with the existing deployment workflow. An unset study ID disables the pilot; a configured missing study is an error. Deployment/database access, actual study dates and enrollment are launch inputs; these commands neither provision infrastructure nor enroll people. Keep credentials and private exports out of Git. Set `NEXT_PUBLIC_SENTRY_DSN` to an explicit empty string when uploads should be disabled; an unset variable retains the default monitoring destination.
 
 Use the normal username/PIN signup and signin screens. Each person must explicitly opt in, select a server-resolved city match and enter any dietary exclusions. Enrollment timezone fixes the participant-day quota; travel city timezone affects the prediction clock. Settings changes require a fresh visit/context. Each visit lasts 30 minutes. Optional hunger is `not_hungry`, `somewhat_hungry`, `very_hungry` or missing.
 
