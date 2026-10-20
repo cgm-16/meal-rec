@@ -112,11 +112,11 @@ def test_score_changes_labels_only_in_metrics_and_requires_exact_ids(tmp_path):
         experiment.score_experiment(freeze, events[:-1], data.targets, tmp_path / "missing")
 
 
-def test_pilot_requires_development_phase_and_pending_required_controls(tmp_path):
+def test_pilot_requires_development_phase_and_guarded_bundle(tmp_path):
     data, split = tiny_dataset()
     with pytest.raises(ValueError, match="development"):
         experiment.fit_experiment(replace(data, source="pilot", manifest={"phase": "final"}), split, tmp_path / "pilot")
-    with pytest.raises(NotImplementedError, match="heuristic|Task"):
+    with pytest.raises(ValueError, match="bundle"):
         experiment.fit_experiment(replace(data, source="pilot", manifest={"phase": "development"}), split, tmp_path / "pilot")
 
 

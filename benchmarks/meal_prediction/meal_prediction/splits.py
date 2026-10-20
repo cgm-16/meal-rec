@@ -36,7 +36,7 @@ def split_pilot(dataset: Dataset) -> Split:
     boundaries = [dataset.manifest[key] for key in
                   ("startsAt", "trainingEndsAt", "developmentEndsAt", "endsAt")]
     partitions = [[], [], []]
-    for event in dataset.events:
+    for event in sorted(dataset.events, key=lambda row: (row.displayed_at is None, row.displayed_at, row.event_id)):
         target = dataset.targets.get(event.event_id)
         if target is None:
             continue
