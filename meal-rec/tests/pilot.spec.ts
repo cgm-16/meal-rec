@@ -23,9 +23,13 @@ function captureBrowserEvents(page: Page, errors: BrowserError[], uploads: strin
   page.on('pageerror', error => errors.push({ offline: isOffline(), text: error.message }));
 }
 
-function assertErrors(errors: BrowserError[]) {
+function assertErrors(errors: BrowserError[], browserName: string) {
+  const expectedOfflineErrors: Record<string, string> = {
+    chromium: 'Failed to load resource: net::ERR_INTERNET_DISCONNECTED',
+    webkit: 'Failed to load resource: WebKit encountered an internal error',
+  };
   expect(errors.filter(error => !error.offline)).toEqual([]);
-  expect(errors.filter(error => error.offline && !/offline|network|internet|fetch|load resource/i.test(error.text))).toEqual([]);
+  expect(errors.filter(error => error.text !== expectedOfflineErrors[browserName])).toEqual([]);
 }
 
 test.describe.configure({ mode: 'serial' });
@@ -205,7 +209,7 @@ test('normal UI preserves collection IDs and exact MongoDB/export values, labels
     await page.screenshot({ path: join(artifact, 'completed-collector.png'), fullPage: true });
     await testInfo.attach('completed-collector', { path: join(artifact, 'completed-collector.png'), contentType: 'image/png' });
     await testInfo.attach('expected-offline-errors', { body: JSON.stringify(errors, null, 2), contentType: 'application/json' });
-    assertErrors(errors);
+    assertErrors(errors, browser.browserType().name());
     expect(uploads, 'Explicit empty monitoring DSN must prevent all envelope uploads').toEqual([]);
   } finally {
     await context.setOffline(false);
