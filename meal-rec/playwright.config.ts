@@ -3,6 +3,9 @@
 
 import { defineConfig, devices } from '@playwright/test';
 
+const { PILOT_STUDY_ID, requireE2EDatabase } = require('./scripts/e2e-pilot-study');
+const mongoUrl = requireE2EDatabase();
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -45,13 +48,15 @@ export default defineConfig({
     // hydrate mid-interaction, which made webkit auth flows fail their first attempt
     command: 'node scripts/health-check.js && node scripts/e2e-seed.js && pnpm build && pnpm start',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: process.env.CI ? 240000 : 180000, // 4 minutes in CI, 3 minutes locally
     ignoreHTTPSErrors: true,
     
     // Add environment variables for the web server
     env: {
-      MONGO_URL: 'mongodb://localhost:27017/meal-rec-e2e-test',
+      MONGO_URL: mongoUrl,
+      PILOT_STUDY_ID,
+      PILOT_WEATHER_ACCESS_MODE: 'disabled',
       NEXTAUTH_SECRET: 'test-secret-for-playwright',
       NEXTAUTH_URL: 'http://localhost:3000',
       // Disable Sentry in E2E tests to avoid DSN errors

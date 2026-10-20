@@ -2,7 +2,7 @@
 // ABOUTME: Handles caching strategies for API routes and static assets
 
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist } from "serwist";
+import { NetworkOnly, Serwist } from "serwist";
 import { defaultCache } from "@serwist/next/worker";
 
 // This declares the value of `injectionPoint` to TypeScript.
@@ -17,13 +17,20 @@ declare global {
 
 declare const self: WorkerGlobalScope;
 
+const pilotPath = /^\/(?:api\/pilot|pilot)(?:\/|$)/;
+
 const serwist = new Serwist({
-  precacheEntries: self.__SW_MANIFEST,
+  precacheEntries: self.__SW_MANIFEST?.filter(entry => !pilotPath.test(
+    new URL(typeof entry === "string" ? entry : entry.url, self.location.origin).pathname,
+  )),
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  // defaultCache NetworkFirst-caches same-origin GET /api/* for offline use
-  runtimeCaching: defaultCache,
+  // Other same-origin GET /api/* routes keep defaultCache's offline NetworkFirst strategy.
+  runtimeCaching: [
+    { matcher: ({ sameOrigin, url }) => sameOrigin && pilotPath.test(url.pathname), handler: new NetworkOnly() },
+    ...defaultCache,
+  ],
 });
 
 serwist.addEventListeners();

@@ -29,7 +29,7 @@ jobs:
         cache: 'pnpm'
     
     - name: Install dependencies
-      run: pnpm install
+      run: pnpm install --frozen-lockfile
     
     - name: Build packages
       run: pnpm -r build
@@ -46,9 +46,10 @@ jobs:
       run: pnpm lint
     
     - name: Run tests
-      run: pnpm test
+      run: pnpm test --run --reporter=default
       env:
         MONGO_URL: mongodb://localhost:27017/meal-rec-test
+        MONGOMS_VERSION: '8.0.34'
         NEXTAUTH_SECRET: test-secret-for-ci-only
         NEXTAUTH_URL: http://localhost:3000
     
@@ -79,7 +80,7 @@ jobs:
         cache: 'pnpm'
     
     - name: Install dependencies
-      run: pnpm install
+      run: pnpm install --frozen-lockfile
     
     - name: Restore build artifacts
       uses: actions/cache/restore@v4
@@ -99,6 +100,19 @@ jobs:
     - name: Install Playwright Browsers
       run: cd meal-rec && pnpm exec playwright install --with-deps
     
+    - name: Install locked benchmark runtime
+      uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      with:
+        version: '0.12.9'
+        python-version: '3.12.12'
+
+    - name: Install locked benchmark dependencies
+      working-directory: benchmarks/meal_prediction
+      run: uv sync --frozen
+
+    - name: Check destructive E2E database guard
+      run: node meal-rec/scripts/e2e-pilot-study.js --self-check
+
     - name: Run E2E tests
       run: cd meal-rec && pnpm test:e2e
       env:
@@ -112,6 +126,25 @@ jobs:
       with:
         name: e2e-test-results
         path: meal-rec/test-results/
+
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install locked benchmark runtime
+      uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      with:
+        version: '0.12.9'
+        python-version: '3.12.12'
+
+    - name: Install locked benchmark dependencies
+      working-directory: benchmarks/meal_prediction
+      run: uv sync --frozen
+
+    - name: Run Python suite including real UCI three-family smoke
+      working-directory: benchmarks/meal_prediction
+      run: uv run --frozen python -m pytest -rP
 
   lighthouse:
     runs-on: ubuntu-latest
@@ -131,7 +164,7 @@ jobs:
         cache: 'pnpm'
     
     - name: Install dependencies
-      run: pnpm install
+      run: pnpm install --frozen-lockfile
     
     - name: Restore build artifacts
       uses: actions/cache/restore@v4

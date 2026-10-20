@@ -4,6 +4,12 @@
 > 
 > A meal recommendation PWA built following a 20-prompt LLM code generation plan. Recommendations come from a hand-tuned heuristic scoring engine, not a trained model. See [`FUTURE_ENHANCEMENTS.md`](FUTURE_ENHANCEMENTS.md) for what is not built yet.
 
+## Meal-appeal benchmark and opt-in pilot
+
+The separate `/pilot` collector records immediate meal appeal through normal signup/signin and explicit opt-in. The offline Python benchmark runs three actual model families without replacing the production heuristic. See the [pilot runbook](docs/research/recommendation-engine/pilot-runbook.md), [benchmark commands](benchmarks/meal_prediction/README.md) and [measured full UCI results](docs/research/recommendation-engine/results/uci-three-models.md).
+
+Genuine pilot launch, enrollment and the 14-day response window remain pending. Automated collector/export checks are constructed verification; UCI restaurant ratings do not establish appetite, weather or feed-acceptance gains. The pilot requires the network and keeps its API/page responses out of service-worker caches.
+
 ## 🚀 Features Implemented
 
 ### ✅ Core Functionality
@@ -14,7 +20,7 @@
 - **Database Management** - MongoDB with Mongoose; seed data in `data/meals.json` (91 meals)
 
 ### ❌ Not Implemented
-- **Weather Integration** - `packages/core/src/weather.ts` exists, but nothing asks for location or calls it, so recommendations always use `normal` weather (see `FUTURE_ENHANCEMENTS.md`)
+- **Weather Integration** - the home feed does not call `packages/core/src/weather.ts`, so recommendations always use `normal` weather; the separate opt-in pilot can capture authorized, configured weather (see `FUTURE_ENHANCEMENTS.md`)
 
 ### ✅ Advanced Features (Complete)
 - **Analytics Dashboard** - Visual insights with Recharts
@@ -53,7 +59,7 @@ meal-rec/
 ### Build Status
 - ✅ Production build succeeds
 - ✅ Linting passes
-- ⚠️ `tsc --noEmit` reports type errors in test files (app source type-checks during `next build`)
+- ✅ `pnpm lint` includes app and test type checking with `tsc --noEmit`
 - ⚠️ The scheduled dependency audit workflow (`dependency-check.yml`) is disabled for inactivity; its last runs failed on dev-tooling advisories
 
 ### API Endpoints Status
@@ -74,9 +80,10 @@ meal-rec/
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- pnpm 8+
-- MongoDB 5.0+
+- Node.js 22
+- pnpm 10.12.3 (via Corepack)
+- MongoDB 8
+- Python 3.12 and uv for the isolated benchmark
 
 ### Installation
 ```bash

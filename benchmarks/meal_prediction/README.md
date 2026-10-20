@@ -15,6 +15,8 @@ The public command verifies the pinned official [UCI Restaurant & consumer data 
 
 The seed-42 stratified approximately 70/15/15 split is saved in `data/uci-split-seed-42.json` and copied to the run. An incompatible saved split or nonempty output directory is an error; use another output path to preserve prior evidence. F1 is the public main information set; F0 is prespecified secondary. All three actual adapters (personalized sklearn logistic, native categorical CPU CatBoost, contextual River FM) attempt nine settings for each preset using seed 42. Settings, the primary F1 family and the reference rate control are selected by development participant-balanced log loss and fixed tie order M1/M2/M3, global/personal, then ascending grid index. The selected settings refit on train plus development with seeds 42/43/44. Seed 42 is primary; seeds 43/44 never select a winner. A failed setting consumes its grid slot. An unavailable family makes the full command exit nonzero and leaves failure evidence.
 
+The [measured full public result](../../docs/research/recommendation-engine/results/uci-three-models.md) retains all families and the fixed evaluation protocol. For collection and freeze operations, use the [pilot runbook](../../docs/research/recommendation-engine/pilot-runbook.md). Genuine pilot launch, enrollment and the actual response window remain pending.
+
 For a faster real-data integration check:
 
 ```sh
@@ -35,7 +37,6 @@ Pilot collection uses the immutable study configuration and the existing Node ex
 eval "$(fnm env --shell zsh)"
 fnm use 22.23.3
 pnpm install --frozen-lockfile
-pnpm --filter @meal-rec/common build
 pnpm --filter @meal-rec/database build
 # Copy/edit contracts/meal-prediction/study.example.json with the actual launch inputs first.
 MONGO_URL=YOUR_EXPLICIT_STUDY_DATABASE pnpm --filter @meal-rec/database pilot:study --config /absolute/path/study.json
