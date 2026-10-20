@@ -89,6 +89,6 @@ def test_pilot_fit_score_cli_produces_frozen_report(tmp_path):
     data = json.loads((output / "report.json").read_text())
     assert data["source"] == "pilot" and data["status"] == "not_estimable"
     assert data["useful_gain"]["status"] == "insufficient_evidence"
-    assert data["provenance"]["empirical_pilot_comparison"] == "pending_genuine_study"
+    assert "empirical_pilot_comparison" not in data["provenance"]
     assert data["coverage"]["test_observations"] == 10
     assert data["controls"]["heuristic"]["reason"] == "single_class"

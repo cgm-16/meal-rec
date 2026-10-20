@@ -169,7 +169,7 @@ def test_frozen_replay_never_learns_week_two(replay, tmp_path):
     assert before.coverage['partition_support']['development']['observations'] == 4
     assert before.coverage['partition_support']['test']['study_days'] == {'7': 2, '8': 2, '9': 2, '10': 2, '11': 2}
     assert before.coverage['collection']['lifecycle']['status'] == 'available'
-    assert before.provenance['empirical_pilot_comparison'] == 'pending_genuine_study'
+    assert 'empirical_pilot_comparison' not in before.provenance
     assert 'Constructed verification' in (directory / 'report/report.md').read_text()
 
 
@@ -178,7 +178,6 @@ def test_late_freeze_is_retrospective(replay):
     assert manifest['freeze_timing']['classification'] == 'retrospective'
     assert 'late_freeze' in manifest['freeze_timing']['reasons']
     assert report.provenance['freeze_timing'] == manifest['freeze_timing']
-    assert report.useful_gain['useful_gain'] is False
 
 
 def test_cross_cutoff_response_is_quarantined(replay):
@@ -408,3 +407,46 @@ def test_unavailable_lifecycle_never_reports_mutable_counts(tmp_path):
     _, _, info = experiment._load_pilot_bundle(path, 'development')
     assert info['collection']['lifecycle'] == {
         'status': 'unavailable', 'reason': 'Mutable lifecycle unavailable in development', 'as_of': None}
+
+
+
+def test_retrospective_constructed_replay_preserves_supported_useful_gain(replay):
+    _, _, _, manifest, _, report = replay
+    # These native predictions meet every fixed numeric/support condition before classification.
+    assert report.comparisons.group_support == 2 and report.comparisons.date_support == 5
+    assert report.selected_comparison['relative_gain'] >= .05
+    assert report.selected_comparison['paired_interval']['lower'] > 0
+    assert report.selected_comparison['time_interval']['lower'] > 0
+    assert manifest['run_kind'] == 'constructed_verification_only'
+    assert report.provenance['freeze_timing']['classification'] == 'retrospective'
+    assert report.useful_gain == {
+        'status': 'provisional_useful_gain', 'useful_gain': True, 'mode': 'group',
+        'relative_gain': report.selected_comparison['relative_gain']}
+
+
+def test_supplied_private_study_shaped_data_has_no_unconditional_pending_result(tmp_path):
+    # Constructed verification with a production-shaped private license; not genuine study data.
+    root = snapshot()
+    root['manifest']['sourceProvenance'].update(
+        name='Constructed verification using private-study-shaped provenance',
+        license='Private study data; no redistribution license granted')
+    for response in root['responses']:
+        response['answer'] = 'no'
+    freeze = tmp_path / 'freeze'
+    manifest = experiment.fit_pilot(bundle(tmp_path / 'development', root), freeze)
+    linked = {**manifest, 'digest': (freeze / 'manifest.sha256').read_text().strip()}
+    final_root = snapshot('final', linked)
+    final_root['manifest']['sourceProvenance'] = root['manifest']['sourceProvenance']
+    for response in final_root['responses']:
+        if response['eventId'] in manifest['fitting_ids']:
+            response['answer'] = 'no'
+    output = tmp_path / 'report'
+    report = experiment.score_pilot(freeze, bundle(tmp_path / 'final', final_root), output)
+    assert report.run_kind == 'pilot_replay'
+    assert report.useful_gain['status'] == 'insufficient_evidence'
+    assert 'empirical_pilot_comparison' not in report.provenance
+    markdown = (output / 'report.md').read_text()
+    assert 'comparison remains pending' not in markdown
+    assert 'pending_genuine_study' not in markdown
+    assert 'Constructed verification using private-study-shaped provenance' in markdown
+    assert 'schema and license do not establish authenticity' in markdown

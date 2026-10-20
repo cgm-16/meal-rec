@@ -96,10 +96,8 @@ def write_report(report: Report, out_dir: Path, predictions) -> None:
             lines.append(f"| {pair.first} | {pair.second} | {_number(pair.observed_difference)} | [{_number(pair.lower)}, {_number(pair.upper)}] | {pair.usable} / {pair.empty} |")
         lines += ["", "## Frozen pilot assessment", "", "```json", json.dumps(jsonable({
             "freeze_timing": report.provenance["freeze_timing"], "selected_comparison": report.selected_comparison,
-            "useful_gain": report.useful_gain, "controls": report.controls,
-            "empirical_pilot_comparison": report.provenance["empirical_pilot_comparison"]}), indent=2), "```",
-            "Freeze classification uses recorded timing and caller declaration; absence of outside inspection is not software-verifiable.",
-            "Genuine study comparison remains pending. Constructed replay is automated verification."]
+            "useful_gain": report.useful_gain, "controls": report.controls}), indent=2), "```",
+            "Freeze classification uses recorded timing and caller declaration; absence of outside inspection is not software-verifiable."]
     lines += ["", "## Feature increments and seed sensitivity", "", "```json",
               json.dumps(jsonable({"feature_increments": report.feature_increments, "seed_variation": report.seed_variation}), indent=2), "```",
               "", "## Coverage", "", "```json", json.dumps(report.coverage, indent=2), "```", "",

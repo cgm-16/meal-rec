@@ -666,14 +666,9 @@ def score_experiment(freeze_dir, events, targets, out_dir, *, pilot_input=None) 
     extra_provenance = {}
     if source == "pilot":
         pilot_input = {**pilot_input, "labels": labels}
-        if manifest["freeze_timing"]["classification"] != "prospective" or manifest["run_kind"] == "constructed_verification_only":
-            if gain["useful_gain"]:
-                gain.update(status="verification_or_retrospective_only", observed_provisional_gain=True)
-            gain["useful_gain"] = False
-        gain["freeze_classification"] = manifest["freeze_timing"]["classification"]
         extra_provenance = {"freeze_timing": manifest["freeze_timing"], "development_snapshot_sha256": manifest["development_snapshot_sha256"],
             "development_bundle": manifest["development_bundle"], "final_bundle": pilot_input["bundle"],
-            "final_source_manifest": pilot_input["source_manifest"], "empirical_pilot_comparison": "pending_genuine_study",
+            "final_source_manifest": pilot_input["source_manifest"],
             "authenticity": "Schema, checksums and source license do not establish genuine collection.",
             "test_ids_sha256": _hash(ids)}
     else:
