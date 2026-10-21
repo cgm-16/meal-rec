@@ -45,6 +45,29 @@ function assertErrors(errors: BrowserError[], browserName: string, failures: Req
   }]);
 }
 
+function assertCacheErrors(errors: BrowserError[], browserName: string, failures: RequestFailure[], urls: string[]) {
+  const expectedErrors = urls.flatMap(value => {
+    const url = new URL(value);
+    const noResponse = `no-response: no-response :: [{"url":"${url.href}","error":{}}]`;
+    const location = { url: url.href, line: 0, column: 0, lineNumber: 0, columnNumber: 0 };
+    return browserName === 'chromium' ? [{
+      offline: true, source: 'console', text: 'Failed to load resource: net::ERR_FAILED', location,
+    }] : [
+      { offline: true, source: 'pageerror', text: noResponse, location: null },
+      { offline: true, source: 'pageerror', text: `/${url.host}${url.pathname}${url.search}.`, location: null },
+      { offline: true, source: 'console', text: `Failed to load resource: FetchEvent.respondWith received an error: ${noResponse}`, location },
+    ];
+  });
+  const expectedFailures = urls.map(url => ({
+    offline: true, url, method: 'GET', postData: null,
+    errorText: browserName === 'chromium' ? 'net::ERR_FAILED' : `FetchEvent.respondWith received an error: no-response: no-response :: [{"url":"${url}","error":{}}]`,
+  }));
+  expect(errors).toHaveLength(expectedErrors.length);
+  expect(errors).toEqual(expect.arrayContaining(expectedErrors));
+  expect(failures).toHaveLength(expectedFailures.length);
+  expect(failures).toEqual(expect.arrayContaining(expectedFailures));
+}
+
 test.describe.configure({ mode: 'serial' });
 
 function run(command: string, args: string[], cwd: string) {
@@ -241,7 +264,7 @@ test('normal UI preserves collection IDs and exact MongoDB/export values, labels
   }
 });
 
-test('pilot responses and navigation never come from a service-worker cache while offline', async ({ page, context }, testInfo) => {
+test('pilot responses and navigation never come from a service-worker cache while offline', async ({ page, context, browserName }, testInfo) => {
   let isOffline = false;
   const errors: BrowserError[] = [];
   const failures: RequestFailure[] = [];
@@ -256,35 +279,30 @@ test('pilot responses and navigation never come from a service-worker cache whil
   });
   const paths = ['/api/pilot', '/api/pilot/cities?q=Seoul', '/pilot'];
   expect(await page.evaluate(async paths => Promise.all(paths.map(async path => (await fetch(path, { cache: 'no-store' })).status)), paths)).toEqual([200, 200, 200]);
+  let offline: { path: string; status: number | null }[] = [];
+  let cached: string[] = [];
   isOffline = true;
   await context.setOffline(true);
   try {
-    const offline = await page.evaluate(async paths => Promise.all(paths.map(async path => {
+    offline = await page.evaluate(async paths => Promise.all(paths.map(async path => {
       try { const response = await fetch(path, { cache: 'no-store' }); return { path, status: response.status }; }
       catch { return { path, status: null }; }
     })), paths);
-    const cached = await page.evaluate(async () => {
+    cached = await page.evaluate(async () => {
       const requests = await Promise.all((await caches.keys()).map(async key => (await caches.open(key)).keys()));
       return requests.flat().map(request => request.url).filter(url => /^\/(?:api\/pilot|pilot)(?:\/|$)/.test(new URL(url).pathname));
     });
     await testInfo.attach('offline-cache-proof', { body: JSON.stringify({ offline, cached }, null, 2), contentType: 'application/json' });
-    expect(offline).toEqual(paths.map(path => ({ path, status: null })));
-    expect(cached).toEqual([]);
-    await testInfo.attach('expected-offline-errors', { body: JSON.stringify(errors, null, 2), contentType: 'application/json' });
-    await testInfo.attach('request-failures', { body: JSON.stringify(failures, null, 2), contentType: 'application/json' });
-    const expectedOfflineErrors = new Set([
-      'Failed to load resource: net::ERR_FAILED',
-      ...paths.flatMap(path => {
-        const url = new URL(path, page.url());
-        const noResponse = `no-response: no-response :: [{"url":"${url.href}","error":{}}]`;
-        return [noResponse, `/${url.host}${url.pathname}${url.search}.`,
-          `Failed to load resource: FetchEvent.respondWith received an error: ${noResponse}`];
-      }),
-    ]);
-    expect(errors.filter(error => !error.offline)).toEqual([]);
-    expect(errors.filter(error => !expectedOfflineErrors.has(error.text))).toEqual([]);
-    expect(uploads, 'Explicit empty monitoring DSN must prevent all envelope uploads').toEqual([]);
   } finally {
+    isOffline = false;
     await context.setOffline(false);
   }
+  const reconnected = await page.evaluate(async paths => Promise.all(paths.map(async path => (await fetch(path, { cache: 'no-store' })).status)), paths);
+  await testInfo.attach('expected-offline-errors', { body: JSON.stringify(errors, null, 2), contentType: 'application/json' });
+  await testInfo.attach('request-failures', { body: JSON.stringify(failures, null, 2), contentType: 'application/json' });
+  expect(offline).toEqual(paths.map(path => ({ path, status: null })));
+  expect(cached).toEqual([]);
+  expect(reconnected).toEqual([200, 200, 200]);
+  assertCacheErrors(errors, browserName, failures, paths.map(path => new URL(path, page.url()).href));
+  expect(uploads, 'Explicit empty monitoring DSN must prevent all envelope uploads').toEqual([]);
 });
