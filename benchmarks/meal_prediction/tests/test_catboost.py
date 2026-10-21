@@ -220,14 +220,14 @@ def test_misaligned_batches_are_rejected():
 
 @pytest.mark.parametrize("preset", ["F0", "F1"])
 def test_real_uci_catboost_consumes_shared_frozen_batches(preset, tmp_path):
-    from meal_prediction.datasets import load_uci
+    from meal_prediction.datasets import fetch_uci, load_uci
     from meal_prediction.features import fit_features, transform_features
     from meal_prediction.models.base import load_fitted
     from meal_prediction.models.catboost import fit_catboost
     from meal_prediction.records import events_for, labels_for
     from meal_prediction.splits import split_uci
 
-    dataset = load_uci(Path(__file__).resolve().parents[1] / "data/uci-restaurant-consumer.zip")
+    dataset = load_uci(fetch_uci(Path(__file__).resolve().parents[1] / "data/uci-restaurant-consumer.zip"))
     split = split_uci(dataset, seed=42)
     events = events_for(dataset, split.train_ids)
     state, training = fit_features(events, {identity: dataset.targets[identity] for identity in split.train_ids}, preset=preset, source="uci")

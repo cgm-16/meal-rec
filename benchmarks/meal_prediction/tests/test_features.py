@@ -291,10 +291,10 @@ def test_fit_rejects_duplicate_events_and_targets_outside_fit_partition():
 def test_real_uci_features_fit_and_score_the_recorded_partition():
     import math
     from pathlib import Path
-    from meal_prediction.datasets import load_uci
+    from meal_prediction.datasets import fetch_uci, load_uci
     from meal_prediction.splits import split_uci
 
-    dataset = load_uci(Path(__file__).resolve().parents[1] / "data/uci-restaurant-consumer.zip")
+    dataset = load_uci(fetch_uci(Path(__file__).resolve().parents[1] / "data/uci-restaurant-consumer.zip"))
     split = split_uci(dataset, seed=42)
     state, fitted = features.fit_features(events_for(dataset, split.train_ids), {
         identity: dataset.targets[identity] for identity in split.train_ids

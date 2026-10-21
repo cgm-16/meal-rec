@@ -187,14 +187,14 @@ def test_actual_estimator_error_is_a_structured_failed_fit():
 def test_real_uci_models_consume_shared_frozen_batches(preset, tmp_path):
     from pathlib import Path
     from meal_prediction.controls import fit_rate_control
-    from meal_prediction.datasets import load_uci
+    from meal_prediction.datasets import fetch_uci, load_uci
     from meal_prediction.features import fit_features, transform_features
     from meal_prediction.models.base import load_fitted
     from meal_prediction.models.logistic import fit_logistic
     from meal_prediction.records import events_for, labels_for
     from meal_prediction.splits import split_uci
 
-    dataset = load_uci(Path(__file__).resolve().parents[1] / "data/uci-restaurant-consumer.zip")
+    dataset = load_uci(fetch_uci(Path(__file__).resolve().parents[1] / "data/uci-restaurant-consumer.zip"))
     split = split_uci(dataset, seed=42)
     events = events_for(dataset, split.train_ids)
     targets = {identity: dataset.targets[identity] for identity in split.train_ids}
