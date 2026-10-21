@@ -14,10 +14,14 @@ function requireE2EDatabase(uri = process.env.MONGO_URL) {
   return uri;
 }
 
+function requirePilotStudyId(studyId) {
+  assert.equal(studyId, PILOT_STUDY_ID);
+}
+
 async function seedPilotStudy(meals) {
   requireE2EDatabase();
   assert.equal(mongoose.connection.db.databaseName, 'meal-rec-e2e-test');
-  assert.equal(process.env.PILOT_STUDY_ID, PILOT_STUDY_ID);
+  requirePilotStudyId(process.env.PILOT_STUDY_ID);
   const { createStudy } = require('../../packages/database/dist/pilot/export');
   await createStudy({
     studyId: PILOT_STUDY_ID,
@@ -35,7 +39,7 @@ async function seedPilotStudy(meals) {
   console.log(`Seeded constructed verification study ${PILOT_STUDY_ID}; not genuine pilot evidence`);
 }
 
-module.exports = { PILOT_STUDY_ID, requireE2EDatabase, seedPilotStudy };
+module.exports = { PILOT_STUDY_ID, requireE2EDatabase, requirePilotStudyId, seedPilotStudy };
 
 if (require.main === module) {
   assert.equal(process.argv[2], '--self-check');
@@ -43,5 +47,7 @@ if (require.main === module) {
     assert.throws(() => requireE2EDatabase(uri), /explicit MONGO_URL selecting meal-rec-e2e-test/);
   }
   assert.equal(requireE2EDatabase('mongodb://127.0.0.1:51622/meal-rec-e2e-test'), 'mongodb://127.0.0.1:51622/meal-rec-e2e-test');
-  console.log('E2E database guard self-check passed; invalid names rejected before connection or mutation');
+  for (const studyId of [undefined, '', 'invalid-study-id']) assert.throws(() => requirePilotStudyId(studyId), assert.AssertionError);
+  requirePilotStudyId(PILOT_STUDY_ID);
+  console.log('E2E database and study-ID guard self-check passed; invalid configuration rejected before mutation');
 }

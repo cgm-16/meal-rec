@@ -3,7 +3,7 @@
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const { requireE2EDatabase, seedPilotStudy } = require('./e2e-pilot-study');
+const { requireE2EDatabase, requirePilotStudyId, seedPilotStudy } = require('./e2e-pilot-study');
 
 // Simple meal schema for seeding (matches the main schema)
 const MealSchema = new mongoose.Schema({
@@ -112,6 +112,7 @@ const testUsers = [
 async function seedE2EDatabase() {
   try {
     const mongoUrl = requireE2EDatabase();
+    requirePilotStudyId(process.env.PILOT_STUDY_ID);
     
     console.log(`Connecting to E2E test database: ${mongoUrl}`);
     await mongoose.connect(mongoUrl, {
