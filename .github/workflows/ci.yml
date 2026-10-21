@@ -92,12 +92,6 @@ jobs:
         key: build-artifacts-${{ github.sha }}
         fail-on-cache-miss: true
     
-    - name: Cache Playwright browsers
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/ms-playwright
-        key: playwright-browsers-${{ hashFiles('meal-rec/package.json') }}
-    
     - name: Install Playwright Browsers
       run: cd meal-rec && pnpm exec playwright install --with-deps
     
