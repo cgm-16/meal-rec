@@ -7,8 +7,9 @@ on:
     branches: [ main ]
 
 jobs:
+  # shortcut: Ubuntu 22.04 retires 2027-04-17; migrate both MongoDB jobs to a Mongo-supported kernel before then.
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     services:
       mongodb:
@@ -57,7 +58,7 @@ jobs:
       run: pnpm seed --dry-run
 
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: test
     if: "!contains(github.event.head_commit.message, '[skip e2e]')"
 
