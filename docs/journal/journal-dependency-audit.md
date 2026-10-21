@@ -1,0 +1,13 @@
+# Dependency audit repair
+
+## 2026-10-21 — issue #67
+
+The unchanged `pnpm audit --audit-level moderate` failed on ten inherited moderate findings. The bounded repair keeps the performance tools and the three existing GHSA exceptions: standalone Lighthouse is `^13.5.0`; parent-scoped overrides select LHCI CLI 0.15.1 UUID 11.1.1, Artillery 2.0.34 CSV 7.0.2, and Artillery/LHCI utils 0.15.1 YAML 4.3.2. Exact-version native pnpm patches adapt two CSV imports and three YAML calls. LHCI retains its own Lighthouse 12.6.1.
+
+Removing standalone Lighthouse's Sentry 9 chain lets pnpm resolve runtime Sentry 10.76.2 from OpenTelemetry core 1.30.1 to compatible core 2.12.0; Ori explicitly approved that native resolution instead of a 2.8.0 override. The existing core 2.10.0 copy remains. No audit ignore, severity threshold, test guard, or tool was removed or weakened.
+
+On macOS arm64 with Node 22.23.3 and pnpm 10.12.3, seven real-caller checks first passed on the original graph, then five failed on the upgraded unpatched CSV/YAML callers, then all seven passed with the patches. The existing default-reporter suite passed 277 tests in 31 files; lint/typecheck, frozen installation, production build, and the unchanged moderate audit succeeded. Real Chromium 156.0.8078.4 and WebKit 27.2 passed all 28 existing E2E cases using an owned native MongoDB 8.0.34 database and a production server. A minimal Node color-depth control justified one invocation-only repeat with conflicting `NO_COLOR` removed; CI mode, retries, tests and config stayed unchanged.
+
+Final artifact checks removed unrelated pnpm ESLint peer normalization and trimmed redundant patch context that failed whitespace checking. Frozen installation and all seven caller checks passed afterward; all six released caller source hashes and runtime resolutions stayed identical. A calibrated graph comparison permits only the code-identical LHCI patch checksum and the registry's truthful new deprecation annotation on unchanged `@opentelemetry/sdk-trace-base@2.12.0`.
+
+Limits: Lighthouse report and YAML semantics can change; initialization, scoped tracing, build and browser checks do not prove live Sentry delivery or a full Lighthouse report. Two low findings and three already-ignored high findings remain. Production builds retain the dynamic `require-in-the-middle` warning, and the unchanged SDK package is now deprecated. Native local E2E does not establish hosted/container CI success. The temporary Ubuntu 22.04 pin affects only the two MongoDB jobs; migrate before the March/April 2027 brownouts and 2027-04-17 retirement. The native fixture's processes, ports and owned directory were independently verified removed; its graceful cleanup callback was not proved.
