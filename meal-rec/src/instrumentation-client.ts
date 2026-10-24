@@ -1,3 +1,6 @@
+// ABOUTME: Initializes browser monitoring and replay with the configured public DSN.
+// ABOUTME: Disables uploads when the configured DSN is explicitly empty.
+
 // This file configures the initialization of Sentry on the client.
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
@@ -5,7 +8,7 @@
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
-  dsn: "https://4f77d4413215353fd4ce11d046c5e006@o4509958985678848.ingest.de.sentry.io/4509958987120720",
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN ?? "https://4f77d4413215353fd4ce11d046c5e006@o4509958985678848.ingest.de.sentry.io/4509958987120720",
 
   // Add optional integrations for additional features
   integrations: [

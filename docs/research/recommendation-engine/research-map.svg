@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-labelledby="title desc">
+<!-- ABOUTME: Maps ten recommendation research directions to their intervention points. -->
+<!-- ABOUTME: Shows distinct questions and shared constraints without implying one combined engine. -->
+<title id="title">Ten directions, distinct intervention points</title>
+<desc id="desc">Representation: 07 semantic graph and 08 feasibility. Preference evidence: 01 Bayesian content, 09 collective taste, 03 adaptive duels, 10 reason-aware critique. Selection: 02 bandit, 04 temporal sequence, 05 calibrated serendipity. 06 group consensus changes whose satisfaction is optimized. All directions preserve hard exclusions.</desc>
+<style>text{font-family:Arial,sans-serif;fill:#19362e}.heading{font-size:21px;font-weight:700}.title{font-size:19px;font-weight:700}.body{font-size:16px;fill:#40554b}.num{font-size:17px;font-weight:700;fill:#fff}</style>
+<rect width="1200" height="820" fill="#f5f7f5"/>
+<text x="32" y="49" font-size="30" font-weight="700">Ten directions, distinct intervention points</text>
+<text x="32" y="80" font-size="17" fill="#4b5c55">Compare proposals separately before combining. Positions describe roles, not measured performance.</text>
+<text x="32" y="132" class="heading">Represent the choice set</text>
+<text x="425" y="132" class="heading">Learn taste and intent</text>
+<text x="818" y="132" class="heading">Choose the next card</text>
+<path d="M32 149H382 M425 149H775 M818 149H1168" stroke="#bac9bf" stroke-width="2"/>
+
+<rect x="32" y="172" width="350" height="145" rx="12" fill="#eaf2f8" stroke="#396587"/>
+<rect x="48" y="189" width="34" height="30" rx="6" fill="#396587"/>
+<text x="55" y="210" class="num">07</text><text x="93" y="211" class="title">Semantic graph</text>
+<text x="49" y="244" class="body">What relations do strings miss?</text>
+<text x="49" y="268" class="body">Curated ingredient and taste links.</text>
+<text x="49" y="292" class="body">Traceable transfer between meals.</text>
+
+<rect x="32" y="335" width="350" height="145" rx="12" fill="#eaf2f8" stroke="#396587"/>
+<rect x="48" y="352" width="34" height="30" rx="6" fill="#396587"/>
+<text x="55" y="373" class="num">08</text><text x="93" y="374" class="title">Feasibility first</text>
+<text x="49" y="407" class="body">What is possible right now?</text>
+<text x="49" y="431" class="body">Time, budget, pantry, availability.</text>
+<text x="49" y="455" class="body">Needs reliable additional metadata.</text>
+
+<rect x="32" y="500" width="350" height="130" rx="12" fill="#fff" stroke="#bac9bf"/>
+<text x="50" y="533" class="title">Shared boundary</text>
+<text x="50" y="562" font-size="17">Preserve hard exclusions.</text>
+<text x="50" y="587" class="body">Report empty eligible sets explicitly.</text>
+<text x="50" y="612" class="body">Similarity cannot establish safety.</text>
+
+<rect x="425" y="172" width="350" height="102" rx="12" fill="#ecf4eb" stroke="#3f7450"/>
+<rect x="441" y="189" width="34" height="30" rx="6" fill="#3f7450"/>
+<text x="448" y="210" class="num">01</text><text x="486" y="211" class="title">Bayesian content</text>
+<text x="442" y="244" class="body">Learn my taste with uncertainty.</text>
+
+<rect x="425" y="290" width="350" height="102" rx="12" fill="#ecf4eb" stroke="#3f7450"/>
+<rect x="441" y="307" width="34" height="30" rx="6" fill="#3f7450"/>
+<text x="448" y="328" class="num">09</text><text x="486" y="329" class="title">Collective taste</text>
+<text x="442" y="362" class="body">Learn from other people's reactions.</text>
+
+<rect x="425" y="408" width="350" height="102" rx="12" fill="#ecf4eb" stroke="#3f7450"/>
+<rect x="441" y="425" width="34" height="30" rx="6" fill="#3f7450"/>
+<text x="448" y="446" class="num">03</text><text x="486" y="447" class="title">Adaptive duels</text>
+<text x="442" y="480" class="body">Ask the most informative question.</text>
+
+<rect x="425" y="526" width="350" height="104" rx="12" fill="#ecf4eb" stroke="#3f7450"/>
+<rect x="441" y="543" width="34" height="30" rx="6" fill="#3f7450"/>
+<text x="448" y="564" class="num">10</text><text x="486" y="565" class="title">Reason-aware critique</text>
+<text x="442" y="598" class="body">Let me correct a misunderstanding.</text>
+
+<rect x="818" y="172" width="350" height="135" rx="12" fill="#fcf2e2" stroke="#986731"/>
+<rect x="834" y="189" width="34" height="30" rx="6" fill="#986731"/>
+<text x="841" y="210" class="num">02</text><text x="879" y="211" class="title">Contextual bandit</text>
+<text x="835" y="244" class="body">Which trial improves future reward?</text>
+<text x="835" y="268" class="body">Explore uncertainty deliberately.</text>
+<text x="835" y="292" class="body">Needs attribution and probabilities.</text>
+
+<rect x="818" y="333" width="350" height="135" rx="12" fill="#fcf2e2" stroke="#986731"/>
+<rect x="834" y="350" width="34" height="30" rx="6" fill="#986731"/>
+<text x="841" y="371" class="num">04</text><text x="879" y="372" class="title">Temporal sequence</text>
+<text x="835" y="405" class="body">What has been shown recently?</text>
+<text x="835" y="429" class="body">Use order, repetition, and fatigue.</text>
+<text x="835" y="453" class="body">Exposure is not consumption.</text>
+
+<rect x="818" y="494" width="350" height="136" rx="12" fill="#fcf2e2" stroke="#986731"/>
+<rect x="834" y="511" width="34" height="30" rx="6" fill="#986731"/>
+<text x="841" y="532" class="num">05</text><text x="879" y="533" class="title">Calibrated serendipity</text>
+<text x="835" y="566" class="body">How much useful novelty is wanted?</text>
+<text x="835" y="590" class="body">Keep relevance while varying surprise.</text>
+<text x="835" y="614" class="body">Novelty is not uncertainty.</text>
+
+<rect x="32" y="662" width="1136" height="108" rx="12" fill="#eeeef8" stroke="#665a91"/>
+<rect x="48" y="679" width="34" height="30" rx="6" fill="#665a91"/>
+<text x="55" y="700" class="num">06</text><text x="93" y="701" class="title">Group consensus changes whose satisfaction matters</text>
+<text x="49" y="734" class="body">Joint exclusions, minority acceptability, and agreement. This is a conditional group product direction.</text>
+<text x="49" y="758" class="body">An average preference score alone does not establish a fair group decision.</text>
+<text x="32" y="801" font-size="15" fill="#5a6a61">MealRec research pool · 10 drafts · source baseline 4574611 · experiments remain proposals</text>
+</svg>

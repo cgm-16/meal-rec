@@ -35,6 +35,7 @@ describe('Navigation', () => {
     expect(screen.getByText('Home')).toBeInTheDocument();
     expect(screen.getByText('Explore')).toBeInTheDocument();
     expect(screen.getByText('Quiz')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Pilot' })).toHaveAttribute('href', '/pilot');
     expect(screen.getByText('Sign In')).toBeInTheDocument();
   });
 

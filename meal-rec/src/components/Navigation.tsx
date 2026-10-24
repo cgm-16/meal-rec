@@ -25,6 +25,7 @@ export default function Navigation() {
     { name: 'Home', href: '/', description: 'Meal recommendations' },
     { name: 'Explore', href: '/explore', description: 'Browse meals' },
     { name: 'Quiz', href: '/quiz', description: 'Preference quiz' },
+    { name: 'Pilot', href: '/pilot', description: 'Opt-in meal appeal study' },
   ];
 
 
