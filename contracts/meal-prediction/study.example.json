@@ -1,0 +1,20 @@
+{
+  "studyId": "EDITABLE-EXAMPLE-NOT-A-LIVE-LAUNCH",
+  "studyVersion": "1",
+  "protocolVersion": "1",
+  "catalogVersion": "REPLACE_WITH_FROZEN_CATALOG_VERSION",
+  "catalogSha256": "REPLACE_WITH_FROZEN_CATALOG_SHA256",
+  "startsAt": "REPLACE_WITH_EXPLICIT_SHARED_UTC_START",
+  "seed": 42,
+  "cityOptions": [
+    {
+      "cityId": "geonames:1835848",
+      "label": "Seoul",
+      "country": "South Korea",
+      "adminArea": null,
+      "latitude": 37.5665,
+      "longitude": 126.978,
+      "timezone": "Asia/Seoul"
+    }
+  ]
+}

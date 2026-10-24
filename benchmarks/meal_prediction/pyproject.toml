@@ -1,0 +1,23 @@
+# ABOUTME: Isolated, CPU-only Python environment for the meal-prediction benchmark.
+# ABOUTME: Locks all three candidate libraries and the contract-test runner with uv.
+
+[project]
+name = "meal-prediction"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "numpy",
+    "scikit-learn",
+    "catboost",
+    "river",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

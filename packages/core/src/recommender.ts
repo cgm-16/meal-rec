@@ -112,18 +112,18 @@ function attributeSimilarityBonus(
   return MAX_ATTRIBUTE_SIMILARITY_BONUS * total / others.length;
 }
 
-export function selectRecommendation(input: RecommendationInput): Meal | null {
-  const { quiz, recentFeedback, weather, candidateMeals, randomSeed } = input;
-  
-  if (candidateMeals.length === 0) {
-    return null;
-  }
+export function isMealEligible(meal: Pick<Meal, 'primaryIngredients' | 'allergens'>, avoided: readonly string[]): boolean {
+  return !avoided.some(ingredient =>
+    [ingredient, ...(AVOIDED_INGREDIENT_ALIASES[ingredient] ?? [])].some(term =>
+      meal.primaryIngredients.includes(term) || meal.allergens.includes(term)
+    )
+  );
+}
 
-  const random = new SeededRandom(randomSeed);
-  
+function prepareFeedback(recentFeedback: readonly FeedbackEntry[], asOf: Date) {
   // Create feedback lookup for faster access
   const feedbackMap = new Map<string, FeedbackEntry>();
-  const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+  const twoWeeksAgo = new Date(asOf.getTime() - 14 * 24 * 60 * 60 * 1000);
   
   for (const feedback of recentFeedback) {
     if (feedback.timestamp >= twoWeeksAgo) {
@@ -136,62 +136,94 @@ export function selectRecommendation(input: RecommendationInput): Meal | null {
       feedback.type !== 'interested' && feedback.meal !== undefined
   );
 
+  return { feedbackMap, ratedMeals };
+}
+
+function scoreMealWithFeedback(
+  meal: Meal,
+  quiz: QuizAnswers,
+  { feedbackMap, ratedMeals }: ReturnType<typeof prepareFeedback>,
+  weather: WeatherCondition
+): ScoredMeal {
+  const scoreBreakdown = {
+    base: 1.0,
+    feedbackBonus: 0,
+    attributeSimilarity: 0,
+    spicinessDistance: 0,
+    weatherMatch: 0,
+    surpriseFactor: 0,
+    finalScore: 0
+  };
+
+  let score = scoreBreakdown.base;
+
+  // Check for ingredient conflicts
+  if (!isMealEligible(meal, quiz.ingredientsToAvoid)) {
+    score = 0; // Eliminate meals with avoided ingredients
+    scoreBreakdown.finalScore = score;
+    return { ...meal, score, scoreBreakdown };
+  }
+
+  // Feedback bonus/penalty
+  const feedback = feedbackMap.get(meal._id);
+  if (feedback) {
+    if (feedback.type === 'like') {
+      scoreBreakdown.feedbackBonus = 0.4;
+      score += 0.4;
+    } else if (feedback.type === 'dislike') {
+      scoreBreakdown.feedbackBonus = -0.4;
+      score -= 0.4;
+    }
+    // 'interested' feedback doesn't change score
+  }
+
+  // Generalise likes/dislikes to meals sharing coarse attributes
+  scoreBreakdown.attributeSimilarity = attributeSimilarityBonus(meal, ratedMeals);
+  score += scoreBreakdown.attributeSimilarity;
+
+  // Spiciness distance penalty
+  const spicinessDistance = Math.abs(quiz.spiciness - (meal.spiciness || 0));
+  const spicinessDistancePenalty = -0.05 * spicinessDistance;
+  scoreBreakdown.spicinessDistance = spicinessDistancePenalty;
+  score += spicinessDistancePenalty;
+
+  // Weather match bonus
+  if (meal.weather.includes(weather)) {
+    scoreBreakdown.weatherMatch = 0.2;
+    score += 0.2;
+  }
+
+  scoreBreakdown.finalScore = score;
+  return { ...meal, score, scoreBreakdown };
+}
+
+export function scoreMealDeterministically(
+  meal: Meal,
+  quiz: QuizAnswers,
+  recentFeedback: readonly FeedbackEntry[],
+  weather: WeatherCondition,
+  asOf: Date
+): ScoredMeal {
+  return scoreMealWithFeedback(meal, quiz, prepareFeedback(recentFeedback, asOf), weather);
+}
+
+export function selectRecommendation(input: RecommendationInput): Meal | null {
+  const { quiz, recentFeedback, weather, candidateMeals, randomSeed } = input;
+
+  if (candidateMeals.length === 0) {
+    return null;
+  }
+
+  const random = new SeededRandom(randomSeed);
+
+  const feedback = prepareFeedback(recentFeedback, new Date(Date.now()));
+
   // Score each meal
   const scoredMeals: ScoredMeal[] = candidateMeals.map(meal => {
-    const scoreBreakdown = {
-      base: 1.0,
-      feedbackBonus: 0,
-      attributeSimilarity: 0,
-      spicinessDistance: 0,
-      weatherMatch: 0,
-      surpriseFactor: 0,
-      finalScore: 0
-    };
-
-    let score = scoreBreakdown.base;
-
-    // Check for ingredient conflicts
-    const hasAvoidedIngredients = quiz.ingredientsToAvoid.some(avoided =>
-      [avoided, ...(AVOIDED_INGREDIENT_ALIASES[avoided] ?? [])].some(term =>
-        meal.primaryIngredients.includes(term) ||
-        meal.allergens.includes(term)
-      )
-    );
-    
-    if (hasAvoidedIngredients) {
-      score = 0; // Eliminate meals with avoided ingredients
-      scoreBreakdown.finalScore = score;
-      return { ...meal, score, scoreBreakdown };
-    }
-
-    // Feedback bonus/penalty
-    const feedback = feedbackMap.get(meal._id);
-    if (feedback) {
-      if (feedback.type === 'like') {
-        scoreBreakdown.feedbackBonus = 0.4;
-        score += 0.4;
-      } else if (feedback.type === 'dislike') {
-        scoreBreakdown.feedbackBonus = -0.4;
-        score -= 0.4;
-      }
-      // 'interested' feedback doesn't change score
-    }
-
-    // Generalise likes/dislikes to meals sharing coarse attributes
-    scoreBreakdown.attributeSimilarity = attributeSimilarityBonus(meal, ratedMeals);
-    score += scoreBreakdown.attributeSimilarity;
-
-    // Spiciness distance penalty
-    const spicinessDistance = Math.abs(quiz.spiciness - (meal.spiciness || 0));
-    const spicinessDistancePenalty = -0.05 * spicinessDistance;
-    scoreBreakdown.spicinessDistance = spicinessDistancePenalty;
-    score += spicinessDistancePenalty;
-
-    // Weather match bonus
-    if (meal.weather.includes(weather)) {
-      scoreBreakdown.weatherMatch = 0.2;
-      score += 0.2;
-    }
+    const scored = scoreMealWithFeedback(meal, quiz, feedback, weather);
+    if (!isMealEligible(meal, quiz.ingredientsToAvoid)) return scored;
+    const { scoreBreakdown } = scored;
+    let { score } = scored;
 
     // Surprise factor
     const surpriseMultiplier = 1 + (quiz.surpriseFactor / 10) * random.range(-0.5, 0.5);

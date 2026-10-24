@@ -1,3 +1,6 @@
+// ABOUTME: Configures the Next.js app, service worker and optional Sentry build.
+// ABOUTME: Keeps pending pilot saves intact when the network reconnects.
+
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 import withSerwistInit from "@serwist/next";
@@ -10,6 +13,8 @@ config({ path: resolve(__dirname, '../.env') });
 const withSerwist = withSerwistInit({
   swSrc: "src/sw.ts",
   swDest: "public/sw.js",
+  // Reconnection must preserve the pilot's pending answer and explicit retry.
+  reloadOnOnline: false,
   disable: process.env.NODE_ENV === "development",
 });
 

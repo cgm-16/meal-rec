@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "source": "pilot",
+  "manifest": {
+    "schemaVersion": 1,
+    "studyId": "synthetic-contract-test",
+    "studyVersion": "1",
+    "protocolVersion": "1",
+    "catalogVersion": "test-only-v1",
+    "catalogSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "startsAt": "2026-01-01T00:00:00Z",
+    "trainingEndsAt": "2026-01-06T00:00:00Z",
+    "developmentEndsAt": "2026-01-08T00:00:00Z",
+    "endsAt": "2026-01-15T00:00:00Z",
+    "quotaTimezoneRule": "enrollment",
+    "seed": 42,
+    "phase": "development",
+    "exportedAt": "2026-01-07T00:00:00Z",
+    "sourceProvenance": {
+      "name": "Synthetic test-only fixture; never empirical pilot evidence",
+      "url": null,
+      "license": "test-only",
+      "attribution": "No people or provider calls"
+    },
+    "freezeLink": null
+  },
+  "participants": [
+    {
+      "participantId": "p-test",
+      "enrolledAt": "2026-01-01T00:00:00Z",
+      "enrollmentTimezone": "Asia/Seoul",
+      "settings": [
+        {
+          "version": 1,
+          "effectiveAt": "2026-01-01T00:00:00Z",
+          "city": {
+            "cityId": "test-seoul",
+            "label": "Seoul",
+            "country": "South Korea",
+            "adminArea": null,
+            "latitude": 37.5665,
+            "longitude": 126.978,
+            "timezone": "Asia/Seoul"
+          },
+          "dietaryExclusions": []
+        }
+      ]
+    }
+  ],
+  "visits": [
+    {
+      "visitId": "v-test",
+      "participantId": "p-test",
+      "settingsVersion": 1,
+      "startedAt": "2026-01-02T12:00:00Z",
+      "expiresAt": "2026-01-02T12:30:00Z",
+      "contextCapturedAt": "2026-01-02T12:00:00Z",
+      "city": {
+        "cityId": "test-seoul",
+        "label": "Seoul",
+        "country": "South Korea",
+        "adminArea": null,
+        "latitude": 37.5665,
+        "longitude": 126.978,
+        "timezone": "Asia/Seoul"
+      },
+      "hunger": null,
+      "weather": {
+        "provider": "Open-Meteo",
+        "providerHost": "test.invalid",
+        "accessMode": "test-only",
+        "status": "partial",
+        "requestedLatitude": 37.5665,
+        "requestedLongitude": 126.978,
+        "gridLatitude": 37.5,
+        "gridLongitude": 127,
+        "validAt": "2026-01-02T11:55:00Z",
+        "sourceIntervalSeconds": 900,
+        "requestedAt": "2026-01-02T12:00:00Z",
+        "retrievedAt": "2026-01-02T12:00:01Z",
+        "temperatureC": 0,
+        "precipitationMm": 0,
+        "weatherCode": 0,
+        "units": {
+          "temperature": "celsius",
+          "precipitation": "mm"
+        },
+        "sourceTimeFormat": "unixtime",
+        "timezone": "UTC",
+        "failureReason": null
+      }
+    }
+  ],
+  "allocations": [
+    {
+      "allocationId": "a-yes",
+      "participantId": "p-test",
+      "localDate": "2026-01-02",
+      "settingsVersion": 1,
+      "itemId": "m-yes",
+      "allocatedAt": "2026-01-02T12:00:00Z",
+      "eligiblePoolSize": 4,
+      "selectionProbability": 1
+    },
+    {
+      "allocationId": "a-no",
+      "participantId": "p-test",
+      "localDate": "2026-01-02",
+      "settingsVersion": 1,
+      "itemId": "m-no",
+      "allocatedAt": "2026-01-02T12:00:00Z",
+      "eligiblePoolSize": 4,
+      "selectionProbability": 1
+    },
+    {
+      "allocationId": "a-unsure",
+      "participantId": "p-test",
+      "localDate": "2026-01-02",
+      "settingsVersion": 1,
+      "itemId": "m-unsure",
+      "allocatedAt": "2026-01-02T12:00:00Z",
+      "eligiblePoolSize": 4,
+      "selectionProbability": 1
+    },
+    {
+      "allocationId": "a-unanswered",
+      "participantId": "p-test",
+      "localDate": "2026-01-02",
+      "settingsVersion": 1,
+      "itemId": "m-unanswered",
+      "allocatedAt": "2026-01-02T12:00:00Z",
+      "eligiblePoolSize": 4,
+      "selectionProbability": 1
+    }
+  ],
+  "exposures": [
+    {
+      "eventId": "e-yes",
+      "participantId": "p-test",
+      "visitId": "v-test",
+      "allocationId": "a-yes",
+      "settingsVersion": 1,
+      "itemId": "m-yes",
+      "displayedAt": "2026-01-02T12:01:00Z",
+      "clientDisplayedAt": "2026-01-02T12:01:00Z",
+      "meal": {
+        "id": "m-yes",
+        "name": "Test meal 1",
+        "cuisine": "test",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [
+          "cold"
+        ],
+        "timeOfDay": [
+          "dinner"
+        ],
+        "spiciness": 1,
+        "heaviness": 2,
+        "imageUrl": null,
+        "description": null,
+        "flavorTags": [
+          "savory"
+        ]
+      }
+    },
+    {
+      "eventId": "e-no",
+      "participantId": "p-test",
+      "visitId": "v-test",
+      "allocationId": "a-no",
+      "settingsVersion": 1,
+      "itemId": "m-no",
+      "displayedAt": "2026-01-02T12:02:00Z",
+      "clientDisplayedAt": "2026-01-02T12:02:00Z",
+      "meal": {
+        "id": "m-no",
+        "name": "Test meal 2",
+        "cuisine": "test",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [
+          "cold"
+        ],
+        "timeOfDay": [
+          "dinner"
+        ],
+        "spiciness": 1,
+        "heaviness": 2,
+        "imageUrl": null,
+        "description": null,
+        "flavorTags": [
+          "savory"
+        ]
+      }
+    },
+    {
+      "eventId": "e-unsure",
+      "participantId": "p-test",
+      "visitId": "v-test",
+      "allocationId": "a-unsure",
+      "settingsVersion": 1,
+      "itemId": "m-unsure",
+      "displayedAt": "2026-01-02T12:03:00Z",
+      "clientDisplayedAt": "2026-01-02T12:03:00Z",
+      "meal": {
+        "id": "m-unsure",
+        "name": "Test meal 3",
+        "cuisine": "test",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [
+          "cold"
+        ],
+        "timeOfDay": [
+          "dinner"
+        ],
+        "spiciness": 1,
+        "heaviness": 2,
+        "imageUrl": null,
+        "description": null,
+        "flavorTags": [
+          "savory"
+        ]
+      }
+    },
+    {
+      "eventId": "e-unanswered",
+      "participantId": "p-test",
+      "visitId": "v-test",
+      "allocationId": "a-unanswered",
+      "settingsVersion": 1,
+      "itemId": "m-unanswered",
+      "displayedAt": "2026-01-02T12:04:00Z",
+      "clientDisplayedAt": "2026-01-02T12:04:00Z",
+      "meal": {
+        "id": "m-unanswered",
+        "name": "Test meal 4",
+        "cuisine": "test",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [
+          "cold"
+        ],
+        "timeOfDay": [
+          "dinner"
+        ],
+        "spiciness": 1,
+        "heaviness": 2,
+        "imageUrl": null,
+        "description": null,
+        "flavorTags": [
+          "savory"
+        ]
+      }
+    }
+  ],
+  "responses": [
+    {
+      "responseId": "r-yes",
+      "eventId": "e-yes",
+      "participantId": "p-test",
+      "answer": "yes",
+      "actionAt": "2026-01-02T12:01:01Z",
+      "receivedAt": "2026-01-02T12:01:02Z"
+    },
+    {
+      "responseId": "r-no",
+      "eventId": "e-no",
+      "participantId": "p-test",
+      "answer": "no",
+      "actionAt": "2026-01-02T12:02:01Z",
+      "receivedAt": "2026-01-02T12:02:02Z"
+    },
+    {
+      "responseId": "r-unsure",
+      "eventId": "e-unsure",
+      "participantId": "p-test",
+      "answer": "not_sure",
+      "actionAt": "2026-01-02T12:03:01Z",
+      "receivedAt": "2026-01-02T12:03:02Z"
+    }
+  ],
+  "audit": [
+    {
+      "eventId": "e-unanswered",
+      "reason": "client_closed"
+    }
+  ]
+}

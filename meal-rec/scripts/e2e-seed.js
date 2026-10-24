@@ -3,6 +3,7 @@
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { requireE2EDatabase, requirePilotStudyId, seedPilotStudy } = require('./e2e-pilot-study');
 
 // Simple meal schema for seeding (matches the main schema)
 const MealSchema = new mongoose.Schema({
@@ -110,7 +111,8 @@ const testUsers = [
 
 async function seedE2EDatabase() {
   try {
-    const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017/meal-rec-e2e-test';
+    const mongoUrl = requireE2EDatabase();
+    requirePilotStudyId(process.env.PILOT_STUDY_ID);
     
     console.log(`Connecting to E2E test database: ${mongoUrl}`);
     await mongoose.connect(mongoUrl, {
@@ -118,7 +120,12 @@ async function seedE2EDatabase() {
       connectTimeoutMS: 10000,
     });
 
+    requireE2EDatabase();
+    if (mongoose.connection.db.databaseName !== 'meal-rec-e2e-test') throw new Error('Refusing to seed a non-E2E database');
+
     // Clear existing data
+    await mongoose.connection.collection('pilotparticipants').deleteMany({});
+    await mongoose.connection.collection('pilotstudies').deleteMany({});
     await Meal.deleteMany({});
     await User.deleteMany({});
     await Feedback.deleteMany({});
@@ -132,6 +139,7 @@ async function seedE2EDatabase() {
     // Insert test data
     const insertedMeals = await Meal.insertMany(testMeals);
     console.log(`Seeded ${insertedMeals.length} test meals for E2E testing`);
+    await seedPilotStudy(insertedMeals.map(meal => meal.toObject()));
 
     const insertedUsers = await User.insertMany(testUsers);
     console.log(`Seeded ${insertedUsers.length} test users for E2E testing`);

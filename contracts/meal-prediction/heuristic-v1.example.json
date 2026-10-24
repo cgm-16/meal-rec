@@ -1,0 +1,841 @@
+{
+  "schemaVersion": 1,
+  "vectors": [
+    {
+      "name": "base",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [],
+      "weather": "normal",
+      "expectedScore": 1,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0,
+        "spicinessDistance": 0,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 1
+      }
+    },
+    {
+      "name": "exact-like",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [
+        {
+          "mealId": "candidate",
+          "type": "like",
+          "timestamp": "2026-01-14T12:00:00.000Z",
+          "meal": {
+            "cuisine": "Korean",
+            "heaviness": 2,
+            "spiciness": 2
+          }
+        }
+      ],
+      "weather": "normal",
+      "expectedScore": 1.4,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0.4,
+        "attributeSimilarity": 0,
+        "spicinessDistance": 0,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 1.4
+      }
+    },
+    {
+      "name": "exact-dislike",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [
+        {
+          "mealId": "candidate",
+          "type": "dislike",
+          "timestamp": "2026-01-14T12:00:00.000Z",
+          "meal": {
+            "cuisine": "Korean",
+            "heaviness": 2,
+            "spiciness": 2
+          }
+        }
+      ],
+      "weather": "normal",
+      "expectedScore": 0.6,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": -0.4,
+        "attributeSimilarity": 0,
+        "spicinessDistance": 0,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 0.6
+      }
+    },
+    {
+      "name": "similarity-cap-like",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [
+        {
+          "mealId": "other",
+          "type": "like",
+          "timestamp": "2026-01-14T12:00:00.000Z",
+          "meal": {
+            "cuisine": "Korean",
+            "heaviness": 2,
+            "spiciness": 2
+          }
+        }
+      ],
+      "weather": "normal",
+      "expectedScore": 1.2,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0.2,
+        "spicinessDistance": 0,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 1.2
+      }
+    },
+    {
+      "name": "similarity-cap-dislike",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [
+        {
+          "mealId": "other",
+          "type": "dislike",
+          "timestamp": "2026-01-14T12:00:00.000Z",
+          "meal": {
+            "cuisine": "Korean",
+            "heaviness": 2,
+            "spiciness": 2
+          }
+        }
+      ],
+      "weather": "normal",
+      "expectedScore": 0.8,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": -0.2,
+        "spicinessDistance": 0,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 0.8
+      }
+    },
+    {
+      "name": "similarity-without-cuisine",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [
+        {
+          "mealId": "other",
+          "type": "like",
+          "timestamp": "2026-01-14T12:00:00.000Z",
+          "meal": {
+            "heaviness": 2,
+            "spiciness": 2
+          }
+        }
+      ],
+      "weather": "normal",
+      "expectedScore": 1.1,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0.1,
+        "spicinessDistance": 0,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 1.1
+      }
+    },
+    {
+      "name": "similarity-mean",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [
+        {
+          "mealId": "liked",
+          "type": "like",
+          "timestamp": "2026-01-14T12:00:00.000Z",
+          "meal": {
+            "cuisine": "Korean",
+            "heaviness": 2,
+            "spiciness": 2
+          }
+        },
+        {
+          "mealId": "disliked",
+          "type": "dislike",
+          "timestamp": "2026-01-14T12:00:00.000Z",
+          "meal": {
+            "cuisine": "Korean",
+            "heaviness": 2,
+            "spiciness": 2
+          }
+        }
+      ],
+      "weather": "normal",
+      "expectedScore": 1,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0,
+        "spicinessDistance": 0,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 1
+      }
+    },
+    {
+      "name": "spice-distance-three",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 5,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [],
+      "weather": "normal",
+      "expectedScore": 0.85,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0,
+        "spicinessDistance": -0.15000000000000002,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 0.85
+      }
+    },
+    {
+      "name": "spice-distance-two",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 0,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [],
+      "weather": "normal",
+      "expectedScore": 0.9,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0,
+        "spicinessDistance": -0.1,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 0.9
+      }
+    },
+    {
+      "name": "rain",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [
+          "rain"
+        ],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [],
+      "weather": "rain",
+      "expectedScore": 1.2,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0,
+        "spicinessDistance": 0,
+        "weatherMatch": 0.2,
+        "surpriseFactor": 0,
+        "finalScore": 1.2
+      }
+    },
+    {
+      "name": "cold",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [
+          "cold"
+        ],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [],
+      "weather": "cold",
+      "expectedScore": 1.2,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0,
+        "spicinessDistance": 0,
+        "weatherMatch": 0.2,
+        "surpriseFactor": 0,
+        "finalScore": 1.2
+      }
+    },
+    {
+      "name": "hot",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [
+          "hot"
+        ],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [],
+      "weather": "hot",
+      "expectedScore": 1.2,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0,
+        "spicinessDistance": 0,
+        "weatherMatch": 0.2,
+        "surpriseFactor": 0,
+        "finalScore": 1.2
+      }
+    },
+    {
+      "name": "normal-fallback",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [
+          "normal"
+        ],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [],
+      "weather": "normal",
+      "expectedScore": 1.2,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0,
+        "spicinessDistance": 0,
+        "weatherMatch": 0.2,
+        "surpriseFactor": 0,
+        "finalScore": 1.2
+      }
+    },
+    {
+      "name": "combined",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [
+          "rain"
+        ],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 3,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [
+        {
+          "mealId": "candidate",
+          "type": "like",
+          "timestamp": "2026-01-14T12:00:00.000Z",
+          "meal": {
+            "cuisine": "Korean",
+            "heaviness": 2,
+            "spiciness": 2
+          }
+        },
+        {
+          "mealId": "other",
+          "type": "like",
+          "timestamp": "2026-01-14T12:00:00.000Z",
+          "meal": {
+            "cuisine": "Korean",
+            "heaviness": 2,
+            "spiciness": 2
+          }
+        }
+      ],
+      "weather": "rain",
+      "expectedScore": 1.7499999999999998,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0.4,
+        "attributeSimilarity": 0.2,
+        "spicinessDistance": -0.05,
+        "weatherMatch": 0.2,
+        "surpriseFactor": 0,
+        "finalScore": 1.7499999999999998
+      }
+    },
+    {
+      "name": "avoid-alias",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "peanut sauce"
+        ],
+        "allergens": [],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [
+          "nuts"
+        ],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [],
+      "weather": "normal",
+      "expectedScore": 0,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0,
+        "spicinessDistance": 0,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 0
+      }
+    },
+    {
+      "name": "avoid-allergen",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [
+          "dairy"
+        ],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [
+          "dairy"
+        ],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [],
+      "weather": "normal",
+      "expectedScore": 0,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0,
+        "spicinessDistance": 0,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 0
+      }
+    },
+    {
+      "name": "feedback-too-old",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [
+        {
+          "mealId": "candidate",
+          "type": "like",
+          "timestamp": "2025-12-31T12:00:00.000Z",
+          "meal": {
+            "cuisine": "Korean",
+            "heaviness": 2,
+            "spiciness": 2
+          }
+        }
+      ],
+      "weather": "normal",
+      "expectedScore": 1,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0,
+        "attributeSimilarity": 0,
+        "spicinessDistance": 0,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 1
+      }
+    },
+    {
+      "name": "feedback-window-boundary",
+      "asOf": "2026-01-15T12:00:00.000Z",
+      "meal": {
+        "_id": "candidate",
+        "name": "Candidate",
+        "primaryIngredients": [
+          "rice"
+        ],
+        "allergens": [],
+        "weather": [],
+        "timeOfDay": [
+          "lunch"
+        ],
+        "spiciness": 2,
+        "heaviness": 2,
+        "flavorTags": [
+          "savory"
+        ],
+        "cuisine": "Korean"
+      },
+      "quiz": {
+        "ingredientsToAvoid": [],
+        "spiciness": 2,
+        "surpriseFactor": 0
+      },
+      "recentFeedback": [
+        {
+          "mealId": "candidate",
+          "type": "like",
+          "timestamp": "2026-01-01T12:00:00.000Z",
+          "meal": {
+            "cuisine": "Korean",
+            "heaviness": 2,
+            "spiciness": 2
+          }
+        }
+      ],
+      "weather": "normal",
+      "expectedScore": 1.4,
+      "expectedBreakdown": {
+        "base": 1,
+        "feedbackBonus": 0.4,
+        "attributeSimilarity": 0,
+        "spicinessDistance": 0,
+        "weatherMatch": 0,
+        "surpriseFactor": 0,
+        "finalScore": 1.4
+      }
+    }
+  ]
+}

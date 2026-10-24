@@ -1,9 +1,10 @@
 // ABOUTME: Comprehensive tests for recommendation engine with deterministic random seed
 // ABOUTME: Tests scoring algorithm, edge cases, and all business rules
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { isMealEligible, scoreMealDeterministically, type WeatherCondition } from './index';
 import { selectRecommendation, SeededRandom, type QuizAnswers, type FeedbackEntry, type Meal, type RecommendationInput, type ScoredMeal } from './recommender';
 
 describe('Recommendation Engine', () => {
@@ -600,4 +601,94 @@ describe('ingredient exclusion against seed data', () => {
       })).toBeNull();
     }
   );
+});
+
+
+describe('pinned deterministic heuristic', () => {
+  const asOf = new Date('2026-01-15T12:00:00.000Z');
+  const base: Meal = {
+    _id: 'candidate', name: 'Candidate', primaryIngredients: [], allergens: [], weather: [],
+    timeOfDay: ['lunch'], spiciness: 2, heaviness: 2, flavorTags: [], cuisine: 'Korean'
+  };
+  const quiz: QuizAnswers = { ingredientsToAvoid: [], spiciness: 2, surpriseFactor: 0 };
+  const examples: { vectors: Array<{
+    name: string; asOf: string; meal: Meal; quiz: QuizAnswers; weather: WeatherCondition;
+    recentFeedback: Array<Omit<FeedbackEntry, 'timestamp'> & { timestamp: string }>;
+    expectedScore: number; expectedBreakdown: ScoredMeal['scoreBreakdown'];
+  }> } = JSON.parse(readFileSync(resolve(__dirname, '../../../contracts/meal-prediction/heuristic-v1.example.json'), 'utf8'));
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(asOf);
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  it.each(examples.vectors)('matches the shared core score vector: $name', vector => {
+    const feedback = vector.recentFeedback.map(entry => ({ ...entry, timestamp: new Date(entry.timestamp) }));
+    // The reference clock is explicit and surprise never enters its score.
+    vi.setSystemTime(new Date('2040-01-01T00:00:00Z'));
+    const result = scoreMealDeterministically(vector.meal, { ...vector.quiz, surpriseFactor: 10 }, feedback, vector.weather, new Date(vector.asOf));
+    expect(result.score).toBeCloseTo(vector.expectedScore, 14);
+    for (const key of Object.keys(vector.expectedBreakdown) as Array<keyof ScoredMeal['scoreBreakdown']>) {
+      expect(result.scoreBreakdown[key]).toBeCloseTo(vector.expectedBreakdown[key], 14);
+    }
+  });
+
+  it.each([
+    ['nuts', 'peanut sauce'], ['nuts', 'peanuts'], ['nuts', 'tree nuts'],
+    ['eggs', 'egg noodles'], ['onions', 'pearl onions'], ['onions', 'onion'], ['dairy', 'dairy']
+  ])('excludes %s from both primary ingredients and allergens via %s', (avoided, ingredient) => {
+    expect(isMealEligible({ primaryIngredients: [ingredient], allergens: [] }, [avoided])).toBe(false);
+    expect(isMealEligible({ primaryIngredients: [], allergens: [ingredient] }, [avoided])).toBe(false);
+  });
+
+  it('retains exact matching rather than excluding lookalike ingredients', () => {
+    expect(isMealEligible({ primaryIngredients: ['coconut', 'eggplant', 'shellfish'], allergens: [] }, ['nuts', 'eggs', 'fish'])).toBe(true);
+    expect(isMealEligible(base, [])).toBe(true);
+  });
+
+  it('preserves legacy input-order feedback and its lack of a future cutoff', () => {
+    const future: FeedbackEntry = { mealId: base._id, type: 'like', timestamp: new Date('2026-02-01T00:00:00Z'), meal: base };
+    const older: FeedbackEntry = { ...future, type: 'dislike', timestamp: new Date('2026-01-14T00:00:00Z') };
+    const score = (recentFeedback: FeedbackEntry[]) => (selectRecommendation({
+      quiz, recentFeedback, weather: 'normal', candidateMeals: [base], randomSeed: 42
+    }) as ScoredMeal).score;
+    expect(score([future])).toBe(1.4);
+    expect(score([future, older])).toBe(0.6);
+    expect(score([older, { ...future, type: 'interested' }])).toBe(1);
+  });
+
+  it.each([
+    [0, 0, 'similar', 1.05], [0, 1, 'similar', 1.05], [0, 2, 'similar', 1.05],
+    [0, 42, 'liked', 1.5999999999999999], [0, 12345, 'liked', 1.5999999999999999],
+    [10, 0, 'normal', 0.9915110185043885], [10, 1, 'plain', 1.2218670481641312],
+    [10, 2, 'normal', 1.4096701456874141], [10, 42, 'liked', 1.7617660030722617],
+    [10, 12345, 'liked', 2.3675652284175155]
+  ])('preserves seeded selection and RNG draw order with surprise %s seed %s', (surpriseFactor, randomSeed, identity, score) => {
+    const candidates: Meal[] = [
+      { ...base, _id: 'blocked', primaryIngredients: ['peanut sauce'] },
+      { ...base, _id: 'liked', weather: ['rain'] },
+      { ...base, _id: 'similar', spiciness: 3 },
+      { ...base, _id: 'disliked', cuisine: 'Italian', spiciness: 0, heaviness: 4 },
+      { ...base, _id: 'plain', cuisine: 'Thai', spiciness: 5, heaviness: 5 },
+      { ...base, _id: 'normal', weather: ['normal'], spiciness: 1 },
+      { ...base, _id: 'extra', weather: ['rain'], spiciness: 4 }
+    ];
+    const draw = vi.spyOn(SeededRandom.prototype, 'next');
+    const result = selectRecommendation({
+      quiz: { ...quiz, ingredientsToAvoid: ['nuts'], surpriseFactor },
+      recentFeedback: [
+        { mealId: 'liked', type: 'like', timestamp: new Date('2026-01-14T10:00:00Z'), meal: base },
+        { mealId: 'disliked', type: 'dislike', timestamp: new Date('2026-01-14T11:00:00Z'), meal: candidates[3] }
+      ],
+      weather: 'rain', candidateMeals: candidates, randomSeed
+    }) as ScoredMeal;
+    expect(result._id).toBe(identity);
+    expect(result.score).toBe(score);
+    // Each eligible meal draws once even with zero surprise, then sampling draws once.
+    expect(draw).toHaveBeenCalledTimes(7);
+  });
 });

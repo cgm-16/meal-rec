@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-labelledby="title desc">
+<!-- ABOUTME: Shows how context and food behavior must align to support a prediction. -->
+<!-- ABOUTME: Separates obtainable features, observed labels, and held-out validation. -->
+<title id="title">From more data to a measurable prediction</title>
+<desc id="desc">Food and personal history, current occasion, and optional external history must align on identity, food, time and observed alternatives. A model predicts a specified outcome. Weather and purchase contributions must be tested against baselines on future decisions.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#657a6c"/></marker></defs>
+<style>text{font-family:Arial,sans-serif;fill:#19362e}.title{font-size:21px;font-weight:700}.body{font-size:17px;fill:#40554b}.small{font-size:16px;fill:#40554b}.arrow{fill:none;stroke:#657a6c;stroke-width:2;marker-end:url(#arrow)}</style>
+<rect width="1200" height="820" fill="#f5f7f5"/>
+<text x="32" y="49" font-size="30" font-weight="700">From more data to a measurable prediction</text>
+<text x="32" y="80" class="body">Each useful feature must attach to a known decision, person, food and outcome.</text>
+
+<rect x="32" y="116" width="360" height="154" rx="12" fill="#ecf4eb" stroke="#3f7450"/>
+<text x="50" y="151" class="title">Food and person</text>
+<text x="50" y="184" class="body">Meal attributes and quiz answers</text>
+<text x="50" y="211" class="body">Earlier explicit reactions</text>
+<text x="50" y="238" class="small">Personal frequency, recency, taste</text>
+
+<rect x="420" y="116" width="360" height="154" rx="12" fill="#eaf2f8" stroke="#396587"/>
+<text x="438" y="151" class="title">Current occasion</text>
+<text x="438" y="184" class="body">Time, place and weather</text>
+<text x="438" y="211" class="body">Hunger or intent, if provided</text>
+<text x="438" y="238" class="small">Only information available then</text>
+
+<rect x="808" y="116" width="360" height="154" rx="12" fill="#fcf2e2" stroke="#986731"/>
+<text x="826" y="151" class="title">Optional external history</text>
+<text x="826" y="184" class="body">Voluntary itemized orders</text>
+<text x="826" y="211" class="body">Merchant data with actual access</text>
+<text x="826" y="238" class="small">Public data can suggest priors</text>
+
+<path d="M212 271V304 M600 271V304 M988 271V304" class="arrow"/>
+<rect x="32" y="310" width="1136" height="142" rx="12" fill="#fff" stroke="#9aae9e"/>
+<text x="50" y="346" class="title">Align the observations before learning</text>
+<text x="50" y="378" class="body">Identity and eater attribution · validated food mapping · event and availability time · location</text>
+<text x="50" y="406" class="body">Record the alternatives actually displayed, their known constraints, and the explicit response.</text>
+<text x="50" y="433" class="small">Public grocery identifiers do not identify MealRec users; bank totals do not identify dishes.</text>
+
+<path d="M380 453V483 M977 453V483" class="arrow"/>
+<rect x="32" y="490" width="726" height="144" rx="12" fill="#ecf4eb" stroke="#3f7450"/>
+<text x="50" y="526" class="title">Learn a specified response</text>
+<text x="50" y="558" class="body">Stable taste + context × food + earlier behavior</text>
+<text x="50" y="586" class="body">Predict choice among shown eligible meals, including “none.”</text>
+<text x="50" y="613" class="small">Hard exclusions remain outside the learned score.</text>
+
+<rect x="786" y="490" width="382" height="144" rx="12" fill="#eeeef8" stroke="#665a91"/>
+<text x="804" y="526" class="title">Keep outcomes separate</text>
+<text x="804" y="558" class="body">Stated choice · purchased · enjoyed</text>
+<text x="804" y="586" class="body">Learn only labels actually observed.</text>
+<text x="804" y="613" class="small">Missing response remains unknown.</text>
+
+<path d="M395 635V670 M977 635V670" class="arrow"/>
+<rect x="32" y="678" width="1136" height="98" rx="12" fill="#fff" stroke="#9aae9e"/>
+<text x="50" y="714" class="title">Prove the incremental value on future decisions</text>
+<text x="50" y="746" class="body">Same labels and choice sets: baseline | + weather | + purchase history | both; then remove each block.</text>
+<text x="32" y="803" class="small">MealRec prediction research · proposed study design · no predictive uplift established</text>
+</svg>
