@@ -21,6 +21,10 @@ overrides:
   postcss@<8.5.18: ^8.5.18
   tmp@<0.2.6: ^0.2.6
   basic-ftp@<6.2.1: ^6.2.1
+  '@lhci/cli@0.15.1>uuid': 11.1.1
+  'artillery@2.0.34>csv-parse': 7.0.2
+  'artillery@2.0.34>js-yaml': 4.3.2
+  '@lhci/utils@0.15.1>js-yaml': 4.3.2
 
 # Accepted audit exceptions (#58): high-severity advisories with no patched release,
 # reachable only through dev tooling that never handles untrusted input.
@@ -31,3 +35,7 @@ auditConfig:
     - GHSA-7pqw-9j4j-h8q3
     # braces via artillery > chokidar: matches local glob patterns in the load-test tool
     - GHSA-vfj7-8cjw-p6xm
+
+patchedDependencies:
+  artillery@2.0.34: patches/artillery@2.0.34.patch
+  '@lhci/utils@0.15.1': patches/@lhci__utils@0.15.1.patch
