@@ -1,0 +1,56 @@
+diff --git a/dist/lib/cmds/ping.js b/dist/lib/cmds/ping.js
+index 9155d9aeeb6ab8ca6f36c7694dd9f7f72d19072c..f2aff11750d8ac3766fba963e7b4c670d8aa68ed 100644
+--- a/dist/lib/cmds/ping.js
++++ b/dist/lib/cmds/ping.js
+@@ -36,7 +36,7 @@ function parseSpec(str) {
+         debug('parse: format2:', str, result);
+         return result;
+     }
+-    const result = YAML.safeLoad(str);
++    const result = YAML.load(str);
+     debug('parse: YAML:', str, result);
+     if (typeof result !== 'object') {
+         throw new Error('Expected object');
+diff --git a/dist/lib/cmds/run.js b/dist/lib/cmds/run.js
+index cfd733b0d62965b6874d8b2824746b0ee8be041e..6be0b9ae75e91cdd0787a868a0788f8e2fc5dd90 100644
+--- a/dist/lib/cmds/run.js
++++ b/dist/lib/cmds/run.js
+@@ -9,7 +9,7 @@ var __rewriteRelativeImportExtension = (this && this.__rewriteRelativeImportExte
+ import { createRequire } from 'node:module';
+ import { promisify as p } from 'node:util';
+ import { Args, Command, Flags } from '@oclif/core';
+-import _csv from 'csv-parse';
++import { parse as _csv } from 'csv-parse';
+ import createDebug from 'debug';
+ import { CommonRunFlags } from "../cli/common-flags.js";
+ const debug = createDebug('commands:run');
+diff --git a/dist/lib/util/prepare-test-execution-plan.js b/dist/lib/util/prepare-test-execution-plan.js
+index 52236a66d6ecef4b25b1337252435e1f6be03658..9649c0d98ba31b6a98de571b17395eefb267c745 100644
+--- a/dist/lib/util/prepare-test-execution-plan.js
++++ b/dist/lib/util/prepare-test-execution-plan.js
+@@ -2,7 +2,7 @@ import fs from 'node:fs';
+ import { createRequire } from 'node:module';
+ import path from 'node:path';
+ import { promisify as p } from 'node:util';
+-import csv from 'csv-parse';
++import { parse as csv } from 'csv-parse';
+ import createDebug from 'debug';
+ const debug = createDebug('artillery');
+ // Used for: loading user-provided .js scripts and esbuild-generated
+diff --git a/dist/lib/util.js b/dist/lib/util.js
+index d78dd7c154a76903c3862d4051fd7fb1c707af79..12b07ba2f9b86d377ad69e57df1e7889577c3d24 100644
+--- a/dist/lib/util.js
++++ b/dist/lib/util.js
+@@ -18,10 +18,9 @@ async function readScript(scriptPath) {
+     return data;
+ }
+ async function parseScript(data) {
+-    // js-yaml v3 types say string | object | undefined; scripts are
+-    // objects. Structural validation happens later in the pipeline
++    // Scripts are objects. Structural validation happens later in the pipeline
+     // (validate-script).
+-    return YAML.safeLoad(data);
++    return YAML.load(data);
+ }
+ async function addOverrides(script, flags) {
+     if (!flags.overrides) {

@@ -1,0 +1,11 @@
+diff --git a/src/lighthouserc.js b/src/lighthouserc.js
+index 1fb0f692e7508719b3b84cf566f6604d95b93ca5..b7fd5e0a110ae2fde35d7f8b44d7c5cd882c0fc7 100644
+--- a/src/lighthouserc.js
++++ b/src/lighthouserc.js
+@@ -81,5 +81,5 @@ function parseFileContentToJSON(pathToRcFile, contents) {
+   // Check if file path ends in .yaml or .yml
+   if (YAML_FILE_EXTENSION_REGEX.test(pathToRcFile)) {
+     // Parse yaml content to JSON
+-    return yaml.safeLoad(contents);
++    return yaml.load(contents);
+   }
